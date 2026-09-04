@@ -1,0 +1,247 @@
+/**
+ * Single source of truth for all user-facing text (Catalan).
+ * Logic code must reference these keys — never inline Catalan strings.
+ */
+export const ca = {
+  app: {
+    name: "Diables de les Corts",
+    tagline: "L'espai intern de la colla: bolos, reunions i tot el que cou.",
+  },
+
+  nav: {
+    bolos: "Bolos i agenda",
+    foc: "Foc",
+    musica: "Música",
+    colla: "La colla",
+    perfil: "El meu perfil",
+  },
+
+  // Compact labels for the mobile bottom tab bar.
+  tabs: {
+    bolos: "BOLOS",
+    colla: "LA COLLA",
+    musica: "MÚSICA",
+    foc: "FOC",
+    perfil: "PERFIL",
+  },
+
+  auth: {
+    emailPlaceholder: "correu@diableslescorts.cat",
+    passwordPlaceholder: "Contrasenya",
+    signIn: "Entra",
+    forgotPassword: "He oblidat la contrasenya",
+    // No public sign-up: members are created by the board.
+    noSignupNote: "Sóc nou a la colla",
+    contactBoard: "Demana l'alta a la junta",
+    signOut: "Tanca la sessió",
+    invalidCredentials: "Correu o contrasenya incorrectes.",
+    genericError: "Hi ha hagut un error. Torna-ho a provar.",
+  },
+
+  common: {
+    save: "Desa els canvis",
+    cancel: "Cancel·la",
+    done: "Fet",
+    back: "Enrere",
+    search: "Cerca…",
+    all: "Tot",
+    loading: "Carregant…",
+    empty: "No hi ha res per aquí encara.",
+    onlyBoard: "Només junta",
+    addToCalendar: "Afegeix al meu calendari",
+    addToCalendarShort: "Afegeix al calendari",
+  },
+
+  // Event kinds (bolo / meeting / poll).
+  kinds: {
+    bolo: "Bolo",
+    reunio: "Reunió",
+    votacio: "Votació",
+  },
+
+  bolos: {
+    title: "Propers bolos",
+    greeting: "Hola",
+    tabList: "Llista",
+    tabCalendar: "Calendari",
+    tabHistory: "Històric",
+    filterAll: "Tot",
+    filterBolos: "Bolos",
+    filterMeetings: "Reunions",
+    filterPolls: "Votacions",
+    searchHistory: "Cerca a l'històric…",
+    create: "+ Crea bolo, reunió o votació",
+    seasonSummary: "Resum de la temporada",
+    signedCount: (n: number) => `${n} apuntats`,
+    confirmedCount: (n: number) => `${n} confirmats`,
+    votesCount: (n: number) => `${n} vots`,
+  },
+
+  boloDetail: {
+    organizedBy: "Organitza",
+    meetingPoint: "Lloc de trobada",
+    summary: "Resum del bolo",
+    remindPending: "Recorda per email als pendents",
+    reminded: "Correu enviat ✓",
+    edit: "Edita el bolo",
+    countsFor: "Compta per a:",
+    areYouComing: "Hi vens?",
+    bringCar: "Poso cotxe",
+    route: "Recorregut",
+    whoSignedUp: "Qui s'ha apuntat",
+    comments: "Comentaris",
+    writeComment: "Escriu un comentari…",
+    responded: (a: number, b: number) => `${a} de ${b} han respost`,
+  },
+
+  // Attendance responses for a bolo.
+  responses: {
+    diable: "Diable",
+    tabaler: "Tabaler",
+    supporter: "Supporter",
+    no: "No vinc",
+    noResponse: "Sense resposta",
+  },
+
+  meetings: {
+    upcoming: "Properes reunions",
+    willAttend: "Hi seré",
+    cantAttend: "No puc",
+    whoAttends: "Qui hi assisteix",
+    attendCount: (n: number) => `${n} confirmats`,
+    agenda: "Ordre del dia",
+  },
+
+  polls: {
+    title: "Votacions",
+    open: "Oberta",
+    closed: "Tancada",
+    addOption: "+ Afegeix una opció",
+    closesOn: "Es tanca el",
+  },
+
+  requests: {
+    title: "Peticions",
+    create: "+ Nova petició",
+    stateInProgress: "En curs",
+    stateApproved: "Aprovada",
+    stateClosed: "Tancada",
+  },
+
+  colla: {
+    tabInfo: "Informació",
+    tabMembers: "Membres",
+    tabLineage: "Padrins",
+    tabBadges: "Insígnies",
+    history: "La nostra història",
+    board: "Junta directiva",
+    fee: "Quota",
+    contacts: "Contactes",
+    copyIban: "Copia l'IBAN",
+    ibanCopied: "IBAN copiat ✓",
+    searchMember: "Cerca un membre…",
+    createMember: "+ Crea un membre",
+    createBadge: "+ Crea una insígnia",
+    badgeEarnedBy: (n: number) => `${n} membre${n === 1 ? "" : "s"}`,
+  },
+
+  // Board positions (junta) — a member with a position is an admin.
+  boardPositions: {
+    presidenta: "Presidenta",
+    vicepresidenta: "Vicepresidenta",
+    secretaria: "Secretària",
+    tresorera: "Tresorera",
+    cap_de_foc: "Cap de Foc",
+    cap_de_tabals: "Cap de Tabals",
+  },
+
+  profile: {
+    title: "Perfil",
+    fullName: "Nom i cognoms",
+    nickname: "Mote",
+    phone: "Mòbil",
+    email: "Correu",
+    emergencyContact: "Contacte d'emergència",
+    medicalNotes: "Al·lèrgies o observacions mèdiques",
+    suitSize: "Talla del vestit",
+    suitSizeIntro: "La junta ho fa servir per encarregar vestits i complements nous.",
+    ownSuitFoc: "Tinc vestit propi de correfoc",
+    ownSuitTabaler: "Tinc vestit propi de tabaler",
+    clubGear: "Material de la colla",
+    boardMember: "Membre de la junta",
+    casaca: "Casaca",
+    pantalo: "Pantaló",
+    tabalerPant: "Pantaló de tabaler",
+    guants: "Necessito guants",
+    ulleres: "Necessito ulleres",
+    saved: "Canvis desats ✓",
+    personalData: "Dades personals",
+  },
+
+  member: {
+    title: "Fitxa de membre",
+    godparents: "Padrins i fillols",
+    badges: "Insígnies",
+    specials: "Insígnies especials",
+    challenges: "Reptes de bolos",
+    allBadges: "Totes les insígnies",
+    assignBadges: "Assigna insígnies",
+    needsFromClub: "Necessita de la colla:",
+    bolosDone: (n: number) => `${n} bolos fets`,
+    contact: "Contacte",
+    sizes: "Talles",
+    memberRoles: "Rols a la colla",
+  },
+
+  create: {
+    newBolo: "Nou bolo",
+    newMeeting: "Nova reunió",
+    newPoll: "Nova votació",
+    newMember: "Nou membre",
+    newBadge: "Nova insígnia",
+    title: "Títol",
+    date: "Data",
+    time: "Hora",
+    place: "Lloc",
+    meetingPoint: "Lloc de trobada",
+    organizer: "Qui ho organitza",
+    description: "Descripció",
+    routeLink: "Recorregut (enllaç del mapa)",
+    whoCanJoin: "Qui hi pot participar",
+    askCars: "Demana cotxes",
+    askSizes: "Demana talles i material",
+    countsForChallenges: "Compta per als reptes",
+    affects: "A qui afecta",
+    question: "Pregunta",
+    publishAndNotify: "Publica i avisa la colla",
+    openPoll: "Obre la votació",
+    createMemberCta: "Crea el membre",
+    roles: "Rols",
+    boardPosition: "Càrrec de junta",
+    noBoardPosition: "Sense càrrec (membre)",
+    memberCreated: "Membre creat correctament.",
+    tempPasswordIntro: "Contrasenya temporal (passa-la al nou membre):",
+    tempPasswordNote:
+      "El nou membre pot canviar-la des del seu perfil. Guarda-la ara: no es tornarà a mostrar.",
+    createAnother: "Crea'n un altre",
+  },
+
+  // Email notification copy (used by the Resend fan-out).
+  emails: {
+    newBoloSubject: (title: string) => `Nou bolo: ${title}`,
+    newMeetingSubject: (title: string) => `Nova reunió: ${title}`,
+    newPollSubject: (title: string) => `Nova votació: ${title}`,
+    greeting: "Hola,",
+    newBoloBody: "La junta ha publicat un nou bolo. Entra a l'app per apuntar-t'hi.",
+    newMeetingBody:
+      "S'ha convocat una nova reunió. Entra a l'app per confirmar si hi seràs.",
+    newPollBody: "Hi ha una nova votació oberta. Entra a l'app per votar.",
+    remindSubject: (title: string) => `Encara no has respost: ${title}`,
+    remindBody:
+      "Encara no ens has dit si vindràs a aquest bolo. Quan puguis, entra a l'app i apunta-t'hi.",
+    cta: "Obre l'app",
+    footer: "Colla de Diables de les Corts",
+  },
+} as const;
+
+export type Messages = typeof ca;

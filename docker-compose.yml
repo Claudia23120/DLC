@@ -1,0 +1,24 @@
+# Runs only the Next.js app. The database, auth and storage are provided by
+# Supabase in the cloud, so no Postgres container is needed here.
+#
+# For local development against a local Supabase stack instead of the cloud,
+# use the Supabase CLI (`supabase start`) separately and point the env vars at
+# it — see the README.
+
+services:
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        # NEXT_PUBLIC_* values are needed at build time (inlined into the bundle).
+        NEXT_PUBLIC_SUPABASE_URL: ${NEXT_PUBLIC_SUPABASE_URL}
+        NEXT_PUBLIC_SUPABASE_ANON_KEY: ${NEXT_PUBLIC_SUPABASE_ANON_KEY}
+        NEXT_PUBLIC_SITE_URL: ${NEXT_PUBLIC_SITE_URL}
+    image: colla-diables:latest
+    container_name: colla-diables
+    ports:
+      - "3000:3000"
+    env_file:
+      - .env.local
+    restart: unless-stopped

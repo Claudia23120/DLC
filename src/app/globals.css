@@ -1,0 +1,287 @@
+@import "tailwindcss";
+
+/* ══════════════════════════════════════════════════════════════════════════
+   Design tokens — ported from the Claude Design "Organic" system
+   (_ds/.../styles.css) with the project's inline overrides applied:
+   the accent ramp is RED (#c62f28) and the heading font is Anton.
+   Exposed through Tailwind v4 @theme so utilities like `bg-accent-500`,
+   `text-sand-800`, `font-heading` are available AND the raw CSS variables
+   (var(--color-accent-500)) work for pixel-faithful inline styling.
+   ══════════════════════════════════════════════════════════════════════ */
+@theme {
+  /* Surfaces & text */
+  --color-bg: #f5ead8;
+  --color-surface: #ebddc5;
+  --color-text: #201e1d;
+  --color-divider: rgba(32, 30, 29, 0.16);
+
+  /* Neutrals (shared lightness scale) */
+  --color-neutral-100: #f9f4ed;
+  --color-neutral-200: #eee7db;
+  --color-neutral-300: #dcd3c4;
+  --color-neutral-400: #c0b6a5;
+  --color-neutral-500: #a19786;
+  --color-neutral-600: #82796a;
+  --color-neutral-700: #645c50;
+  --color-neutral-800: #474238;
+  --color-neutral-900: #2e2b25;
+
+  /* Accent — RED (project override of the DS orange) */
+  --color-accent: #c62f28;
+  --color-accent-100: #fdece9;
+  --color-accent-200: #fbd4cf;
+  --color-accent-300: #f2aaa2;
+  --color-accent-400: #e0685c;
+  --color-accent-500: #c62f28;
+  --color-accent-600: #a5231e;
+  --color-accent-700: #821a16;
+  --color-accent-800: #5c1210;
+  --color-accent-900: #3a0b0a;
+
+  /* Secondary — SAGE green (used for "supporter", confirmations, cars) */
+  --color-sage-100: #f0fae1;
+  --color-sage-200: #dcefbe;
+  --color-sage-300: #ccdbb2;
+  --color-sage-400: #aebf92;
+  --color-sage-500: #7a8a5e;
+  --color-sage-600: #647049;
+  --color-sage-700: #4f5939;
+  --color-sage-800: #3f4a2a;
+  --color-sage-900: #272e1b;
+
+  /* Tertiary — SAND (used for "tabaler", neutral-warm tags) */
+  --color-sand-100: #f2ede1;
+  --color-sand-200: #e7e0d0;
+  --color-sand-300: #d6ccb6;
+  --color-sand-400: #b8ab8e;
+  --color-sand-500: #8f8267;
+  --color-sand-600: #6f634b;
+  --color-sand-700: #5a5040;
+  --color-sand-800: #4a4335;
+  --color-sand-900: #2f2a20;
+
+  /* "No vinc" / muted */
+  --color-muted-bg: #eae4d7;
+  --color-muted-text: #6b6353;
+
+  /* Typography */
+  --font-heading: var(--font-anton), "Anton", system-ui, sans-serif;
+  --font-body: var(--font-figtree), "Figtree", system-ui, sans-serif;
+
+  /* Spacing (kept from the DS) */
+  --spacing-1: 4.4px;
+  --spacing-2: 8.8px;
+  --spacing-3: 13.2px;
+  --spacing-4: 17.6px;
+  --spacing-6: 26.4px;
+  --spacing-8: 35.2px;
+
+  /* Radii */
+  --radius-sm: 8px;
+  --radius-md: 16px;
+  --radius-lg: 28px;
+
+  /* Elevation */
+  --shadow-sm: 0 1px 2px rgba(46, 43, 37, 0.14);
+  --shadow-md: 0 3px 10px rgba(46, 43, 37, 0.16);
+  --shadow-lg: 0 12px 32px rgba(46, 43, 37, 0.22);
+
+  /* Desktop switch happens at 1000px; 2-col event grid at 1280px. */
+  --breakpoint-desktop: 1000px;
+  --breakpoint-wide: 1280px;
+}
+
+/* ── Base ─────────────────────────────────────────────────────────────── */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background: var(--color-bg);
+  color: var(--color-text);
+  font-family: var(--font-body);
+  font-size: 15px;
+  line-height: 1.55;
+  font-weight: 400;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  font-family: var(--font-heading);
+  font-weight: 400;
+  line-height: 1.12;
+  letter-spacing: 0.005em;
+  text-transform: uppercase;
+  margin: 0 0 var(--spacing-2);
+}
+h1 { font-size: 42px; }
+h2 { font-size: 32px; }
+h3 { font-size: 25px; }
+h4 { font-size: 20px; }
+h5 { font-size: 16px; }
+h6 { font-size: 13px; letter-spacing: 0.08em; }
+
+p { margin: 0 0 var(--spacing-3); }
+a { color: var(--color-accent); text-underline-offset: 3px; }
+img { display: block; max-width: 100%; }
+
+.text-muted { color: rgba(32, 30, 29, 0.55); }
+
+:focus { outline: none; }
+:focus-visible { outline: 2px solid var(--color-accent); outline-offset: 2px; }
+::selection { background: rgba(198, 47, 40, 0.3); }
+
+/* Hide scrollbars on the app scroll containers, as in the design. */
+.app-scroll::-webkit-scrollbar { width: 0; height: 0; }
+.app-scroll { scrollbar-width: none; }
+
+/* Responsive visibility. The design switches from a mobile layout (bottom tab
+   bar) to a desktop layout (top nav) at 1000px. */
+.desktop-only { display: none; }
+.mobile-only { display: flex; }
+@media (min-width: 1000px) {
+  .desktop-only { display: flex; }
+  .mobile-only { display: none; }
+}
+
+/* Reserve space at the bottom of the scroll container so page content
+   never hides under the fixed mobile tab bar. */
+@media (max-width: 999px) {
+  .app-scroll { padding-bottom: 96px; }
+}
+
+/* Per-page header (kicker + title + back). Padding matches the prototype's
+   headerPad on mobile / desktop. */
+.page-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 52px 22px 14px;
+  background: var(--color-bg);
+}
+@media (min-width: 1000px) {
+  .page-header { padding: 34px 40px 18px; }
+}
+
+/* Scrollable content region + its centered inner column. */
+.page-content { padding: 6px 22px 24px; }
+@media (min-width: 1000px) {
+  .page-content { padding: 6px 40px 48px; }
+}
+.page-content-inner { width: 100%; max-width: none; }
+@media (min-width: 1000px) {
+  .page-content-inner { max-width: 860px; margin: 0 auto; }
+}
+
+/* Two-column event grid kicks in on wide screens (≥1280px). */
+.event-grid { display: grid; grid-template-columns: 1fr; gap: 14px; }
+@media (min-width: 1280px) {
+  .event-grid { grid-template-columns: 1fr 1fr; }
+}
+
+/* ══════════════════════════════════════════════════════════════════════════
+   Component classes — ported verbatim (values) from the DS styles.css so the
+   look matches the prototype. React components in components/ui wrap these.
+   ══════════════════════════════════════════════════════════════════════ */
+@layer components {
+  /* — buttons — */
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    cursor: pointer;
+    text-decoration: none;
+    font-family: var(--font-heading);
+    font-weight: 400;
+    font-size: 14px;
+    line-height: 1.2;
+    color: var(--color-text);
+    background: transparent;
+    border: 1px solid transparent;
+    padding: var(--spacing-2) calc(var(--spacing-3) * 1.2);
+    border-radius: 999px;
+  }
+  .btn svg { display: block; }
+  .btn:disabled { opacity: 0.45; cursor: not-allowed; }
+  .btn-primary { background: var(--color-accent); color: var(--color-bg); }
+  .btn-primary:hover { background: var(--color-accent-600); }
+  .btn-primary:active { background: var(--color-accent-700); }
+  .btn-secondary { border-color: var(--color-divider); }
+  .btn-secondary:hover { background: rgba(32, 30, 29, 0.07); }
+  .btn-secondary:active { background: rgba(32, 30, 29, 0.14); }
+  .btn-ghost { color: var(--color-accent); padding-inline: var(--spacing-1); }
+  .btn-ghost:hover { background: rgba(198, 47, 40, 0.1); }
+  .btn-icon { width: 36px; height: 36px; padding: 0; }
+  .btn-block { width: 100%; margin-top: var(--spacing-2); }
+
+  /* — forms — */
+  .field > label {
+    display: block;
+    font-size: 12px;
+    margin-bottom: 5px;
+    color: rgba(32, 30, 29, 0.7);
+  }
+  .input {
+    width: 100%;
+    min-height: 36px;
+    padding: 6px 14px;
+    font: inherit;
+    font-size: 14px;
+    color: var(--color-text);
+    caret-color: var(--color-accent);
+    background: var(--color-surface);
+    border: 1px solid var(--color-divider);
+    border-radius: 999px;
+  }
+  .input:hover { border-color: rgba(32, 30, 29, 0.45); }
+  .input:focus-visible { border-color: var(--color-accent); outline-offset: 0; }
+  textarea.input { min-height: 90px; resize: vertical; border-radius: var(--radius-md); }
+
+  /* — cards — */
+  .card {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-2);
+    padding: var(--spacing-3);
+    border-radius: calc(var(--radius-lg) * 1.15);
+    background: var(--color-surface);
+  }
+  .card-kicker {
+    font-size: 10px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--color-accent);
+  }
+  .card-title {
+    font-family: var(--font-heading);
+    font-weight: 400;
+    font-size: 17px;
+    line-height: 1.2;
+    letter-spacing: 0.005em;
+    text-transform: uppercase;
+  }
+  .elev-sm { box-shadow: var(--shadow-sm); }
+  .elev-md { box-shadow: var(--shadow-md); }
+  .elev-lg { box-shadow: var(--shadow-lg); }
+
+  /* — tags — */
+  .tag {
+    display: inline-flex;
+    align-items: center;
+    font-size: 11px;
+    letter-spacing: 0.02em;
+    padding: 3px 10px;
+    border-radius: 999px;
+  }
+  .tag-accent { background: var(--color-accent-100); color: var(--color-accent-800); }
+  .tag-neutral { background: var(--color-neutral-100); color: var(--color-neutral-800); }
+  .tag-outline { border: 1px solid var(--color-accent); color: var(--color-accent); }
+}
