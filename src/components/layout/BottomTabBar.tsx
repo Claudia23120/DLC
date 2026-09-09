@@ -5,8 +5,9 @@ import { usePathname } from "next/navigation";
 import { NAV_ITEMS, isActive } from "./navItems";
 
 /** Mobile bottom tab bar (<1000px). */
-export function BottomTabBar() {
+export function BottomTabBar({ isAdmin }: { isAdmin: boolean }) {
   const pathname = usePathname();
+  const visibleItems = NAV_ITEMS.filter((i) => !i.adminOnly || isAdmin);
 
   return (
     <div
@@ -22,7 +23,7 @@ export function BottomTabBar() {
         boxShadow: "0 -6px 20px rgba(46,43,37,.08)",
       }}
     >
-      {NAV_ITEMS.map((item) => {
+      {visibleItems.map((item) => {
         const on = isActive(item, pathname);
         const Icon = item.icon;
         return (

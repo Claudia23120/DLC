@@ -14,7 +14,7 @@ import { boardPositionLabel } from "@/lib/utils/labels";
 import { grantBadgeAction, revokeBadgeAction } from "@/app/(app)/colla/badge-actions";
 import { revalidatePath } from "next/cache";
 import { t } from "@/i18n/t";
-import type { MemberRole } from "@/types/database";
+import type { MemberRole, MemberStatus } from "@/types/database";
 import Link from "next/link";
 import type { ReactNode } from "react";
 
@@ -27,12 +27,21 @@ export default async function MemberPage({ params }: PageProps) {
   const viewer = await requireProfile();
   const supabase = await createClient();
 
-  const [member, fillols, memberBadges, allBadges] = await Promise.all([
+  const adminClient = viewer.is_admin ? createServiceRoleClient() : null;
+
+  const [member, fillols, memberBadges, allBadges, quotaPaymentsResult] = await Promise.all([
     getMemberWithPadrins(supabase, id),
     getFillols(supabase, id),
     getMemberBadges(supabase, id),
     listBadgesWithCounts(supabase),
+    adminClient
+      ? adminClient.from("quota_payments").select("year, paid").eq("member_id", id).order("year")
+      : Promise.resolve({ data: [] }),
   ]);
+
+  const quotaPayments: Record<number, boolean> = Object.fromEntries(
+    (quotaPaymentsResult.data ?? []).map((r) => [r.year, r.paid])
+  );
 
   if (!member) notFound();
 
@@ -54,18 +63,60 @@ export default async function MemberPage({ params }: PageProps) {
   const manualBadges = allBadges.filter((b) => b.type === "manual" || b.type === "repte");
   const earnedIds = new Set(memberBadges.map((mb) => mb.badge_id));
 
-  async function saveJoinedYear(fd: FormData) {
+  async function saveJoinedDate(fd: FormData) {
     "use server";
     const authClient = await createClient();
     const { data: { user } } = await authClient.auth.getUser();
     if (!user) return;
     const { data: me } = await authClient.from("profiles").select("is_admin").eq("id", user.id).single();
     if (!me?.is_admin) return;
-    const y = parseInt(String(fd.get("joined_year") ?? ""), 10);
-    if (!isNaN(y) && y > 1990 && y <= new Date().getFullYear()) {
+    const raw = String(fd.get("joined_date") ?? "").trim();
+    if (/^\d{4}-\d{2}-\d{2}$/.test(raw)) {
+      const year = parseInt(raw.slice(0, 4), 10);
       const admin = createServiceRoleClient();
-      await admin.from("profiles").update({ joined_year: y }).eq("id", id);
+      await admin.from("profiles").update({ joined_date: raw, joined_year: year }).eq("id", id);
     }
+    revalidatePath(`/membres/${id}`);
+  }
+
+  async function saveAdminFields(fd: FormData) {
+    "use server";
+    const authClient = await createClient();
+    const { data: { user } } = await authClient.auth.getUser();
+    if (!user) return;
+    const { data: me } = await authClient.from("profiles").select("is_admin").eq("id", user.id).single();
+    if (!me?.is_admin) return;
+    const status = String(fd.get("member_status") ?? "") as MemberStatus;
+    const validStatuses: MemberStatus[] = ["active", "inactive", "intermittent"];
+    if (!validStatuses.includes(status)) return;
+    const admin = createServiceRoleClient();
+    await admin.from("profiles").update({
+      member_status: status,
+      has_cre: fd.get("has_cre") === "on",
+      has_rgcre: fd.get("has_rgcre") === "on",
+      quota_automatic: fd.get("quota_automatic") === "on",
+    }).eq("id", id);
+    revalidatePath(`/membres/${id}`);
+  }
+
+  async function saveQuotaPayments(fd: FormData) {
+    "use server";
+    const authClient = await createClient();
+    const { data: { user } } = await authClient.auth.getUser();
+    if (!user) return;
+    const { data: me } = await authClient.from("profiles").select("is_admin").eq("id", user.id).single();
+    if (!me?.is_admin) return;
+    const yearsRaw = String(fd.get("years") ?? "");
+    const years = yearsRaw.split(",").map(Number).filter(Boolean);
+    const admin = createServiceRoleClient();
+    await admin.from("quota_payments").upsert(
+      years.map((year) => ({
+        member_id: id,
+        year,
+        paid: fd.get(`paid_${year}`) === "on",
+      })),
+      { onConflict: "member_id,year" }
+    );
     revalidatePath(`/membres/${id}`);
   }
 
@@ -82,7 +133,7 @@ export default async function MemberPage({ params }: PageProps) {
               </div>
               {member.nickname ? <div style={{ fontSize: 14, color: "var(--color-accent-700)", marginTop: 2 }}>«{member.nickname}»</div> : null}
               {member.role_title ? <div style={{ fontSize: 13, opacity: 0.6, marginTop: 2 }}>{member.role_title}</div> : null}
-              {member.joined_year ? <div style={{ fontSize: 12, opacity: 0.5, marginTop: 2 }}>Membre des de {member.joined_year}</div> : null}
+              {member.joined_date ? <div style={{ fontSize: 12, opacity: 0.5, marginTop: 2 }}>Membre des de {new Date(member.joined_date).toLocaleDateString("ca", { day: "numeric", month: "long", year: "numeric" })}</div> : null}
             </div>
           </div>
 
@@ -159,23 +210,63 @@ export default async function MemberPage({ params }: PageProps) {
 
           {viewer.is_admin ? (
             <div>
-              <h3 style={{ fontSize: 20, marginBottom: 10 }}>Any d&apos;entrada (admin)</h3>
-              <form action={saveJoinedYear} style={{ display: "flex", gap: 8 }}>
+              <h3 style={{ fontSize: 20, marginBottom: 10 }}>Data d&apos;entrada (admin)</h3>
+              <form action={saveJoinedDate} style={{ display: "flex", gap: 8 }}>
                 <input
-                  type="number"
-                  name="joined_year"
-                  defaultValue={member.joined_year ?? ""}
-                  min={1991}
-                  max={new Date().getFullYear()}
+                  type="date"
+                  name="joined_date"
+                  defaultValue={member.joined_date?.slice(0, 10) ?? ""}
                   className="input"
-                  style={{ height: 44, width: 100 }}
-                  placeholder="Any"
+                  style={{ height: 44 }}
                 />
                 <button type="submit" className="btn btn-primary" style={{ height: 44, padding: "0 18px" }}>
                   Desa
                 </button>
               </form>
             </div>
+          ) : null}
+
+          {viewer.is_admin ? (
+            <div>
+              <h3 style={{ fontSize: 20, marginBottom: 10 }}>{t.member.adminSection}</h3>
+              <form action={saveAdminFields} style={{ background: "var(--color-surface)", borderRadius: 22, boxShadow: "var(--shadow-sm)", padding: "16px" }}>
+                <div className="field" style={{ marginBottom: 14 }}>
+                  <label style={{ fontSize: 12, letterSpacing: ".06em", textTransform: "uppercase", opacity: 0.55, display: "block", marginBottom: 6 }}>
+                    {t.member.memberStatus}
+                  </label>
+                  <select name="member_status" className="input" defaultValue={member.member_status} style={{ height: 44 }}>
+                    <option value="active">{t.member.statusActive}</option>
+                    <option value="inactive">{t.member.statusInactive}</option>
+                    <option value="intermittent">{t.member.statusIntermittent}</option>
+                  </select>
+                </div>
+                <div style={{ display: "flex", flexDirection: "column", gap: 10, marginBottom: 14 }}>
+                  <label style={{ display: "flex", alignItems: "center", gap: 10, fontSize: 14, cursor: "pointer" }}>
+                    <input type="checkbox" name="has_cre" defaultChecked={member.has_cre} style={{ width: 18, height: 18 }} />
+                    {t.member.hasCre}
+                  </label>
+                  <label style={{ display: "flex", alignItems: "center", gap: 10, fontSize: 14, cursor: "pointer" }}>
+                    <input type="checkbox" name="has_rgcre" defaultChecked={member.has_rgcre} style={{ width: 18, height: 18 }} />
+                    {t.member.hasRgcre}
+                  </label>
+                  <label style={{ display: "flex", alignItems: "center", gap: 10, fontSize: 14, cursor: "pointer" }}>
+                    <input type="checkbox" name="quota_automatic" defaultChecked={member.quota_automatic} style={{ width: 18, height: 18 }} />
+                    {t.member.quotaDomiciliada}
+                  </label>
+                </div>
+                <button type="submit" className="btn btn-primary" style={{ height: 44, padding: "0 18px" }}>
+                  {t.common.save}
+                </button>
+              </form>
+            </div>
+          ) : null}
+
+          {viewer.is_admin && !member.quota_automatic ? (
+            <QuotaPaymentsSection
+              joinedYear={member.joined_date ? new Date(member.joined_date).getFullYear() : null}
+              payments={quotaPayments}
+              action={saveQuotaPayments}
+            />
           ) : null}
         </div>
       </PageContainer>
@@ -209,6 +300,46 @@ function FactRow({ label, children }: { label: string; children: ReactNode }) {
     <div style={{ display: "flex", alignItems: "center", gap: 10, padding: "11px 0", borderBottom: "1px solid rgba(32,30,29,.07)" }}>
       <span style={{ fontSize: 13, opacity: 0.55, flex: 1 }}>{label}</span>
       <span style={{ fontSize: 14 }}>{children}</span>
+    </div>
+  );
+}
+
+function QuotaPaymentsSection({
+  joinedYear,
+  payments,
+  action,
+}: {
+  joinedYear: number | null;
+  payments: Record<number, boolean>;
+  action: (fd: FormData) => Promise<void>;
+}) {
+  const currentYear = new Date().getFullYear();
+  const startYear = joinedYear ?? currentYear - 4;
+  const years = Array.from({ length: currentYear - startYear + 1 }, (_, i) => startYear + i);
+
+  return (
+    <div>
+      <h3 style={{ fontSize: 20, marginBottom: 10 }}>{t.member.quotaSection}</h3>
+      <form action={action} style={{ background: "var(--color-surface)", borderRadius: 22, boxShadow: "var(--shadow-sm)", padding: "4px 16px 16px" }}>
+        <input type="hidden" name="years" value={years.join(",")} />
+        {years.map((year) => {
+          const paid = payments[year] ?? false;
+          return (
+            <div key={year} style={{ display: "flex", alignItems: "center", gap: 10, padding: "11px 0", borderBottom: "1px solid rgba(32,30,29,.07)" }}>
+              <span style={{ fontSize: 14, flex: 1, fontVariantNumeric: "tabular-nums" }}>{year}</span>
+              <label style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 13, cursor: "pointer" }}>
+                <input type="checkbox" name={`paid_${year}`} defaultChecked={paid} style={{ width: 18, height: 18 }} />
+                <span style={{ color: paid ? "var(--color-accent-600)" : "rgba(32,30,29,.45)" }}>
+                  {paid ? t.member.quotaPaid : t.member.quotaUnpaid}
+                </span>
+              </label>
+            </div>
+          );
+        })}
+        <button type="submit" className="btn btn-primary" style={{ height: 44, padding: "0 18px", marginTop: 12 }}>
+          {t.member.quotaSave}
+        </button>
+      </form>
     </div>
   );
 }

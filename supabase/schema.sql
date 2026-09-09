@@ -760,3 +760,116 @@ drop trigger if exists bolo_attendance_badge_check on bolo_attendance;
 create trigger bolo_attendance_badge_check
   after insert or update on bolo_attendance
   for each row execute function public.bolo_attendance_badge_check_fn();
+
+
+-- ═══════════════════════════════════════════════════════════
+-- migrations/0008_member_status_cre.sql
+-- ═══════════════════════════════════════════════════════════
+-- Adds member activity status (active / inactive / intermittent) and two
+-- boolean flags (has_cre, has_rgcre). All three are admin-only fields.
+-- Inactive members are blocked from accessing the app.
+
+create type member_status as enum ('active', 'inactive', 'intermittent');
+
+alter table profiles
+  add column if not exists member_status member_status not null default 'active',
+  add column if not exists has_cre        boolean       not null default false,
+  add column if not exists has_rgcre      boolean       not null default false;
+
+alter table profiles
+  add column if not exists quota_automatic boolean not null default false;
+
+-- Extend the privileged-column guard to cover the new fields.
+create or replace function public.guard_profile_privileged_columns()
+returns trigger
+language plpgsql
+security definer
+set search_path = public
+as $$
+begin
+  -- auth.uid() is null for the service role; those writes are trusted.
+  if auth.uid() is not null and not public.is_admin() then
+    new.board_position     := old.board_position;
+    new.role_title         := old.role_title;
+    new.member_roles       := old.member_roles;
+    new.bolo_count         := old.bolo_count;
+    new.foc_count          := old.foc_count;
+    new.tabal_count        := old.tabal_count;
+    new.email              := old.email;
+    new.joined_year        := old.joined_year;
+    new.member_status      := old.member_status;
+    new.has_cre            := old.has_cre;
+    new.has_rgcre          := old.has_rgcre;
+    new.quota_automatic  := old.quota_automatic;
+  end if;
+  return new;
+end;
+$$;
+
+-- ── Per-year quota payment tracking (for non-domiciliated members) ───────
+create table if not exists quota_payments (
+  member_id  uuid not null references profiles (id) on delete cascade,
+  year       int  not null,
+  paid       boolean not null default false,
+  primary key (member_id, year)
+);
+
+create index if not exists quota_payments_member_idx on quota_payments (member_id);
+
+alter table quota_payments enable row level security;
+
+-- Only admins can read or write quota payment records.
+create policy quota_payments_admin
+  on quota_payments for all
+  to authenticated
+  using (public.is_admin())
+  with check (public.is_admin());
+
+
+-- ═══════════════════════════════════════════════════════════
+-- migrations/0009_event_cancelled.sql
+-- ═══════════════════════════════════════════════════════════
+-- Allows admins to mark a bolo/event as cancelled.
+
+alter table events
+  add column if not exists cancelled boolean not null default false;
+
+
+-- ═══════════════════════════════════════════════════════════
+-- migrations/0010_joined_date.sql
+-- ═══════════════════════════════════════════════════════════
+-- Replaces the integer joined_year with a full date (joined_date).
+-- joined_year is kept for badge-function compatibility and kept in sync
+-- by the application layer whenever joined_date is saved.
+
+alter table profiles
+  add column if not exists joined_date date;
+
+-- Migrate existing year data to Jan 1 of that year.
+update profiles
+  set joined_date = make_date(joined_year, 1, 1)
+  where joined_year is not null and joined_date is null;
+
+-- Protect the new column from non-admin writes.
+create or replace function public.guard_profile_privileged_columns()
+returns trigger language plpgsql security definer set search_path = public
+as $$
+begin
+  if auth.uid() is not null and not public.is_admin() then
+    new.board_position    := old.board_position;
+    new.role_title        := old.role_title;
+    new.member_roles      := old.member_roles;
+    new.bolo_count        := old.bolo_count;
+    new.foc_count         := old.foc_count;
+    new.tabal_count       := old.tabal_count;
+    new.email             := old.email;
+    new.joined_year       := old.joined_year;
+    new.joined_date       := old.joined_date;
+    new.member_status     := old.member_status;
+    new.has_cre           := old.has_cre;
+    new.has_rgcre         := old.has_rgcre;
+    new.quota_automatic   := old.quota_automatic;
+  end if;
+  return new;
+end;
+$$;

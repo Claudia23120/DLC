@@ -11,6 +11,7 @@ export default async function AppLayout({ children }: { children: ReactNode }) {
     <AppShell
       name={profile.full_name}
       roleLabel={boardPositionLabel(profile.board_position)}
+      isAdmin={profile.is_admin}
     >
       {children}
     </AppShell>

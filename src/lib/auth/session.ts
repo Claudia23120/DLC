@@ -30,10 +30,12 @@ export async function getCurrentProfile(): Promise<Profile | null> {
   return data;
 }
 
-/** Require a signed-in member; redirect to /login otherwise. */
+/** Require a signed-in member; redirect to /login otherwise.
+ *  Inactive members are sent to /compte-inactiu instead. */
 export async function requireProfile(): Promise<Profile> {
   const profile = await getCurrentProfile();
   if (!profile) redirect("/login");
+  if (profile.member_status === "inactive") redirect("/compte-inactiu");
   return profile;
 }
 

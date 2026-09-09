@@ -7,12 +7,17 @@ import { Card } from "@/components/ui/Card";
 import { createMemberAction, type CreateMemberState } from "@/app/(app)/colla/actions";
 import { RESPONSE_META } from "@/lib/domain/events";
 import { t } from "@/i18n/t";
-import type { BoardPosition, MemberRole } from "@/types/database";
+import type { BoardPosition, MemberRole, MemberStatus } from "@/types/database";
 
 const initial: CreateMemberState = {};
 const ROLES: MemberRole[] = ["diable", "tabaler", "supporter"];
 const BOARD_POSITIONS: BoardPosition[] = [
   "presidenta", "vicepresidenta", "secretaria", "tresorera", "cap_de_foc", "cap_de_tabals",
+];
+const MEMBER_STATUSES: { value: MemberStatus; label: string }[] = [
+  { value: "active", label: t.member.statusActive },
+  { value: "inactive", label: t.member.statusInactive },
+  { value: "intermittent", label: t.member.statusIntermittent },
 ];
 
 export function CreateMemberModal({ open, onClose }: { open: boolean; onClose: () => void }) {
@@ -50,7 +55,7 @@ export function CreateMemberModal({ open, onClose }: { open: boolean; onClose: (
           <Field label={t.profile.nickname} name="nickname" placeholder="Puigrí" style={{ height: 48 }} />
           <Field label={t.profile.email} name="email" type="email" required placeholder="nom@diableslescorts.cat" style={{ height: 48 }} />
           <Field label={t.profile.phone} name="phone" placeholder="600 00 00 00" style={{ height: 48 }} />
-          <Field label="Any d'entrada" name="joined_year" type="number" placeholder={String(new Date().getFullYear())} style={{ height: 48 }} />
+          <Field label="Data d'entrada" name="joined_date" type="date" style={{ height: 48 }} />
 
           <div>
             <div style={{ fontSize: 12, letterSpacing: ".06em", textTransform: "uppercase", opacity: 0.55, marginBottom: 6 }}>
@@ -97,6 +102,26 @@ export function CreateMemberModal({ open, onClose }: { open: boolean; onClose: (
                 <option key={p} value={p}>{t.boardPositions[p]}</option>
               ))}
             </select>
+          </div>
+
+          <div className="field">
+            <label>{t.member.memberStatus}</label>
+            <select name="member_status" className="input" defaultValue="active" style={{ height: 48 }}>
+              {MEMBER_STATUSES.map((s) => (
+                <option key={s.value} value={s.value}>{s.label}</option>
+              ))}
+            </select>
+          </div>
+
+          <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+            <label style={{ display: "flex", alignItems: "center", gap: 10, fontSize: 14, cursor: "pointer" }}>
+              <input type="checkbox" name="has_cre" style={{ width: 18, height: 18 }} />
+              {t.member.hasCre}
+            </label>
+            <label style={{ display: "flex", alignItems: "center", gap: 10, fontSize: 14, cursor: "pointer" }}>
+              <input type="checkbox" name="has_rgcre" style={{ width: 18, height: 18 }} />
+              {t.member.hasRgcre}
+            </label>
           </div>
 
           {state.error ? (

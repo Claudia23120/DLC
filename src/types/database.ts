@@ -15,6 +15,7 @@ export type BoardPosition =
   | "cap_de_tabals";
 
 export type MemberRole = "diable" | "tabaler" | "supporter";
+export type MemberStatus = "active" | "inactive" | "intermittent";
 export type EventKind = "bolo" | "reunio" | "votacio";
 export type BoloResponse = "diable" | "tabaler" | "supporter" | "no";
 export type MeetingResponse = "yes" | "no";
@@ -40,6 +41,7 @@ export interface Database {
           is_admin: boolean;
           member_roles: MemberRole[];
           joined_year: number | null;
+          joined_date: string | null;
           sizes: Record<string, unknown>;
           gear_needs: Record<string, unknown>;
           bolo_count: number;
@@ -47,6 +49,10 @@ export interface Database {
           tabal_count: number;
           padri_foc_id: string | null;
           padri_tabal_id: string | null;
+          member_status: MemberStatus;
+          has_cre: boolean;
+          has_rgcre: boolean;
+          quota_automatic: boolean;
           created_at: Timestamptz;
           updated_at: Timestamptz;
         };
@@ -63,10 +69,15 @@ export interface Database {
           board_position?: BoardPosition | null;
           member_roles?: MemberRole[];
           joined_year?: number | null;
+          joined_date?: string | null;
           sizes?: Record<string, unknown>;
           gear_needs?: Record<string, unknown>;
           padri_foc_id?: string | null;
           padri_tabal_id?: string | null;
+          member_status?: MemberStatus;
+          has_cre?: boolean;
+          has_rgcre?: boolean;
+          quota_automatic?: boolean;
         };
         Update: Partial<Database["public"]["Tables"]["profiles"]["Insert"]>;
         Relationships: [];
@@ -91,6 +102,7 @@ export interface Database {
           closes_at: Timestamptz | null;
           created_by: string | null;
           created_at: Timestamptz;
+          cancelled: boolean;
         };
         Insert: {
           id?: string;
@@ -110,6 +122,7 @@ export interface Database {
           affects?: string | null;
           closes_at?: Timestamptz | null;
           created_by?: string | null;
+          cancelled?: boolean;
         };
         Update: Partial<Database["public"]["Tables"]["events"]["Insert"]>;
         Relationships: [];
@@ -202,6 +215,12 @@ export interface Database {
         Update: Partial<Database["public"]["Tables"]["badge_definitions"]["Insert"]>;
         Relationships: [];
       };
+      quota_payments: {
+        Row: { member_id: string; year: number; paid: boolean };
+        Insert: { member_id: string; year: number; paid?: boolean };
+        Update: Partial<Database["public"]["Tables"]["quota_payments"]["Insert"]>;
+        Relationships: [];
+      };
       member_badges: {
         Row: {
           id: string;
@@ -243,6 +262,7 @@ export interface Database {
     Enums: {
       board_position: BoardPosition;
       member_role: MemberRole;
+      member_status: MemberStatus;
       event_kind: EventKind;
     };
     CompositeTypes: Record<string, never>;

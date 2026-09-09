@@ -10,11 +10,13 @@ import { t } from "@/i18n/t";
 interface TopNavProps {
   name: string;
   roleLabel: string;
+  isAdmin: boolean;
 }
 
 /** Desktop top navigation bar (≥1000px). */
-export function TopNav({ name, roleLabel }: TopNavProps) {
+export function TopNav({ name, roleLabel, isAdmin }: TopNavProps) {
   const pathname = usePathname();
+  const visibleItems = NAV_ITEMS.filter((i) => !i.adminOnly || isAdmin);
 
   return (
     <div
@@ -39,7 +41,7 @@ export function TopNav({ name, roleLabel }: TopNavProps) {
       </Link>
 
       <nav style={{ flex: 1, display: "flex", alignItems: "center", gap: 4, overflowX: "auto" }}>
-        {NAV_ITEMS.map((item) => {
+        {visibleItems.map((item) => {
           const on = isActive(item, pathname);
           return (
             <Link

@@ -14,6 +14,7 @@ export const ca = {
     musica: "Música",
     colla: "La colla",
     perfil: "El meu perfil",
+    junta: "Junta",
   },
 
   // Compact labels for the mobile bottom tab bar.
@@ -23,6 +24,7 @@ export const ca = {
     musica: "MÚSICA",
     foc: "FOC",
     perfil: "PERFIL",
+    junta: "JUNTA",
   },
 
   auth: {
@@ -191,6 +193,47 @@ export const ca = {
     contact: "Contacte",
     sizes: "Talles",
     memberRoles: "Rols a la colla",
+    adminSection: "Dades internes (junta)",
+    memberStatus: "Estat",
+    hasCre: "Té CRE",
+    hasRgcre: "Té RGCRE",
+    statusActive: "Actiu/a",
+    statusInactive: "Inactiu/a",
+    statusIntermittent: "Intermitent",
+    quotaSection: "Quota",
+    quotaAutomatic: "Quota domiciliada",
+    quotaPayments: "Historial de pagaments",
+    quotaPaid: "Pagat",
+    quotaUnpaid: "Pendent",
+    quotaSave: "Desa pagaments",
+  },
+
+  junta: {
+    title: "Panell de junta",
+    tabBolos: "Bolos",
+    tabMembres: "Membres",
+    tabReunions: "Reunions",
+    tabVotacions: "Votacions",
+    open: "Obert",
+    closed: "Tancat",
+    cancelled: "Cancel·lat",
+    cancelBolo: "Cancel·la",
+    reactivateBolo: "Reactiva",
+    participants: (n: number) => `${n} apuntat${n === 1 ? "" : "s"}`,
+    confirmed: (n: number) => `${n} confirmat${n === 1 ? "" : "s"}`,
+    votes: (n: number) => `${n} vot${n === 1 ? "" : "s"}`,
+    pollOpen: "Oberta",
+    pollClosed: "Tancada",
+    createBolo: "+ Nou bolo / reunió / votació",
+    createMember: "+ Nou membre",
+    noEvents: "Cap esdeveniment.",
+    noMembers: "Cap membre.",
+  },
+
+  inactiveAccount: {
+    title: "Compte inactiu",
+    message: "El teu compte no està actiu en aquests moments. Posa't en contacte amb la junta per a més informació.",
+    contactBoard: "Contacta amb la junta",
   },
 
   create: {

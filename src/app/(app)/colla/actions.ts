@@ -4,7 +4,7 @@ import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { createServiceRoleClient } from "@/lib/supabase/admin";
 import { t } from "@/i18n/t";
-import type { BoardPosition, MemberRole } from "@/types/database";
+import type { BoardPosition, MemberRole, MemberStatus } from "@/types/database";
 
 export interface CreateMemberState {
   error?: string;
@@ -39,8 +39,9 @@ export async function createMemberAction(
   const email = String(formData.get("email") ?? "").trim().toLowerCase();
   const nickname = String(formData.get("nickname") ?? "").trim() || null;
   const phone = String(formData.get("phone") ?? "").trim() || null;
-  const joinedYearRaw = String(formData.get("joined_year") ?? "").trim();
-  const joinedYear = joinedYearRaw ? parseInt(joinedYearRaw, 10) || null : null;
+  const joinedDateRaw = String(formData.get("joined_date") ?? "").trim();
+  const joinedDate = /^\d{4}-\d{2}-\d{2}$/.test(joinedDateRaw) ? joinedDateRaw : null;
+  const joinedYear = joinedDate ? parseInt(joinedDate.slice(0, 4), 10) : null;
 
   if (!fullName || !email) return { error: "Cal nom i correu." };
 
@@ -49,6 +50,13 @@ export async function createMemberAction(
   );
   const boardPositionRaw = String(formData.get("board_position") ?? "").trim();
   const boardPosition = (boardPositionRaw || null) as BoardPosition | null;
+  const memberStatusRaw = String(formData.get("member_status") ?? "active").trim();
+  const validStatuses: MemberStatus[] = ["active", "inactive", "intermittent"];
+  const memberStatus: MemberStatus = validStatuses.includes(memberStatusRaw as MemberStatus)
+    ? (memberStatusRaw as MemberStatus)
+    : "active";
+  const hasCre = formData.get("has_cre") === "on";
+  const hasRgcre = formData.get("has_rgcre") === "on";
 
   const admin = createServiceRoleClient();
   const tempPassword = generateTempPassword();
@@ -77,7 +85,11 @@ export async function createMemberAction(
       phone,
       member_roles: roles.length ? roles : ["diable"],
       board_position: boardPosition,
+      joined_date: joinedDate,
       joined_year: joinedYear,
+      member_status: memberStatus,
+      has_cre: hasCre,
+      has_rgcre: hasRgcre,
     })
     .eq("id", created.user.id);
 

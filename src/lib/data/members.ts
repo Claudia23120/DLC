@@ -89,6 +89,30 @@ export async function getFillols(supabase: DB, memberId: string): Promise<Fillol
   return result;
 }
 
+const ADMIN_LIST_COLUMNS =
+  "id, full_name, nickname, email, role_title, board_position, member_roles, member_status, joined_date";
+
+export interface AdminMemberItem {
+  id: string;
+  full_name: string;
+  nickname: string | null;
+  email: string;
+  role_title: string | null;
+  board_position: MemberRow["board_position"];
+  member_roles: MemberRow["member_roles"];
+  member_status: MemberRow["member_status"];
+  joined_date: string | null;
+}
+
+/** All members including inactive, with status — admin-only view. */
+export async function listAllMembersForAdmin(supabase: DB): Promise<AdminMemberItem[]> {
+  const { data } = await supabase
+    .from("profiles")
+    .select(ADMIN_LIST_COLUMNS)
+    .order("full_name", { ascending: true });
+  return (data ?? []) as AdminMemberItem[];
+}
+
 /** All members that have any padri set, for the Padrins tab. */
 export interface LineageItem {
   id: string;
