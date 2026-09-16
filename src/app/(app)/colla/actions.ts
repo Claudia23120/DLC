@@ -4,7 +4,7 @@ import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { createServiceRoleClient } from "@/lib/supabase/admin";
 import { t } from "@/i18n/t";
-import type { BoardPosition, MemberRole, MemberStatus } from "@/types/database";
+import type { BoardPosition, MemberStatus } from "@/types/database";
 
 export interface CreateMemberState {
   error?: string;
@@ -45,9 +45,6 @@ export async function createMemberAction(
 
   if (!fullName || !email) return { error: "Cal nom i correu." };
 
-  const roles = (["diable", "tabaler", "supporter"] as MemberRole[]).filter(
-    (r) => formData.get(`role_${r}`) === "on",
-  );
   const boardPositionRaw = String(formData.get("board_position") ?? "").trim();
   const boardPosition = (boardPositionRaw || null) as BoardPosition | null;
   const memberStatusRaw = String(formData.get("member_status") ?? "active").trim();
@@ -83,7 +80,6 @@ export async function createMemberAction(
       full_name: fullName,
       nickname,
       phone,
-      member_roles: roles.length ? roles : ["diable"],
       board_position: boardPosition,
       joined_date: joinedDate,
       joined_year: joinedYear,

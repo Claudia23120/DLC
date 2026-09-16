@@ -5,12 +5,10 @@ import { Modal } from "@/components/ui/Modal";
 import { Field } from "@/components/ui/Field";
 import { Card } from "@/components/ui/Card";
 import { createMemberAction, type CreateMemberState } from "@/app/(app)/colla/actions";
-import { RESPONSE_META } from "@/lib/domain/events";
 import { t } from "@/i18n/t";
-import type { BoardPosition, MemberRole, MemberStatus } from "@/types/database";
+import type { BoardPosition, MemberStatus } from "@/types/database";
 
 const initial: CreateMemberState = {};
-const ROLES: MemberRole[] = ["diable", "tabaler", "supporter"];
 const BOARD_POSITIONS: BoardPosition[] = [
   "presidenta", "vicepresidenta", "secretaria", "tresorera", "cap_de_foc", "cap_de_tabals",
 ];
@@ -22,11 +20,9 @@ const MEMBER_STATUSES: { value: MemberStatus; label: string }[] = [
 
 export function CreateMemberModal({ open, onClose }: { open: boolean; onClose: () => void }) {
   const [state, formAction, pending] = useActionState(createMemberAction, initial);
-  const [roles, setRoles] = useState<Record<MemberRole, boolean>>({ diable: true, tabaler: false, supporter: false });
   const [formKey, setFormKey] = useState(0);
 
   const reset = () => {
-    setRoles({ diable: true, tabaler: false, supporter: false });
     setFormKey((k) => k + 1);
   };
 
@@ -56,43 +52,6 @@ export function CreateMemberModal({ open, onClose }: { open: boolean; onClose: (
           <Field label={t.profile.email} name="email" type="email" required placeholder="nom@diableslescorts.cat" style={{ height: 48 }} />
           <Field label={t.profile.phone} name="phone" placeholder="600 00 00 00" style={{ height: 48 }} />
           <Field label="Data d'entrada" name="joined_date" type="date" style={{ height: 48 }} />
-
-          <div>
-            <div style={{ fontSize: 12, letterSpacing: ".06em", textTransform: "uppercase", opacity: 0.55, marginBottom: 6 }}>
-              {t.create.roles}
-            </div>
-            <div style={{ display: "flex", gap: 8 }}>
-              {ROLES.map((r) => {
-                const on = roles[r];
-                const meta = RESPONSE_META[r];
-                return (
-                  <button
-                    key={r}
-                    type="button"
-                    onClick={() => setRoles((s) => ({ ...s, [r]: !s[r] }))}
-                    style={{
-                      flex: 1,
-                      height: 46,
-                      borderRadius: 999,
-                      cursor: "pointer",
-                      fontFamily: "var(--font-heading)",
-                      fontSize: 14,
-                      borderWidth: 1,
-                      borderStyle: "solid",
-                      borderColor: on ? meta.dot : "rgba(32,30,29,.22)",
-                      background: on ? meta.bg : "transparent",
-                      color: on ? meta.color : "var(--color-text)",
-                    }}
-                  >
-                    {meta.label}
-                  </button>
-                );
-              })}
-            </div>
-            {ROLES.filter((r) => roles[r]).map((r) => (
-              <input key={r} type="hidden" name={`role_${r}`} value="on" />
-            ))}
-          </div>
 
           <div className="field">
             <label>{t.create.boardPosition}</label>

@@ -18,7 +18,7 @@ export function BottomTabBar({ isAdmin }: { isAdmin: boolean }) {
         left: 0,
         right: 0,
         zIndex: 100,
-        padding: "10px 12px 26px",
+        padding: "10px 12px calc(16px + env(safe-area-inset-bottom))",
         background: "var(--color-surface)",
         boxShadow: "0 -6px 20px rgba(46,43,37,.08)",
       }}

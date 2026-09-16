@@ -34,13 +34,12 @@ export function MembersList({ members, isAdmin }: { members: MemberListItem[]; i
           href={`/membres/${m.id}`}
           style={{ display: "flex", alignItems: "center", gap: 12, padding: "12px 14px", background: "var(--color-surface)", borderRadius: 24, boxShadow: "var(--shadow-sm)", textDecoration: "none", color: "inherit" }}
         >
-          <Avatar name={m.full_name} size={44} />
+          <Avatar name={m.full_name} url={m.avatar_url} size={44} />
           <div style={{ flex: 1, minWidth: 0 }}>
             <div style={{ display: "flex", alignItems: "baseline", gap: 6 }}>
               <span style={{ fontFamily: "var(--font-heading)", fontSize: 16 }}>{m.full_name}</span>
               {m.nickname ? <span style={{ fontSize: 12, opacity: 0.5 }}>«{m.nickname}»</span> : null}
             </div>
-            {m.role_title ? <div style={{ fontSize: 12, opacity: 0.55 }}>{m.role_title}</div> : null}
           </div>
           {m.board_position ? (
             <Tag variant="accent" style={{ flex: "none", fontSize: 10 }}>{boardPositionLabel(m.board_position)}</Tag>

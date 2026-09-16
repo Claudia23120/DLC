@@ -68,13 +68,13 @@ export function CalendarMonth({ events }: { events: EventListItem[] }) {
           </button>
         </div>
 
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(7,1fr)", gap: 4, marginBottom: 4 }}>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(7, minmax(0, 44px))", gap: 4, marginBottom: 4, justifyContent: "center" }}>
           {WEEKDAYS_CAL.map((d) => (
             <div key={d} style={{ textAlign: "center", fontSize: 10, letterSpacing: ".06em", textTransform: "uppercase", opacity: 0.45 }}>{d}</div>
           ))}
         </div>
 
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(7,1fr)", gap: 4 }}>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(7, minmax(0, 44px))", gap: 4, justifyContent: "center" }}>
           {Array.from({ length: leadingBlanks }).map((_, i) => <div key={`b${i}`} />)}
           {Array.from({ length: daysInMonth }).map((_, i) => {
             const day = i + 1;

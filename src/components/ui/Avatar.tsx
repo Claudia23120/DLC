@@ -4,6 +4,7 @@ interface AvatarProps {
   /** Full name; initials are derived from it when `initials` is not given. */
   name: string;
   initials?: string;
+  url?: string | null;
   size?: number;
   bg?: string;
   color?: string;
@@ -21,33 +22,48 @@ export function initialsOf(name: string): string {
     .toUpperCase();
 }
 
-/** Circular initials avatar, as used throughout the design. */
+/** Circular avatar: shows a photo if `url` is given, otherwise initials. */
 export function Avatar({
   name,
   initials,
+  url,
   size = 44,
   bg = "var(--color-accent-200)",
   color = "var(--color-accent-800)",
   className,
 }: AvatarProps) {
-  const style: CSSProperties = {
+  const base: CSSProperties = {
     width: size,
     height: size,
-    background: bg,
-    color,
-    fontFamily: "var(--font-heading)",
-    fontSize: Math.round(size * 0.34),
+    flex: "none",
+    borderRadius: "50%",
+    overflow: "hidden",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
   };
+
+  if (url) {
+    return (
+      // eslint-disable-next-line @next/next/no-img-element
+      <img
+        src={url}
+        alt={name}
+        className={className}
+        style={{ ...base, objectFit: "cover" }}
+      />
+    );
+  }
+
   return (
     <div
       className={className}
       style={{
-        ...style,
-        flex: "none",
-        borderRadius: "50%",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
+        ...base,
+        background: bg,
+        color,
+        fontFamily: "var(--font-heading)",
+        fontSize: Math.round(size * 0.34),
         textTransform: "uppercase",
       }}
     >

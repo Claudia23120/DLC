@@ -26,17 +26,17 @@ export function PageHeader({ kicker, title, showBack = false, userName }: PageHe
           className="btn btn-icon"
           aria-label="Enrere"
           onClick={() => router.back()}
-          style={{ background: "var(--color-surface)", boxShadow: "var(--shadow-sm)", width: 40, height: 40, flex: "none" }}
+          style={{ background: "rgba(253,236,233,.15)", color: "#fdece9", border: "none", width: 40, height: 40, flex: "none" }}
         >
           <ChevronLeftIcon size={20} />
         </button>
       ) : null}
 
       <div style={{ flex: 1, minWidth: 0 }}>
-        <div style={{ fontSize: 10, letterSpacing: ".12em", textTransform: "uppercase", color: "var(--color-accent-700)" }}>
+        <div style={{ fontSize: 10, letterSpacing: ".12em", textTransform: "uppercase", opacity: 0.6 }}>
           {kicker}
         </div>
-        <h2 style={{ fontSize: 26, margin: "2px 0 0", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+        <h2 style={{ fontSize: 26, margin: "2px 0 0", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", color: "inherit" }}>
           {title}
         </h2>
       </div>

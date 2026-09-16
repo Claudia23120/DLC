@@ -9,12 +9,12 @@ import { createClient } from "@/lib/supabase/server";
 import { createServiceRoleClient } from "@/lib/supabase/admin";
 import { getMemberWithPadrins, getFillols } from "@/lib/data/members";
 import { getMemberBadges, listBadgesWithCounts } from "@/lib/data/badges";
-import { RESPONSE_META } from "@/lib/domain/events";
 import { boardPositionLabel } from "@/lib/utils/labels";
+import { AdminOnly } from "@/components/ui/AdminOnly";
 import { grantBadgeAction, revokeBadgeAction } from "@/app/(app)/colla/badge-actions";
 import { revalidatePath } from "next/cache";
 import { t } from "@/i18n/t";
-import type { MemberRole, MemberStatus } from "@/types/database";
+import type { MemberStatus } from "@/types/database";
 import Link from "next/link";
 import type { ReactNode } from "react";
 
@@ -69,7 +69,7 @@ export default async function MemberPage({ params }: PageProps) {
     const { data: { user } } = await authClient.auth.getUser();
     if (!user) return;
     const { data: me } = await authClient.from("profiles").select("is_admin").eq("id", user.id).single();
-    if (!me?.is_admin) return;
+    if (!me?.is_admin && user.id !== id) return;
     const raw = String(fd.get("joined_date") ?? "").trim();
     if (/^\d{4}-\d{2}-\d{2}$/.test(raw)) {
       const year = parseInt(raw.slice(0, 4), 10);
@@ -132,17 +132,15 @@ export default async function MemberPage({ params }: PageProps) {
                 {member.full_name}
               </div>
               {member.nickname ? <div style={{ fontSize: 14, color: "var(--color-accent-700)", marginTop: 2 }}>«{member.nickname}»</div> : null}
-              {member.role_title ? <div style={{ fontSize: 13, opacity: 0.6, marginTop: 2 }}>{member.role_title}</div> : null}
               {member.joined_date ? <div style={{ fontSize: 12, opacity: 0.5, marginTop: 2 }}>Membre des de {new Date(member.joined_date).toLocaleDateString("ca", { day: "numeric", month: "long", year: "numeric" })}</div> : null}
             </div>
           </div>
 
-          <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
-            {member.board_position ? <Tag variant="accent">{boardPositionLabel(member.board_position)}</Tag> : null}
-            {(member.member_roles as MemberRole[]).map((r) => (
-              <Tag key={r} variant="custom" bg={RESPONSE_META[r].bg} color={RESPONSE_META[r].color}>{RESPONSE_META[r].label}</Tag>
-            ))}
-          </div>
+          {member.board_position ? (
+            <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
+              <Tag variant="accent">{boardPositionLabel(member.board_position)}</Tag>
+            </div>
+          ) : null}
 
           {member.bio ? <p style={{ fontSize: 14, margin: 0 }}>{member.bio}</p> : null}
 
@@ -182,91 +180,91 @@ export default async function MemberPage({ params }: PageProps) {
             </div>
           ) : null}
 
-          {viewer.is_admin && manualBadges.length > 0 ? (
-            <div>
-              <h3 style={{ fontSize: 20, marginBottom: 10 }}>{t.member.assignBadges}</h3>
-              <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-                {manualBadges.map((b) => {
-                  const hasIt = earnedIds.has(b.id);
-                  const action = hasIt
-                    ? revokeBadgeAction.bind(null, id, b.id)
-                    : grantBadgeAction.bind(null, id, b.id);
-                  return (
-                    <form key={b.id} action={action} style={{ display: "flex", alignItems: "center", gap: 10, padding: "10px 14px", background: "var(--color-surface)", borderRadius: 20, boxShadow: "var(--shadow-sm)" }}>
-                      <span style={{ fontSize: 22 }}>{b.icon}</span>
-                      <span style={{ flex: 1, fontFamily: "var(--font-heading)", fontSize: 14 }}>{b.name}</span>
-                      <button type="submit" className={hasIt ? "btn btn-secondary" : "btn btn-primary"} style={{ height: 36, fontSize: 13, padding: "0 14px" }}>
-                        {hasIt ? "Revoca" : "Atorga"}
-                      </button>
-                    </form>
-                  );
-                })}
-              </div>
-            </div>
-          ) : null}
-
           <FactTable title={t.member.contact} rows={facts} />
           {sizeRows.length ? <FactTable title={t.member.sizes} rows={sizeRows} /> : null}
 
+          <div>
+            <h3 style={{ fontSize: 20, marginBottom: 10 }}>Data d&apos;entrada</h3>
+            <form action={saveJoinedDate} style={{ display: "flex", gap: 8 }}>
+              <input
+                type="date"
+                name="joined_date"
+                defaultValue={member.joined_date?.slice(0, 10) ?? ""}
+                className="input"
+                style={{ height: 44 }}
+              />
+              <button type="submit" className="btn btn-primary" style={{ height: 44, padding: "0 18px" }}>
+                Desa
+              </button>
+            </form>
+          </div>
+
           {viewer.is_admin ? (
-            <div>
-              <h3 style={{ fontSize: 20, marginBottom: 10 }}>Data d&apos;entrada (admin)</h3>
-              <form action={saveJoinedDate} style={{ display: "flex", gap: 8 }}>
-                <input
-                  type="date"
-                  name="joined_date"
-                  defaultValue={member.joined_date?.slice(0, 10) ?? ""}
-                  className="input"
-                  style={{ height: 44 }}
+            <AdminOnly>
+              {manualBadges.length > 0 ? (
+                <div>
+                  <h3 style={{ fontSize: 20, marginBottom: 10 }}>{t.member.assignBadges}</h3>
+                  <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+                    {manualBadges.map((b) => {
+                      const hasIt = earnedIds.has(b.id);
+                      const action = hasIt
+                        ? revokeBadgeAction.bind(null, id, b.id)
+                        : grantBadgeAction.bind(null, id, b.id);
+                      return (
+                        <form key={b.id} action={action} style={{ display: "flex", alignItems: "center", gap: 10, padding: "10px 14px", background: "var(--color-surface)", borderRadius: 20, boxShadow: "var(--shadow-sm)" }}>
+                          <span style={{ fontSize: 22 }}>{b.icon}</span>
+                          <span style={{ flex: 1, fontFamily: "var(--font-heading)", fontSize: 14 }}>{b.name}</span>
+                          <button type="submit" className={hasIt ? "btn btn-secondary" : "btn btn-primary"} style={{ height: 36, fontSize: 13, padding: "0 14px" }}>
+                            {hasIt ? "Revoca" : "Atorga"}
+                          </button>
+                        </form>
+                      );
+                    })}
+                  </div>
+                </div>
+              ) : null}
+
+              <div>
+                <h3 style={{ fontSize: 20, marginBottom: 10 }}>{t.member.adminSection}</h3>
+                <form action={saveAdminFields} style={{ background: "var(--color-surface)", borderRadius: 22, boxShadow: "var(--shadow-sm)", padding: "16px" }}>
+                  <div className="field" style={{ marginBottom: 14 }}>
+                    <label style={{ fontSize: 12, letterSpacing: ".06em", textTransform: "uppercase", opacity: 0.55, display: "block", marginBottom: 6 }}>
+                      {t.member.memberStatus}
+                    </label>
+                    <select name="member_status" className="input" defaultValue={member.member_status} style={{ height: 44 }}>
+                      <option value="active">{t.member.statusActive}</option>
+                      <option value="inactive">{t.member.statusInactive}</option>
+                      <option value="intermittent">{t.member.statusIntermittent}</option>
+                    </select>
+                  </div>
+                  <div style={{ display: "flex", flexDirection: "column", gap: 10, marginBottom: 14 }}>
+                    <label style={{ display: "flex", alignItems: "center", gap: 10, fontSize: 14, cursor: "pointer" }}>
+                      <input type="checkbox" name="has_cre" defaultChecked={member.has_cre} style={{ width: 18, height: 18 }} />
+                      {t.member.hasCre}
+                    </label>
+                    <label style={{ display: "flex", alignItems: "center", gap: 10, fontSize: 14, cursor: "pointer" }}>
+                      <input type="checkbox" name="has_rgcre" defaultChecked={member.has_rgcre} style={{ width: 18, height: 18 }} />
+                      {t.member.hasRgcre}
+                    </label>
+                    <label style={{ display: "flex", alignItems: "center", gap: 10, fontSize: 14, cursor: "pointer" }}>
+                      <input type="checkbox" name="quota_automatic" defaultChecked={member.quota_automatic} style={{ width: 18, height: 18 }} />
+                      {t.member.quotaAutomatic}
+                    </label>
+                  </div>
+                  <button type="submit" className="btn btn-primary" style={{ height: 44, padding: "0 18px" }}>
+                    {t.common.save}
+                  </button>
+                </form>
+              </div>
+
+              {!member.quota_automatic ? (
+                <QuotaPaymentsSection
+                  joinedYear={member.joined_date ? new Date(member.joined_date).getFullYear() : null}
+                  payments={quotaPayments}
+                  action={saveQuotaPayments}
                 />
-                <button type="submit" className="btn btn-primary" style={{ height: 44, padding: "0 18px" }}>
-                  Desa
-                </button>
-              </form>
-            </div>
-          ) : null}
-
-          {viewer.is_admin ? (
-            <div>
-              <h3 style={{ fontSize: 20, marginBottom: 10 }}>{t.member.adminSection}</h3>
-              <form action={saveAdminFields} style={{ background: "var(--color-surface)", borderRadius: 22, boxShadow: "var(--shadow-sm)", padding: "16px" }}>
-                <div className="field" style={{ marginBottom: 14 }}>
-                  <label style={{ fontSize: 12, letterSpacing: ".06em", textTransform: "uppercase", opacity: 0.55, display: "block", marginBottom: 6 }}>
-                    {t.member.memberStatus}
-                  </label>
-                  <select name="member_status" className="input" defaultValue={member.member_status} style={{ height: 44 }}>
-                    <option value="active">{t.member.statusActive}</option>
-                    <option value="inactive">{t.member.statusInactive}</option>
-                    <option value="intermittent">{t.member.statusIntermittent}</option>
-                  </select>
-                </div>
-                <div style={{ display: "flex", flexDirection: "column", gap: 10, marginBottom: 14 }}>
-                  <label style={{ display: "flex", alignItems: "center", gap: 10, fontSize: 14, cursor: "pointer" }}>
-                    <input type="checkbox" name="has_cre" defaultChecked={member.has_cre} style={{ width: 18, height: 18 }} />
-                    {t.member.hasCre}
-                  </label>
-                  <label style={{ display: "flex", alignItems: "center", gap: 10, fontSize: 14, cursor: "pointer" }}>
-                    <input type="checkbox" name="has_rgcre" defaultChecked={member.has_rgcre} style={{ width: 18, height: 18 }} />
-                    {t.member.hasRgcre}
-                  </label>
-                  <label style={{ display: "flex", alignItems: "center", gap: 10, fontSize: 14, cursor: "pointer" }}>
-                    <input type="checkbox" name="quota_automatic" defaultChecked={member.quota_automatic} style={{ width: 18, height: 18 }} />
-                    {t.member.quotaDomiciliada}
-                  </label>
-                </div>
-                <button type="submit" className="btn btn-primary" style={{ height: 44, padding: "0 18px" }}>
-                  {t.common.save}
-                </button>
-              </form>
-            </div>
-          ) : null}
-
-          {viewer.is_admin && !member.quota_automatic ? (
-            <QuotaPaymentsSection
-              joinedYear={member.joined_date ? new Date(member.joined_date).getFullYear() : null}
-              payments={quotaPayments}
-              action={saveQuotaPayments}
-            />
+              ) : null}
+            </AdminOnly>
           ) : null}
         </div>
       </PageContainer>

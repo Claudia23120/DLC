@@ -5,7 +5,7 @@ import type { Database } from "@/types/database";
 type CookieToSet = { name: string; value: string; options: CookieOptions };
 
 // Routes reachable without a session.
-const PUBLIC_PATHS = ["/login", "/auth"];
+const PUBLIC_PATHS = ["/login", "/auth", "/forgot-password", "/reset-password", "/compte-inactiu"];
 
 /**
  * Refreshes the Supabase session on every request and guards the app routes.

@@ -22,12 +22,23 @@ const figtree = Figtree({
 export const metadata: Metadata = {
   title: ca.app.name,
   description: ca.app.tagline,
+  appleWebApp: {
+    capable: true,
+    title: "Diables",
+    statusBarStyle: "black-translucent",
+  },
+  formatDetection: { telephone: false },
+  icons: {
+    icon: "/icon.svg",
+    apple: "/icon.svg",
+  },
 };
 
 export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
   themeColor: "#3a0b0a",
+  viewportFit: "cover",
 };
 
 export default function RootLayout({

@@ -36,10 +36,8 @@ export interface Database {
           emergency_contact: string | null;
           medical_notes: string | null;
           bio: string | null;
-          role_title: string | null;
           board_position: BoardPosition | null;
           is_admin: boolean;
-          member_roles: MemberRole[];
           joined_year: number | null;
           joined_date: string | null;
           sizes: Record<string, unknown>;
@@ -53,6 +51,7 @@ export interface Database {
           has_cre: boolean;
           has_rgcre: boolean;
           quota_automatic: boolean;
+          avatar_url: string | null;
           created_at: Timestamptz;
           updated_at: Timestamptz;
         };
@@ -65,9 +64,7 @@ export interface Database {
           emergency_contact?: string | null;
           medical_notes?: string | null;
           bio?: string | null;
-          role_title?: string | null;
           board_position?: BoardPosition | null;
-          member_roles?: MemberRole[];
           joined_year?: number | null;
           joined_date?: string | null;
           sizes?: Record<string, unknown>;
@@ -78,6 +75,7 @@ export interface Database {
           has_cre?: boolean;
           has_rgcre?: boolean;
           quota_automatic?: boolean;
+          avatar_url?: string | null;
         };
         Update: Partial<Database["public"]["Tables"]["profiles"]["Insert"]>;
         Relationships: [];

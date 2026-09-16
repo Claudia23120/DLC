@@ -9,21 +9,20 @@ import { t } from "@/i18n/t";
 
 interface TopNavProps {
   name: string;
-  roleLabel: string;
   isAdmin: boolean;
 }
 
 /** Desktop top navigation bar (≥1000px). */
-export function TopNav({ name, roleLabel, isAdmin }: TopNavProps) {
+export function TopNav({ name, isAdmin }: TopNavProps) {
   const pathname = usePathname();
   const visibleItems = NAV_ITEMS.filter((i) => !i.adminOnly || isAdmin);
 
   return (
     <div
-      className="desktop-only"
+      className="desktop-grid"
       style={{
+        gridTemplateColumns: "1fr auto 1fr",
         alignItems: "center",
-        gap: 22,
         padding: "0 40px",
         height: 72,
         flex: "none",
@@ -40,7 +39,7 @@ export function TopNav({ name, roleLabel, isAdmin }: TopNavProps) {
         </span>
       </Link>
 
-      <nav style={{ flex: 1, display: "flex", alignItems: "center", gap: 4, overflowX: "auto" }}>
+      <nav style={{ display: "flex", alignItems: "center", gap: 4 }}>
         {visibleItems.map((item) => {
           const on = isActive(item, pathname);
           return (
@@ -69,11 +68,8 @@ export function TopNav({ name, roleLabel, isAdmin }: TopNavProps) {
         })}
       </nav>
 
-      <Link href="/perfil" style={{ display: "flex", alignItems: "center", gap: 10, flex: "none", color: "inherit", textDecoration: "none" }}>
-        <span style={{ minWidth: 0, textAlign: "right" }}>
-          <span style={{ display: "block", fontSize: 12, whiteSpace: "nowrap" }}>{name}</span>
-          <span style={{ display: "block", fontSize: 10, opacity: 0.6 }}>{roleLabel}</span>
-        </span>
+      <Link href="/perfil" style={{ display: "flex", alignItems: "center", gap: 10, justifySelf: "end", color: "inherit", textDecoration: "none" }}>
+        <span style={{ fontSize: 12, whiteSpace: "nowrap" }}>{name}</span>
         <Avatar name={name} size={32} />
       </Link>
     </div>

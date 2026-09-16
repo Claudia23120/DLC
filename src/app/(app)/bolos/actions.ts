@@ -150,6 +150,30 @@ export async function createEventAction(
   redirect(eventDetailHref(newId, kind));
 }
 
+/** Admin: set any member's attendance (or remove it with response=null). */
+export async function adminSetBoloAttendance(
+  eventId: string,
+  memberId: string,
+  response: BoloResponse | null,
+): Promise<void> {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return;
+  const { data: me } = await supabase.from("profiles").select("is_admin").eq("id", user.id).single();
+  if (!me?.is_admin) return;
+
+  if (response === null) {
+    await supabase.from("bolo_attendance").delete()
+      .eq("event_id", eventId).eq("member_id", memberId);
+  } else {
+    await supabase.from("bolo_attendance").upsert(
+      { event_id: eventId, member_id: memberId, response, brings_car: false },
+      { onConflict: "event_id,member_id" },
+    );
+  }
+  revalidatePath(`/bolos/${eventId}`);
+}
+
 /** Admin: email members who have not yet responded to a bolo. */
 export async function remindPending(eventId: string): Promise<void> {
   const supabase = await createClient();

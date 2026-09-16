@@ -9,9 +9,12 @@ import { AttendancePicker } from "@/components/bolos/AttendancePicker";
 import { SignupList } from "@/components/bolos/SignupList";
 import { CommentSection } from "@/components/bolos/CommentSection";
 import { BoloAdminSummary, type SummaryCell } from "@/components/bolos/BoloAdminSummary";
+import { BoloAttendanceAdmin } from "@/components/bolos/BoloAttendanceAdmin";
+import { AdminOnly } from "@/components/ui/AdminOnly";
 import { requireProfile } from "@/lib/auth/session";
 import { createClient } from "@/lib/supabase/server";
 import { getEvent, getBoloSignups, getComments, getMyBoloResponse } from "@/lib/data/events";
+import { listMembers } from "@/lib/data/members";
 import { eventDetailHref, RESPONSE_META, KIND_META } from "@/lib/domain/events";
 import { googleCalendarUrl } from "@/lib/calendar/ics";
 import { formatLongDate, formatTime } from "@/lib/utils/dates";
@@ -31,11 +34,12 @@ export default async function BoloDetailPage({ params }: PageProps) {
   // Meetings / polls have their own detail routes.
   if (event.kind !== "bolo") redirect(eventDetailHref(event.id, event.kind));
 
-  const [signups, comments, mine, { count: memberCount }] = await Promise.all([
+  const [signups, comments, mine, { count: memberCount }, allMembers] = await Promise.all([
     getBoloSignups(supabase, id),
     getComments(supabase, id),
     getMyBoloResponse(supabase, id, profile.id),
     supabase.from("profiles").select("*", { count: "exact", head: true }),
+    profile.is_admin ? listMembers(supabase) : Promise.resolve([]),
   ]);
 
   const totalMembers = memberCount ?? 0;
@@ -94,7 +98,17 @@ export default async function BoloDetailPage({ params }: PageProps) {
             ) : null}
           </Card>
 
-          {profile.is_admin ? <BoloAdminSummary eventId={event.id} cells={summaryCells} /> : null}
+          {profile.is_admin ? (
+            <AdminOnly>
+              <BoloAdminSummary eventId={event.id} cells={summaryCells} />
+              <BoloAttendanceAdmin
+                eventId={event.id}
+                allowedRoles={event.allowed_roles}
+                allMembers={allMembers}
+                signups={signups}
+              />
+            </AdminOnly>
+          ) : null}
 
           <AttendancePicker
             eventId={event.id}

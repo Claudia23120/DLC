@@ -10,9 +10,8 @@ export interface MemberListItem {
   full_name: string;
   nickname: string | null;
   email: string;
-  role_title: string | null;
   board_position: MemberRow["board_position"];
-  member_roles: MemberRow["member_roles"];
+  avatar_url: string | null;
 }
 
 export interface MemberWithPadrins extends MemberRow {
@@ -27,7 +26,7 @@ export interface Fillol {
   role: "foc" | "tabal";
 }
 
-const LIST_COLUMNS = "id, full_name, nickname, email, role_title, board_position, member_roles";
+const LIST_COLUMNS = "id, full_name, nickname, email, board_position, avatar_url";
 
 /** All members, alphabetical. */
 export async function listMembers(supabase: DB): Promise<MemberListItem[]> {
@@ -90,18 +89,18 @@ export async function getFillols(supabase: DB, memberId: string): Promise<Fillol
 }
 
 const ADMIN_LIST_COLUMNS =
-  "id, full_name, nickname, email, role_title, board_position, member_roles, member_status, joined_date";
+  "id, full_name, nickname, email, board_position, member_status, joined_date, avatar_url, quota_automatic";
 
 export interface AdminMemberItem {
   id: string;
   full_name: string;
   nickname: string | null;
   email: string;
-  role_title: string | null;
   board_position: MemberRow["board_position"];
-  member_roles: MemberRow["member_roles"];
   member_status: MemberRow["member_status"];
   joined_date: string | null;
+  avatar_url: string | null;
+  quota_automatic: boolean;
 }
 
 /** All members including inactive, with status — admin-only view. */

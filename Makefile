@@ -24,7 +24,7 @@ build: ## Build the Docker images
 
 start: ## Start the project (docker compose up, detached)
 	$(COMPOSE) up -d
-	@echo "App running at http://localhost:3000"
+	@echo "App running at http://localhost:3005"
 
 stop: ## Stop the project (docker compose down)
 	$(COMPOSE) down
@@ -37,8 +37,16 @@ logs: ## Follow the app logs
 shell: ## Open a shell inside the running app container
 	$(COMPOSE) exec web sh
 
-dev: ## Run the dev server inside a container with live reload
-	$(COMPOSE) run --rm --service-ports web npm run dev
+dev: ## Stop prod and run dev server with live reload (port 3005)
+	$(COMPOSE) down
+	docker run --rm \
+		--volume $(CURDIR):/app \
+		--volume colla-diables-node-modules:/app/node_modules \
+		-w /app \
+		--env-file .env.local \
+		-p 3005:3000 \
+		node:20-alpine \
+		sh -c "npm install && npm run dev"
 
 clean: ## Stop and remove containers, images and volumes for this project
 	$(COMPOSE) down --rmi local --volumes --remove-orphans

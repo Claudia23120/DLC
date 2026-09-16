@@ -4,7 +4,7 @@
   "private": true,
   "description": "Management intranet for Colla de Diables de Les Corts",
   "scripts": {
-    "dev": "next dev",
+    "dev": "next dev --turbopack",
     "build": "next build",
     "start": "next start",
     "lint": "next lint",

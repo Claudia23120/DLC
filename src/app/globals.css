@@ -91,6 +91,12 @@
   --breakpoint-wide: 1280px;
 }
 
+/* ── Animations ───────────────────────────────────────────────────────── */
+@keyframes skeleton-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.45; }
+}
+
 /* ── Base ─────────────────────────────────────────────────────────────── */
 *,
 *::before,
@@ -145,16 +151,18 @@ img { display: block; max-width: 100%; }
 /* Responsive visibility. The design switches from a mobile layout (bottom tab
    bar) to a desktop layout (top nav) at 1000px. */
 .desktop-only { display: none; }
+.desktop-grid { display: none; }
 .mobile-only { display: flex; }
 @media (min-width: 1000px) {
   .desktop-only { display: flex; }
+  .desktop-grid { display: grid; }
   .mobile-only { display: none; }
 }
 
 /* Reserve space at the bottom of the scroll container so page content
    never hides under the fixed mobile tab bar. */
 @media (max-width: 999px) {
-  .app-scroll { padding-bottom: 96px; }
+  .app-scroll { padding-bottom: calc(96px + env(safe-area-inset-bottom)); }
 }
 
 /* Per-page header (kicker + title + back). Padding matches the prototype's
@@ -163,11 +171,21 @@ img { display: block; max-width: 100%; }
   display: flex;
   align-items: center;
   gap: 12px;
-  padding: 52px 22px 14px;
-  background: var(--color-bg);
+  padding: calc(14px + env(safe-area-inset-top)) 22px 28px;
+  background: var(--color-accent-900);
+  color: #fdece9;
+  border-bottom-left-radius: 28px;
+  border-bottom-right-radius: 28px;
+  margin-bottom: 8px;
 }
 @media (min-width: 1000px) {
-  .page-header { padding: 34px 40px 18px; }
+  .page-header {
+    padding: 34px 40px 18px;
+    background: var(--color-bg);
+    color: var(--color-text);
+    border-bottom-left-radius: 0;
+    border-bottom-right-radius: 0;
+  }
 }
 
 /* Scrollable content region + its centered inner column. */

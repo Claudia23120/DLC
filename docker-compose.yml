@@ -18,7 +18,7 @@ services:
     image: colla-diables:latest
     container_name: colla-diables
     ports:
-      - "3000:3000"
+      - "3005:3000"
     env_file:
       - .env.local
     restart: unless-stopped

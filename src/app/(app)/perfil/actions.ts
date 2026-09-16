@@ -4,6 +4,11 @@ import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { t } from "@/i18n/t";
 
+export interface ChangePasswordState {
+  error?: string;
+  ok?: boolean;
+}
+
 export interface ProfileFormState {
   error?: string;
   ok?: boolean;
@@ -64,5 +69,40 @@ export async function updateProfile(
   if (error) return { error: t.auth.genericError };
 
   revalidatePath("/perfil");
+  return { ok: true };
+}
+
+export async function updateAvatarUrl(
+  avatarUrl: string,
+): Promise<{ error?: string }> {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return { error: t.auth.genericError };
+
+  const { error } = await supabase
+    .from("profiles")
+    .update({ avatar_url: avatarUrl })
+    .eq("id", user.id);
+
+  if (error) return { error: t.auth.genericError };
+
+  revalidatePath("/perfil");
+  return {};
+}
+
+export async function changePassword(
+  _prev: ChangePasswordState,
+  formData: FormData,
+): Promise<ChangePasswordState> {
+  const password = String(formData.get("password") ?? "");
+  const confirm = String(formData.get("confirm") ?? "");
+
+  if (!password) return { error: t.auth.genericError };
+  if (password !== confirm) return { error: t.auth.passwordMismatch };
+
+  const supabase = await createClient();
+  const { error } = await supabase.auth.updateUser({ password });
+  if (error) return { error: t.auth.genericError };
+
   return { ok: true };
 }

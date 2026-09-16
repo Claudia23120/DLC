@@ -38,6 +38,19 @@ export const ca = {
     signOut: "Tanca la sessió",
     invalidCredentials: "Correu o contrasenya incorrectes.",
     genericError: "Hi ha hagut un error. Torna-ho a provar.",
+    forgotPasswordTitle: "He oblidat la contrasenya",
+    forgotPasswordIntro: "Introdueix el teu correu i t'enviarem un enllaç per restablir-la.",
+    forgotPasswordCta: "Envia l'enllaç",
+    forgotPasswordSent: "Correu enviat. Revisa la teva bústia i segueix les instruccions.",
+    backToLogin: "Torna a l'inici de sessió",
+    resetPasswordTitle: "Nova contrasenya",
+    resetPasswordIntro: "Escriu la teva nova contrasenya.",
+    newPassword: "Nova contrasenya",
+    confirmPassword: "Confirma la contrasenya",
+    resetPasswordCta: "Desa la contrasenya",
+    passwordMismatch: "Les contrasenyes no coincideixen.",
+    passwordTooShort: "La contrasenya ha de tenir com a mínim 8 caràcters.",
+    invalidLink: "L'enllaç no és vàlid o ha caducat. Sol·licita un de nou.",
   },
 
   common: {
@@ -86,6 +99,8 @@ export const ca = {
     remindPending: "Recorda per email als pendents",
     reminded: "Correu enviat ✓",
     edit: "Edita el bolo",
+    manageAttendance: "Gestiona assistència",
+    removeAttendance: "Treure",
     countsFor: "Compta per a:",
     areYouComing: "Hi vens?",
     bringCar: "Poso cotxe",
@@ -178,6 +193,14 @@ export const ca = {
     ulleres: "Necessito ulleres",
     saved: "Canvis desats ✓",
     personalData: "Dades personals",
+    changePhoto: "Canvia la foto",
+    changePassword: "Canvia la contrasenya",
+    passwordChanged: "Contrasenya canviada ✓",
+    boloStats: "Els meus bolos",
+    statsParticipated: "Hi he anat",
+    statsDeclined: "No he pogut",
+    statsNoResponse: "Sense resposta",
+    statsTotal: (n: number) => `${n} bolos publicats en total`,
   },
 
   member: {
@@ -228,6 +251,16 @@ export const ca = {
     createMember: "+ Nou membre",
     noEvents: "Cap esdeveniment.",
     noMembers: "Cap membre.",
+    edit: "Edita",
+    exportCSV: "Exporta CSV",
+    statsActive: "Membres actius",
+    statsQuota: "Quota pagada",
+    statsBolos: "Bolos enguany",
+    statsAvgAttendance: "Assis. mitjana",
+    tabQuotes: "Quotes",
+    quotaPaidSummary: (paid: number, total: number) => `${paid} de ${total} han pagat`,
+    quotaMarkPaid: "Pagat",
+    quotaMarkUnpaid: "Pendent",
   },
 
   inactiveAccount: {
@@ -267,7 +300,15 @@ export const ca = {
     tempPasswordNote:
       "El nou membre pot canviar-la des del seu perfil. Guarda-la ara: no es tornarà a mostrar.",
     createAnother: "Crea'n un altre",
+    titleRequired: "Cal un títol.",
+    editBolo: "Edita el bolo",
+    editMeeting: "Edita la reunió",
+    editPoll: "Edita la votació",
+    saveChanges: "Desa els canvis",
+    deleteEvent: "Elimina",
+    deleteConfirm: "Segur que vols eliminar aquest esdeveniment? Aquesta acció no es pot desfer.",
   },
+
 
   // Email notification copy (used by the Resend fan-out).
   emails: {
