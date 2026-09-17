@@ -4,6 +4,7 @@ import { useActionState, useEffect, useState } from "react";
 import { Modal } from "@/components/ui/Modal";
 import { Field } from "@/components/ui/Field";
 import { Toggle } from "@/components/ui/Toggle";
+import { RichTextEditor } from "@/components/ui/RichTextEditor";
 import { updateEventAction, type UpdateEventState } from "@/app/(app)/junta/actions";
 import { RESPONSE_META } from "@/lib/domain/events";
 import { madridParts } from "@/lib/utils/dates";
@@ -49,6 +50,7 @@ export function EditEventModal({
   });
   const [askCars, setAskCars] = useState(event.ask_cars ?? true);
   const [askSizes, setAskSizes] = useState(event.ask_sizes ?? true);
+  const [allowMultiple, setAllowMultiple] = useState(event.allow_multiple_options ?? false);
 
   useEffect(() => {
     if (state.ok) onClose();
@@ -93,7 +95,7 @@ export function EditEventModal({
         {event.kind === "bolo" ? (
           <>
             <Field label={t.create.organizer} name="organizer" defaultValue={event.organizer ?? ""} style={{ height: 48 }} />
-            <Field label={t.create.description} name="description" defaultValue={event.description ?? ""} style={{ height: 48 }} />
+            <RichTextEditor name="description" label={t.create.description} defaultValue={event.description ?? ""} />
             <Field label={t.create.routeLink} name="map_url" defaultValue={event.map_url ?? ""} placeholder="https://" style={{ height: 48 }} />
 
             <div>
@@ -130,6 +132,7 @@ export function EditEventModal({
 
             <ToggleRow label={t.create.askCars} checked={askCars} onChange={setAskCars} name="ask_cars" />
             <ToggleRow label={t.create.askSizes} checked={askSizes} onChange={setAskSizes} name="ask_sizes" />
+            <ToggleRow label="Permet seleccionar múltiples opcions" checked={allowMultiple} onChange={setAllowMultiple} name="allow_multiple_options" />
           </>
         ) : null}
 
@@ -137,6 +140,7 @@ export function EditEventModal({
           <>
             <Field label={t.create.affects} name="affects" defaultValue={event.affects ?? "Tota la colla"} style={{ height: 48 }} />
             <Field label={t.meetings.agenda} name="agenda" defaultValue={event.agenda ?? ""} style={{ height: 48 }} />
+            <Field label={t.meetings.actaUrl} name="acta_url" defaultValue={event.acta_url ?? ""} placeholder={t.meetings.actaPlaceholder} style={{ height: 48 }} />
           </>
         ) : null}
 

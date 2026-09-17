@@ -62,9 +62,20 @@ export const musicaContent = {
   repertori: {
     title: "Repertori",
     items: [
-      { title: "Marxa del Correfoc", kind: "Tema de sortida" },
-      { title: "Ball de la Rabosa", kind: "Tema de la bèstia" },
-      { title: "Entrada de Festa Major", kind: "Tema d'obertura" },
+      { title: "Matador", kind: "Tema de sortida" },
+      { title: "Samba", kind: "Tema de la bèstia" },
+      { title: "Tarantela", kind: "Tema d'obertura" },
+      { title: "Trio", kind: "Tema d'obertura" },
+      { title: "Toc de Farra", kind: "Tema d'obertura" },
+      { title: "Valencia", kind: "" },
+      { title: "Marcha", kind: "" },
+      { title: "Hardcorts", kind: "" },
+      { title: "Falç Final", kind: "" },
+      { title: "Mix-max", kind: "Mix de valencia + marcha + hardcorts + falç final" },
+      { title: "Tema 8 / wakanda", kind: "Tema d'obertura" },
+      { title: "Tema 9", kind: "Tema d'obertura" },
+      { title: "Tema 10", kind: "Tema d'obertura" },
+      { title: "Angoixa", kind: "Tema de carnaval" },
     ],
   },
 

@@ -17,7 +17,7 @@ export type BoardPosition =
 export type MemberRole = "diable" | "tabaler" | "supporter";
 export type MemberStatus = "active" | "inactive" | "intermittent";
 export type EventKind = "bolo" | "reunio" | "votacio";
-export type BoloResponse = "diable" | "tabaler" | "supporter" | "no";
+export type BoloResponse = "diable" | "tabaler" | "supporter" | "no" | "si";
 export type MeetingResponse = "yes" | "no";
 export type BadgeType = "automatic" | "manual" | "repte";
 
@@ -95,8 +95,10 @@ export interface Database {
           ask_cars: boolean;
           ask_sizes: boolean;
           allowed_roles: MemberRole[];
+          allow_multiple_options: boolean;
           agenda: string | null;
           affects: string | null;
+          acta_url: string | null;
           closes_at: Timestamptz | null;
           created_by: string | null;
           created_at: Timestamptz;
@@ -116,8 +118,10 @@ export interface Database {
           ask_cars?: boolean;
           ask_sizes?: boolean;
           allowed_roles?: MemberRole[];
+          allow_multiple_options?: boolean;
           agenda?: string | null;
           affects?: string | null;
+          acta_url?: string | null;
           closes_at?: Timestamptz | null;
           created_by?: string | null;
           cancelled?: boolean;
@@ -219,6 +223,31 @@ export interface Database {
         Update: Partial<Database["public"]["Tables"]["quota_payments"]["Insert"]>;
         Relationships: [];
       };
+      songs: {
+        Row: {
+          id: string;
+          title: string;
+          slug: string;
+          kind: string | null;
+          gp_url: string | null;
+          tempo: number | null;
+          notes: string | null;
+          created_by: string | null;
+          created_at: Timestamptz;
+        };
+        Insert: {
+          id?: string;
+          title: string;
+          slug: string;
+          kind?: string | null;
+          gp_url?: string | null;
+          tempo?: number | null;
+          notes?: string | null;
+          created_by?: string | null;
+        };
+        Update: Partial<Database["public"]["Tables"]["songs"]["Insert"]>;
+        Relationships: [];
+      };
       member_badges: {
         Row: {
           id: string;
@@ -237,6 +266,41 @@ export interface Database {
           notes?: string | null;
         };
         Update: Partial<Database["public"]["Tables"]["member_badges"]["Insert"]>;
+        Relationships: [];
+      };
+      event_options: {
+        Row: {
+          id: string;
+          event_id: string;
+          label: string;
+          kind: "boolean" | "text";
+          position: number;
+          created_at: Timestamptz;
+        };
+        Insert: {
+          id?: string;
+          event_id: string;
+          label: string;
+          kind?: "boolean" | "text";
+          position?: number;
+        };
+        Update: Partial<Database["public"]["Tables"]["event_options"]["Insert"]>;
+        Relationships: [];
+      };
+      bolo_attendance_responses: {
+        Row: {
+          event_id: string;
+          member_id: string;
+          option_id: string;
+          value: string | null;
+        };
+        Insert: {
+          event_id: string;
+          member_id: string;
+          option_id: string;
+          value?: string | null;
+        };
+        Update: Partial<Database["public"]["Tables"]["bolo_attendance_responses"]["Insert"]>;
         Relationships: [];
       };
     };

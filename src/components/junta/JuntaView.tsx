@@ -4,16 +4,18 @@ import { useState, useTransition, useEffect } from "react";
 import Link from "next/link";
 import { Input } from "@/components/ui/Input";
 import { Avatar } from "@/components/ui/Avatar";
-import { setCancelledAction, deleteEventAction } from "@/app/(app)/junta/actions";
+import { setCancelledAction, deleteEventAction, deleteSongAction } from "@/app/(app)/junta/actions";
 import { CreateEventModal } from "@/components/bolos/CreateEventModal";
 import { EditEventModal } from "@/components/bolos/EditEventModal";
 import { CreateMemberModal } from "@/components/members/CreateMemberModal";
 import { QuotaYearView } from "@/components/junta/QuotaYearView";
+import { SongModal } from "@/components/junta/SongModal";
 import type { EventListItem } from "@/lib/data/events";
 import type { AdminMemberItem } from "@/lib/data/members";
+import type { SongRow } from "@/lib/data/songs";
 import { t } from "@/i18n/t";
 
-type Tab = "bolos" | "membres" | "reunions" | "votacions" | "quotes";
+type Tab = "bolos" | "membres" | "reunions" | "votacions" | "quotes" | "musica";
 
 export interface JuntaStats {
   activeCount: number;
@@ -202,22 +204,61 @@ function VotacioRow({ event, onEdit }: { event: EventListItem; onEdit: (e: Event
   );
 }
 
+function SongListRow({ song, onEdit }: { song: SongRow; onEdit: () => void }) {
+  const [pending, startTransition] = useTransition();
+
+  function handleDelete() {
+    if (!window.confirm(t.songs.deleteConfirm)) return;
+    startTransition(() => { deleteSongAction(song.id); });
+  }
+
+  return (
+    <div style={{
+      display: "flex", alignItems: "center", gap: 10,
+      padding: "12px 16px", borderBottom: "1px solid rgba(32,30,29,.07)",
+    }}>
+      <div style={{ flex: 1, minWidth: 0 }}>
+        <div style={{ fontSize: 14, fontFamily: "var(--font-heading)", textTransform: "uppercase" }}>{song.title}</div>
+        <div style={{ fontSize: 12, opacity: 0.5, marginTop: 2 }}>{song.kind ?? "—"}</div>
+      </div>
+      <div style={{ display: "flex", alignItems: "center", gap: 6, flex: "none" }}>
+        {song.gp_url
+          ? <span style={{ fontSize: 11, opacity: 0.7 }}>🎼 {t.songs.hasScore}</span>
+          : <span style={{ fontSize: 11, opacity: 0.4 }}>{t.songs.noScore}</span>
+        }
+        <ActionBtn onClick={onEdit}>{t.songs.editSong}</ActionBtn>
+        <button
+          onClick={handleDelete}
+          disabled={pending}
+          className="btn btn-secondary"
+          style={{ height: 30, fontSize: 11, padding: "0 10px", flex: "none", color: "#dc2626", borderColor: "rgba(220,38,38,.25)" }}
+        >
+          {t.songs.deleteSong}
+        </button>
+      </div>
+    </div>
+  );
+}
+
 // ── Main component ────────────────────────────────────────────────────────
 
 export function JuntaView({
-  events, members, stats, quotaYear, quotaPaidIds,
+  events, members, stats, quotaYear, quotaPaidIds, songs,
 }: {
   events: EventListItem[];
   members: AdminMemberItem[];
   stats: JuntaStats;
   quotaYear: number;
   quotaPaidIds: string[];
+  songs: SongRow[];
 }) {
   const [tab, setTab] = useState<Tab>("bolos");
   const [search, setSearch] = useState("");
   const [showCreateEvent, setShowCreateEvent] = useState(false);
   const [showCreateMember, setShowCreateMember] = useState(false);
   const [editingEvent, setEditingEvent] = useState<EventListItem | null>(null);
+  const [showSongModal, setShowSongModal] = useState(false);
+  const [editingSong, setEditingSong] = useState<SongRow | null>(null);
 
   useEffect(() => { setSearch(""); }, [tab]);
 
@@ -245,6 +286,7 @@ export function JuntaView({
     { key: "reunions", label: t.junta.tabReunions, count: reunions.length },
     { key: "votacions", label: t.junta.tabVotacions, count: votacions.length },
     { key: "quotes", label: t.junta.tabQuotes, count: members.filter(m => m.member_status !== "inactive").length },
+    { key: "musica", label: t.songs.tabMusica, count: songs.length },
   ];
 
   const currentYear = new Date().getFullYear();
@@ -288,7 +330,7 @@ export function JuntaView({
       </div>
 
       {/* Search */}
-      {tab !== "quotes" && (
+      {tab !== "quotes" && tab !== "musica" && (
         <Input
           placeholder={`Cerca...`}
           value={search}
@@ -299,7 +341,7 @@ export function JuntaView({
 
       {/* Create buttons */}
       <div style={{ display: "flex", gap: 8, marginBottom: 16, flexWrap: "wrap" }}>
-        {tab !== "quotes" && (tab === "bolos" || tab === "reunions" || tab === "votacions") && (
+        {(tab === "bolos" || tab === "reunions" || tab === "votacions") && (
           <button onClick={() => setShowCreateEvent(true)} className="btn btn-primary" style={{ height: 40, fontSize: 13 }}>
             {t.junta.createBolo}
           </button>
@@ -314,10 +356,15 @@ export function JuntaView({
             </a>
           </>
         )}
+        {tab === "musica" && (
+          <button onClick={() => { setEditingSong(null); setShowSongModal(true); }} className="btn btn-primary" style={{ height: 40, fontSize: 13 }}>
+            {t.songs.addSong}
+          </button>
+        )}
       </div>
 
       {/* Content */}
-      {tab === "quotes" ? null : <div style={{ background: "var(--color-surface)", borderRadius: 22, boxShadow: "var(--shadow-sm)", overflow: "hidden" }}>
+      {tab === "quotes" || tab === "musica" ? null : <div style={{ background: "var(--color-surface)", borderRadius: 22, boxShadow: "var(--shadow-sm)", overflow: "hidden" }}>
         {tab === "bolos" && (
           bolos.length === 0
             ? <p style={{ padding: 20, opacity: 0.5, fontSize: 14 }}>{t.junta.noEvents}</p>
@@ -340,6 +387,21 @@ export function JuntaView({
         )}
       </div>}
 
+      {tab === "musica" && (
+        <div style={{ background: "var(--color-surface)", borderRadius: 22, boxShadow: "var(--shadow-sm)", overflow: "hidden" }}>
+          {songs.length === 0
+            ? <p style={{ padding: 20, opacity: 0.5, fontSize: 14 }}>{t.songs.noSongs}</p>
+            : songs.map((song) => (
+              <SongListRow
+                key={song.id}
+                song={song}
+                onEdit={() => { setEditingSong(song); setShowSongModal(true); }}
+              />
+            ))
+          }
+        </div>
+      )}
+
       {tab === "quotes" && (
         <QuotaYearView
           members={members}
@@ -357,6 +419,11 @@ export function JuntaView({
           onClose={() => setEditingEvent(null)}
         />
       )}
+      <SongModal
+        song={editingSong}
+        open={showSongModal}
+        onClose={() => { setShowSongModal(false); setEditingSong(null); }}
+      />
     </>
   );
 }

@@ -16,10 +16,11 @@ export const RESPONSE_META: Record<
   BoloResponse,
   { label: string; bg: string; color: string; dot: string; tone: "red" | "sage" | "ink" | "mute" }
 > = {
-  diable: { label: t.responses.diable, bg: "var(--color-accent-100)", color: "var(--color-accent-800)", dot: "var(--color-accent-500)", tone: "red" },
-  tabaler: { label: t.responses.tabaler, bg: "var(--color-sand-200)", color: "var(--color-sand-800)", dot: "var(--color-sand-800)", tone: "ink" },
-  supporter: { label: t.responses.supporter, bg: "var(--color-sage-200)", color: "var(--color-sage-800)", dot: "var(--color-sage-500)", tone: "sage" },
-  no: { label: t.responses.no, bg: "var(--color-muted-bg)", color: "var(--color-muted-text)", dot: "rgba(32,30,29,.25)", tone: "mute" },
+  diable:    { label: t.responses.diable,    bg: "var(--color-accent-100)", color: "var(--color-accent-800)", dot: "var(--color-accent-500)", tone: "red" },
+  tabaler:   { label: t.responses.tabaler,   bg: "var(--color-sand-200)",   color: "var(--color-sand-800)",   dot: "var(--color-sand-800)",   tone: "ink" },
+  supporter: { label: t.responses.supporter, bg: "var(--color-sage-200)",   color: "var(--color-sage-800)",   dot: "var(--color-sage-500)",   tone: "sage" },
+  si:        { label: t.responses.si,        bg: "var(--color-sage-200)",   color: "var(--color-sage-800)",   dot: "var(--color-sage-500)",   tone: "sage" },
+  no:        { label: t.responses.no,        bg: "var(--color-muted-bg)",   color: "var(--color-muted-text)", dot: "rgba(32,30,29,.25)",      tone: "mute" },
 };
 
 /** Detail route for an event, by kind. */

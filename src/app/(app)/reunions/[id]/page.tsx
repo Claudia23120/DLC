@@ -50,6 +50,25 @@ export default async function MeetingDetailPage({ params }: PageProps) {
             {event.affects ? (
               <div style={{ fontSize: 13, opacity: 0.6 }}>{t.create.affects}: {event.affects}</div>
             ) : null}
+            {event.acta_url ? (
+              <a
+                href={event.acta_url}
+                target="_blank"
+                rel="noopener noreferrer"
+                style={{
+                  display: "inline-flex",
+                  alignItems: "center",
+                  gap: 6,
+                  marginTop: 4,
+                  fontSize: 14,
+                  color: "var(--color-accent-500)",
+                  textDecoration: "none",
+                  fontFamily: "var(--font-heading)",
+                }}
+              >
+                📄 {t.meetings.actaLabel}
+              </a>
+            ) : null}
           </Card>
 
           <MeetingResponseButtons eventId={event.id} initial={myResponse} />

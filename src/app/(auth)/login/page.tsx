@@ -1,8 +1,8 @@
 "use client";
 
 import { useActionState } from "react";
+import Image from "next/image";
 import { signIn, type LoginState } from "./actions";
-import { FlameIcon } from "@/components/ui/icons";
 import { t } from "@/i18n/t";
 
 const initialState: LoginState = {};
@@ -29,26 +29,15 @@ export default function LoginPage() {
       <div style={{ position: "absolute", top: 70, left: -70, width: 180, height: 180, borderRadius: "50%", background: "var(--color-accent-600)", opacity: 0.55 }} />
 
       <div style={{ position: "relative", marginBottom: "auto", marginTop: 96 }}>
-        <div
-          style={{
-            width: 76,
-            height: 76,
-            borderRadius: "50%",
-            background: "var(--color-accent-500)",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            boxShadow: "var(--shadow-md)",
-          }}
-        >
-          <FlameIcon size={40} stroke="#fdece9" />
-        </div>
-        <h1 style={{ fontSize: 44, margin: "28px 0 8px", color: "#fdece9", lineHeight: 1.02 }}>
-          Diables
-          <br />
-          de les Corts
-        </h1>
-        <p style={{ fontSize: 15, opacity: 0.72, margin: 0, maxWidth: 270 }}>{t.app.tagline}</p>
+        <Image
+          src="/logo-white.png"
+          alt="Diables de les Corts"
+          width={140}
+          height={140}
+          style={{ objectFit: "contain" }}
+          priority
+        />
+        <p style={{ fontSize: 15, opacity: 0.72, margin: "16px 0 0", maxWidth: 270 }}>{t.app.tagline}</p>
       </div>
 
       <form

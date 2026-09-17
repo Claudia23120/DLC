@@ -1,9 +1,9 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { NAV_ITEMS, isActive } from "./navItems";
-import { FlameIcon } from "@/components/ui/icons";
 import { Avatar } from "@/components/ui/Avatar";
 import { t } from "@/i18n/t";
 
@@ -30,13 +30,15 @@ export function TopNav({ name, isAdmin }: TopNavProps) {
         color: "#fdece9",
       }}
     >
-      <Link href="/bolos" style={{ display: "flex", alignItems: "center", gap: 10, color: "inherit", textDecoration: "none" }}>
-        <span style={{ width: 34, height: 34, flex: "none", borderRadius: "50%", background: "var(--color-accent-500)", display: "flex", alignItems: "center", justifyContent: "center" }}>
-          <FlameIcon size={18} stroke="#fdece9" />
-        </span>
-        <span style={{ fontFamily: "var(--font-heading)", fontSize: 14, lineHeight: 1.1, textTransform: "uppercase", whiteSpace: "nowrap" }}>
-          {t.app.name}
-        </span>
+      <Link href="/bolos" style={{ display: "flex", alignItems: "center", textDecoration: "none" }}>
+        <Image
+          src="/logo-white.png"
+          alt={t.app.name}
+          width={52}
+          height={52}
+          style={{ objectFit: "contain" }}
+          priority
+        />
       </Link>
 
       <nav style={{ display: "flex", alignItems: "center", gap: 4 }}>

@@ -1,13 +1,16 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import { SegmentedControl } from "@/components/ui/SegmentedControl";
 import { Card } from "@/components/ui/Card";
 import { musicaContent } from "@/content/musica";
+import { t } from "@/i18n/t";
+import type { SongRow } from "@/lib/data/songs";
 
 type Tab = "instruments" | "repertori" | "glossari";
 
-export function MusicaView() {
+export function MusicaView({ songs }: { songs: SongRow[] }) {
   const [tab, setTab] = useState<Tab>("instruments");
 
   return (
@@ -35,14 +38,41 @@ export function MusicaView() {
           ))}
         </div>
       ) : tab === "repertori" ? (
-        <div style={{ background: "var(--color-surface)", borderRadius: 22, boxShadow: "var(--shadow-sm)", padding: "4px 16px" }}>
-          {musicaContent.repertori.items.map((item) => (
-            <div key={item.title} style={{ padding: "12px 0", borderBottom: "1px solid rgba(32,30,29,.07)" }}>
-              <div style={{ fontFamily: "var(--font-heading)", fontSize: 15 }}>{item.title}</div>
-              <div style={{ fontSize: 12, opacity: 0.55, marginTop: 2 }}>{item.kind}</div>
-            </div>
-          ))}
-        </div>
+        songs.length === 0 ? (
+          <div style={{ background: "var(--color-surface)", borderRadius: 22, boxShadow: "var(--shadow-sm)", padding: "24px 16px", textAlign: "center", fontSize: 14, opacity: 0.6 }}>
+            {t.songs.noSongs}
+          </div>
+        ) : (
+          <div style={{ background: "var(--color-surface)", borderRadius: 22, boxShadow: "var(--shadow-sm)", padding: "4px 16px" }}>
+            {songs.map((song) => (
+              <Link
+                key={song.id}
+                href={`/musica/${song.slug}`}
+                style={{ textDecoration: "none", color: "inherit" }}
+              >
+                <div style={{
+                  display: "flex", alignItems: "center", gap: 10,
+                  padding: "13px 0", borderBottom: "1px solid rgba(32,30,29,.07)",
+                }}>
+                  <div style={{ flex: 1 }}>
+                    <div style={{ fontFamily: "var(--font-heading)", fontSize: 15 }}>{song.title}</div>
+                    {song.kind && <div style={{ fontSize: 12, opacity: 0.55, marginTop: 2 }}>{song.kind}</div>}
+                  </div>
+                  <div style={{ display: "flex", alignItems: "center", gap: 6, flex: "none" }}>
+                    {song.gp_url ? (
+                      <span style={{ fontSize: 11, padding: "2px 8px", borderRadius: 999, background: "rgba(34,197,94,.12)", color: "#16a34a" }}>
+                        🎼 {t.songs.hasScore}
+                      </span>
+                    ) : (
+                      <span style={{ fontSize: 11, opacity: 0.4 }}>{t.songs.noScore}</span>
+                    )}
+                    <span style={{ opacity: 0.4, fontSize: 16 }}>›</span>
+                  </div>
+                </div>
+              </Link>
+            ))}
+          </div>
+        )
       ) : (
         <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
           {musicaContent.glossari.seccions.map((seccio) => (

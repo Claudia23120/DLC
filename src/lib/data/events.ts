@@ -1,5 +1,7 @@
 import "server-only";
 import type { Database, EventKind, BoloResponse } from "@/types/database";
+
+export type EventOption = Database["public"]["Tables"]["event_options"]["Row"];
 import type { EventCounts } from "@/lib/domain/events";
 import type { createClient } from "@/lib/supabase/server";
 
@@ -120,6 +122,34 @@ export async function getComments(supabase: DB, eventId: string): Promise<Commen
   });
 }
 
+/** Custom options defined for a bolo (ordered by position). */
+export async function getEventOptions(supabase: DB, eventId: string): Promise<EventOption[]> {
+  const { data } = await supabase
+    .from("event_options")
+    .select("*")
+    .eq("event_id", eventId)
+    .order("position", { ascending: true });
+  return data ?? [];
+}
+
+/** The current member's custom option responses for a bolo (optionId → value). */
+export async function getMyOptionResponses(
+  supabase: DB,
+  eventId: string,
+  userId: string,
+): Promise<Record<string, string>> {
+  const { data } = await supabase
+    .from("bolo_attendance_responses")
+    .select("option_id, value")
+    .eq("event_id", eventId)
+    .eq("member_id", userId);
+  const out: Record<string, string> = {};
+  for (const row of data ?? []) {
+    out[row.option_id] = row.value ?? "";
+  }
+  return out;
+}
+
 export interface CreateEventInput {
   kind: EventKind;
   title: string;
@@ -132,6 +162,7 @@ export interface CreateEventInput {
   askCars?: boolean;
   askSizes?: boolean;
   allowedRoles?: ("diable" | "tabaler" | "supporter")[];
+  allowMultipleOptions?: boolean;
   agenda?: string | null;
   affects?: string | null;
   closesAt?: string | null;
@@ -154,7 +185,8 @@ export async function createEvent(supabase: DB, input: CreateEventInput): Promis
       map_url: input.mapUrl ?? null,
       ask_cars: input.askCars ?? true,
       ask_sizes: input.askSizes ?? true,
-      allowed_roles: input.allowedRoles ?? ["diable", "tabaler", "supporter"],
+      allowed_roles: input.allowedRoles ?? [],
+      allow_multiple_options: input.allowMultipleOptions ?? false,
       agenda: input.agenda ?? null,
       affects: input.affects ?? null,
       closes_at: input.closesAt ?? null,

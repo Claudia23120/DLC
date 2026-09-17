@@ -303,3 +303,66 @@ img { display: block; max-width: 100%; }
   .tag-neutral { background: var(--color-neutral-100); color: var(--color-neutral-800); }
   .tag-outline { border: 1px solid var(--color-accent); color: var(--color-accent); }
 }
+
+/* — alphaTab player cursors — */
+.at-cursor-bar {
+  background: rgba(209, 70, 47, 0.12);
+}
+.at-selection div {
+  background: rgba(209, 70, 47, 0.08);
+}
+.at-cursor-beat {
+  background: rgba(209, 70, 47, 0.85);
+  width: 3px;
+  border-radius: 2px;
+}
+.at-highlight * {
+  fill: #d1462f;
+  stroke: #d1462f;
+}
+
+/* — Rich text editor (Tiptap) — */
+.rich-editor .tiptap {
+  padding: 12px 14px;
+  min-height: 120px;
+  font-size: 14px;
+  line-height: 1.6;
+  color: var(--color-text);
+  outline: none;
+}
+.rich-editor .tiptap p { margin: 0 0 6px; }
+.rich-editor .tiptap p:last-child { margin-bottom: 0; }
+.rich-editor .tiptap h2 { font-family: var(--font-heading); font-size: 17px; margin: 10px 0 4px; }
+.rich-editor .tiptap ul, .rich-editor .tiptap ol { padding-left: 20px; margin: 4px 0; }
+.rich-editor .tiptap li { margin-bottom: 2px; }
+.rich-editor .tiptap strong { font-weight: 700; }
+.rich-editor .tiptap em { font-style: italic; }
+
+/* — Rich text display (bolo detail) — */
+.rich-content { font-size: 14px; line-height: 1.6; }
+.rich-content p { margin: 0 0 6px; }
+.rich-content p:last-child { margin-bottom: 0; }
+.rich-content h2 { font-family: var(--font-heading); font-size: 17px; margin: 10px 0 4px; }
+.rich-content ul, .rich-content ol { padding-left: 20px; margin: 4px 0; }
+.rich-content li { margin-bottom: 2px; }
+.rich-content strong { font-weight: 700; }
+.rich-content em { font-style: italic; }
+
+/* — Foc sheet printing — only the sheet is sent to the printer / PDF. */
+.foc-sheet {
+  -webkit-print-color-adjust: exact;
+  print-color-adjust: exact;
+}
+@media print {
+  body * { visibility: hidden; }
+  .foc-sheet, .foc-sheet * { visibility: visible; }
+  .foc-sheet {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    border: none;
+    border-radius: 0;
+    padding: 0;
+  }
+}

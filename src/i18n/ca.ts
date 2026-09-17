@@ -116,6 +116,7 @@ export const ca = {
     diable: "Diable",
     tabaler: "Tabaler",
     supporter: "Supporter",
+    si: "Vinc",
     no: "No vinc",
     noResponse: "Sense resposta",
   },
@@ -127,6 +128,9 @@ export const ca = {
     whoAttends: "Qui hi assisteix",
     attendCount: (n: number) => `${n} confirmats`,
     agenda: "Ordre del dia",
+    actaUrl: "Acta (enllaç)",
+    actaLabel: "Acta de la reunió",
+    actaPlaceholder: "https://drive.google.com/…",
   },
 
   polls: {
@@ -261,6 +265,28 @@ export const ca = {
     quotaPaidSummary: (paid: number, total: number) => `${paid} de ${total} han pagat`,
     quotaMarkPaid: "Pagat",
     quotaMarkUnpaid: "Pendent",
+  },
+
+  songs: {
+    noSongs: "Cap cançó publicada encara.",
+    pendingScore: "Partitura pendent",
+    pendingNote: "La junta encara no ha publicat la partitura d'aquesta cançó.",
+    play: "▶ Toca",
+    stop: "■ Atura",
+    mute: "Silencia",
+    solo: "Solo",
+    hasScore: "Té partitura",
+    noScore: "Sense partitura",
+    addSong: "+ Nova cançó",
+    editSong: "Edita",
+    deleteSong: "Elimina",
+    deleteConfirm: "Segur que vols eliminar aquesta cançó? Aquesta acció no es pot desfer.",
+    tabMusica: "Música",
+    gpFile: "Fitxer Guitar Pro (.gp / .gp5)",
+    slug: "Identificador (URL)",
+    tempo: "Tempo (bpm)",
+    notes: "Notes internes",
+    saveSong: "Desa la cançó",
   },
 
   inactiveAccount: {

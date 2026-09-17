@@ -111,10 +111,18 @@ export async function createEventAction(
         mapUrl: String(formData.get("map_url") ?? "") || null,
         askCars: formData.get("ask_cars") === "on",
         askSizes: formData.get("ask_sizes") === "on",
-        allowedRoles: roles.length ? roles : ["diable", "tabaler", "supporter"],
+        allowedRoles: roles,
+        allowMultipleOptions: formData.get("allow_multiple_options") === "on",
         createdBy: user.id,
       });
       newId = event.id;
+
+      const customOptions = formData.getAll("custom_option").map(String).filter((o) => o.trim());
+      if (customOptions.length) {
+        await supabase.from("event_options").insert(
+          customOptions.map((label, position) => ({ event_id: newId, label: label.trim(), kind: "boolean" as const, position })),
+        );
+      }
     } else if (kind === "reunio") {
       const event = await createEvent(supabase, {
         kind,
@@ -171,6 +179,96 @@ export async function adminSetBoloAttendance(
       { onConflict: "event_id,member_id" },
     );
   }
+  revalidatePath(`/bolos/${eventId}`);
+}
+
+/** Replace the current member's selected options for a bolo (single or multi-select). */
+export async function setOptionSelections(
+  eventId: string,
+  selectedOptionIds: string[],
+): Promise<void> {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return;
+
+  await supabase
+    .from("bolo_attendance_responses")
+    .delete()
+    .eq("event_id", eventId)
+    .eq("member_id", user.id);
+
+  if (selectedOptionIds.length) {
+    await supabase.from("bolo_attendance_responses").insert(
+      selectedOptionIds.map((option_id) => ({
+        event_id: eventId,
+        member_id: user.id,
+        option_id,
+        value: "true",
+      })),
+    );
+  }
+
+  revalidatePath(`/bolos/${eventId}`);
+}
+
+/** Save the current member's response to a custom boolean/text option. */
+export async function setOptionResponse(
+  eventId: string,
+  optionId: string,
+  value: string,
+): Promise<void> {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return;
+
+  await supabase.from("bolo_attendance_responses").upsert(
+    { event_id: eventId, member_id: user.id, option_id: optionId, value },
+    { onConflict: "event_id,member_id,option_id" },
+  );
+
+  revalidatePath(`/bolos/${eventId}`);
+}
+
+/** Admin: add a custom option to a bolo. */
+export async function saveEventOption(
+  eventId: string,
+  label: string,
+  kind: "boolean" | "text" = "boolean",
+): Promise<void> {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return;
+  const { data: me } = await supabase.from("profiles").select("is_admin").eq("id", user.id).single();
+  if (!me?.is_admin) return;
+
+  const { data: last } = await supabase
+    .from("event_options")
+    .select("position")
+    .eq("event_id", eventId)
+    .order("position", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+
+  await supabase.from("event_options").insert({
+    event_id: eventId,
+    label: label.trim(),
+    kind,
+    position: (last?.position ?? -1) + 1,
+  });
+
+  revalidatePath(`/bolos/${eventId}`);
+}
+
+/** Admin: delete a custom option (cascades responses). */
+export async function deleteEventOption(optionId: string, eventId: string): Promise<void> {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return;
+  const { data: me } = await supabase.from("profiles").select("is_admin").eq("id", user.id).single();
+  if (!me?.is_admin) return;
+
+  await supabase.from("event_options").delete().eq("id", optionId);
+
   revalidatePath(`/bolos/${eventId}`);
 }
 

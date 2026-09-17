@@ -1,9 +1,10 @@
 "use client";
 
-import { useActionState, useState } from "react";
+import { useActionState, useState, useId } from "react";
 import { Modal } from "@/components/ui/Modal";
 import { Field } from "@/components/ui/Field";
 import { Toggle } from "@/components/ui/Toggle";
+import { RichTextEditor } from "@/components/ui/RichTextEditor";
 import { createEventAction, type CreateEventState } from "@/app/(app)/bolos/actions";
 import { RESPONSE_META } from "@/lib/domain/events";
 import { t } from "@/i18n/t";
@@ -87,7 +88,7 @@ export function CreateEventModal({ open, onClose }: { open: boolean; onClose: ()
         {kind === "bolo" ? (
           <>
             <Field label={t.create.organizer} name="organizer" style={{ height: 48 }} />
-            <Field label={t.create.description} name="description" style={{ height: 48 }} />
+            <RichTextEditor name="description" label={t.create.description} />
             <Field label={t.create.routeLink} name="map_url" placeholder="https://" style={{ height: 48 }} />
 
             <div>
@@ -129,6 +130,8 @@ export function CreateEventModal({ open, onClose }: { open: boolean; onClose: ()
 
             <ToggleRow label={t.create.askCars} checked={askCars} onChange={setAskCars} name="ask_cars" />
             <ToggleRow label={t.create.askSizes} checked={askSizes} onChange={setAskSizes} name="ask_sizes" />
+
+            <CustomOptions />
           </>
         ) : null}
 
@@ -175,6 +178,54 @@ export function CreateEventModal({ open, onClose }: { open: boolean; onClose: ()
         </button>
       </form>
     </Modal>
+  );
+}
+
+function CustomOptions() {
+  const [opts, setOpts] = useState<string[]>([]);
+  const [allowMultiple, setAllowMultiple] = useState(false);
+  const baseId = useId();
+
+  const add = () => setOpts((s) => [...s, ""]);
+  const remove = (i: number) => setOpts((s) => s.filter((_, j) => j !== i));
+  const update = (i: number, v: string) => setOpts((s) => s.map((o, j) => (j === i ? v : o)));
+
+  return (
+    <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+      <div style={{ fontSize: 12, letterSpacing: ".06em", textTransform: "uppercase", opacity: 0.55 }}>
+        Opcions personalitzades
+      </div>
+      {opts.map((opt, i) => (
+        <div key={`${baseId}-${i}`} style={{ display: "flex", gap: 8, alignItems: "center" }}>
+          <input
+            type="text"
+            name="custom_option"
+            value={opt}
+            onChange={(e) => update(i, e.target.value)}
+            placeholder="Ex: Portes cadira?"
+            style={{ flex: 1, height: 44, borderRadius: 999, padding: "0 16px", fontSize: 14, border: "1px solid rgba(32,30,29,.22)", background: "var(--color-surface)" }}
+          />
+          <button
+            type="button"
+            onClick={() => remove(i)}
+            style={{ background: "none", border: "none", cursor: "pointer", fontSize: 20, opacity: 0.5, lineHeight: 1, flex: "none" }}
+            aria-label="Elimina"
+          >
+            ×
+          </button>
+        </div>
+      ))}
+      <button type="button" className="btn btn-secondary btn-block" onClick={add} style={{ height: 44 }}>
+        + Afegeix opció
+      </button>
+      {opts.length > 0 ? (
+        <div style={{ display: "flex", alignItems: "center", gap: 12, padding: "12px 16px", borderRadius: 999, background: "var(--color-surface)", boxShadow: "var(--shadow-sm)" }}>
+          <div style={{ flex: 1, fontFamily: "var(--font-heading)", fontSize: 15 }}>Permet seleccionar múltiples</div>
+          <Toggle checked={allowMultiple} onChange={setAllowMultiple} label="Selecció múltiple" />
+          {allowMultiple ? <input type="hidden" name="allow_multiple_options" value="on" /> : null}
+        </div>
+      ) : null}
+    </div>
   );
 }
 
