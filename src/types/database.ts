@@ -172,7 +172,22 @@ export interface Database {
           needs?: string[];
         };
         Update: Partial<Database["public"]["Tables"]["bolo_attendance"]["Insert"]>;
-        Relationships: [];
+        Relationships: [
+          {
+            foreignKeyName: "bolo_attendance_event_id_fkey";
+            columns: ["event_id"];
+            isOneToOne: false;
+            referencedRelation: "events";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "bolo_attendance_member_id_fkey";
+            columns: ["member_id"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+        ];
       };
       meeting_attendance: {
         Row: {
