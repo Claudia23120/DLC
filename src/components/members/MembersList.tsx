@@ -5,6 +5,8 @@ import Link from "next/link";
 import { Input } from "@/components/ui/Input";
 import { Avatar } from "@/components/ui/Avatar";
 import { Tag } from "@/components/ui/Tag";
+import { Pagination } from "@/components/ui/Pagination";
+import { usePagination } from "@/lib/hooks/usePagination";
 import { CreateMemberModal } from "./CreateMemberModal";
 import { boardPositionLabel } from "@/lib/utils/labels";
 import { t } from "@/i18n/t";
@@ -18,6 +20,8 @@ export function MembersList({ members, isAdmin }: { members: MemberListItem[]; i
     `${m.full_name} ${m.nickname ?? ""}`.toLowerCase().includes(search.toLowerCase()),
   );
 
+  const pag = usePagination(filtered, 20, search);
+
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
       {isAdmin ? (
@@ -28,7 +32,7 @@ export function MembersList({ members, isAdmin }: { members: MemberListItem[]; i
 
       <Input placeholder={t.colla.searchMember} value={search} onChange={(e) => setSearch(e.target.value)} style={{ height: 46 }} />
 
-      {filtered.map((m) => (
+      {pag.pageItems.map((m) => (
         <Link
           key={m.id}
           href={`/membres/${m.id}`}
@@ -48,6 +52,7 @@ export function MembersList({ members, isAdmin }: { members: MemberListItem[]; i
       ))}
 
       {filtered.length === 0 ? <p className="text-muted">{t.common.empty}</p> : null}
+      <Pagination {...pag} onPrev={pag.prev} onNext={pag.next} />
 
       {isAdmin ? <CreateMemberModal open={createOpen} onClose={() => setCreateOpen(false)} /> : null}
     </div>

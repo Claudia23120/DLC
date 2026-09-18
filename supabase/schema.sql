@@ -26,7 +26,7 @@ create type board_position as enum (
 create type member_role as enum ('diable', 'tabaler', 'supporter');
 
 -- Kind of event.
-create type event_kind as enum ('bolo', 'reunio', 'votacio');
+create type event_kind as enum ('bolo', 'event', 'votacio');
 
 -- ── Profiles ────────────────────────────────────────────────────────────
 -- One row per auth user. No public sign-up: rows are created by admins.
@@ -36,10 +36,12 @@ create table profiles (
   nickname           text,                       -- "mote"
   email              text not null unique,
   phone              text,
+  nif                text,
+  birth_date         date,
   emergency_contact  text,
   medical_notes      text,
   bio                text,
-  role_title         text,                        -- free-text role, e.g. "Portador de la Rabosa"
+
   board_position     board_position,              -- non-null ⇒ admin (junta)
   -- Derived admin flag; cannot be set independently of board_position.
   is_admin           boolean generated always as (board_position is not null) stored,
@@ -212,7 +214,7 @@ as $$
 begin
   if not public.is_admin() then
     new.board_position := old.board_position;
-    new.role_title     := old.role_title;
+
     new.member_roles   := old.member_roles;
     new.bolo_count     := old.bolo_count;
     new.foc_count      := old.foc_count;
@@ -494,7 +496,7 @@ begin
   -- auth.uid() is null for the service role; those writes are trusted.
   if auth.uid() is not null and not public.is_admin() then
     new.board_position := old.board_position;
-    new.role_title     := old.role_title;
+
     new.member_roles   := old.member_roles;
     new.bolo_count     := old.bolo_count;
     new.foc_count      := old.foc_count;
@@ -601,7 +603,7 @@ as $$
 begin
   if not public.is_admin() then
     new.board_position := old.board_position;
-    new.role_title     := old.role_title;
+
     new.member_roles   := old.member_roles;
     new.bolo_count     := old.bolo_count;
     new.foc_count      := old.foc_count;
@@ -954,3 +956,27 @@ create policy attendance_responses_update_self on bolo_attendance_responses
 create policy attendance_responses_delete_self_or_admin on bolo_attendance_responses
   for delete to authenticated
   using (member_id = auth.uid() or public.is_admin());
+
+-- ═══════════════════════════════════════════════════════════
+-- migrations/0018_inactive_since.sql
+-- ═══════════════════════════════════════════════════════════
+-- Adds inactive_since to profiles: records when a member became inactive.
+
+alter table profiles
+  add column if not exists inactive_since date;
+
+create or replace function profiles_set_inactive_since()
+returns trigger language plpgsql as $$
+begin
+  if new.member_status = 'inactive' and old.member_status <> 'inactive' then
+    new.inactive_since := current_date;
+  elsif new.member_status <> 'inactive' and old.member_status = 'inactive' then
+    new.inactive_since := null;
+  end if;
+  return new;
+end;
+$$;
+
+create trigger profiles_set_inactive_since
+  before update on profiles
+  for each row execute function profiles_set_inactive_since();

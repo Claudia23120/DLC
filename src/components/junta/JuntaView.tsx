@@ -4,6 +4,8 @@ import { useState, useTransition, useEffect } from "react";
 import Link from "next/link";
 import { Input } from "@/components/ui/Input";
 import { Avatar } from "@/components/ui/Avatar";
+import { Pagination } from "@/components/ui/Pagination";
+import { usePagination } from "@/lib/hooks/usePagination";
 import { setCancelledAction, deleteEventAction, deleteSongAction } from "@/app/(app)/junta/actions";
 import { CreateEventModal } from "@/components/bolos/CreateEventModal";
 import { EditEventModal } from "@/components/bolos/EditEventModal";
@@ -106,10 +108,7 @@ function BoloRow({ event, onEdit }: { event: EventListItem; onEdit: (e: EventLis
   }
 
   return (
-    <div style={{
-      display: "flex", alignItems: "center", gap: 10,
-      padding: "12px 16px", borderBottom: "1px solid rgba(32,30,29,.07)",
-    }}>
+    <div className="junta-row">
       <div style={{ flex: 1, minWidth: 0 }}>
         <Link href={`/bolos/${event.id}`} style={{ textDecoration: "none", color: "inherit" }}>
           <div style={{ fontSize: 14, fontFamily: "var(--font-heading)", textTransform: "uppercase", lineHeight: 1.15 }}>
@@ -118,13 +117,14 @@ function BoloRow({ event, onEdit }: { event: EventListItem; onEdit: (e: EventLis
           <div style={{ fontSize: 12, opacity: 0.5, marginTop: 2 }}>{formatDate(event.starts_at)}</div>
         </Link>
       </div>
-      <div style={{ display: "flex", alignItems: "center", gap: 6, flex: "none", flexWrap: "wrap", justifyContent: "flex-end" }}>
+      <div className="junta-row-end">
         <span style={{ fontSize: 12, opacity: 0.55 }}>{t.junta.participants(event.counts.signup_count ?? 0)}</span>
         <StatusPill {...status} />
         <ActionBtn onClick={() => onEdit(event)}>{t.junta.edit}</ActionBtn>
         <ActionBtn onClick={toggleCancelled} disabled={pending}>
           {event.cancelled ? t.junta.reactivateBolo : t.junta.cancelBolo}
         </ActionBtn>
+        <DeleteBtn eventId={event.id} />
       </div>
     </div>
   );
@@ -159,16 +159,12 @@ function ReunioRow({ event, onEdit }: { event: EventListItem; onEdit: (e: EventL
     : { label: t.junta.closed, color: "rgba(32,30,29,.45)", bg: "rgba(32,30,29,.07)" };
 
   return (
-    <div style={{
-      display: "flex", alignItems: "center", gap: 10,
-      padding: "12px 16px", borderBottom: "1px solid rgba(32,30,29,.07)",
-    }}>
+    <div className="junta-row">
       <Link href={`/reunions/${event.id}`} style={{ textDecoration: "none", color: "inherit", flex: 1, minWidth: 0 }}>
         <div style={{ fontSize: 14, fontFamily: "var(--font-heading)", textTransform: "uppercase" }}>{event.title}</div>
         <div style={{ fontSize: 12, opacity: 0.5, marginTop: 2 }}>{formatDate(event.starts_at)}</div>
       </Link>
-      <div style={{ display: "flex", alignItems: "center", gap: 6, flex: "none" }}>
-        <span style={{ fontSize: 12, opacity: 0.55 }}>{t.junta.confirmed(event.counts.confirmed_count ?? 0)}</span>
+      <div className="junta-row-end">
         <StatusPill {...status} />
         <ActionBtn onClick={() => onEdit(event)}>{t.junta.edit}</ActionBtn>
         <DeleteBtn eventId={event.id} />
@@ -184,17 +180,14 @@ function VotacioRow({ event, onEdit }: { event: EventListItem; onEdit: (e: Event
     : { label: t.junta.pollOpen, color: "#16a34a", bg: "rgba(34,197,94,.12)" };
 
   return (
-    <div style={{
-      display: "flex", alignItems: "center", gap: 10,
-      padding: "12px 16px", borderBottom: "1px solid rgba(32,30,29,.07)",
-    }}>
+    <div className="junta-row">
       <Link href={`/reunions/votacions/${event.id}`} style={{ textDecoration: "none", color: "inherit", flex: 1, minWidth: 0 }}>
         <div style={{ fontSize: 14, fontFamily: "var(--font-heading)", textTransform: "uppercase" }}>{event.title}</div>
         {event.closes_at
           ? <div style={{ fontSize: 12, opacity: 0.5, marginTop: 2 }}>{t.polls.closesOn} {formatDate(event.closes_at)}</div>
           : null}
       </Link>
-      <div style={{ display: "flex", alignItems: "center", gap: 6, flex: "none" }}>
+      <div className="junta-row-end">
         <span style={{ fontSize: 12, opacity: 0.55 }}>{t.junta.votes(event.counts.vote_count ?? 0)}</span>
         <StatusPill {...status} />
         <ActionBtn onClick={() => onEdit(event)}>{t.junta.edit}</ActionBtn>
@@ -268,7 +261,7 @@ export function JuntaView({
     .sort((a, b) => new Date(b.starts_at ?? 0).getTime() - new Date(a.starts_at ?? 0).getTime())
     .filter((e) => !q || e.title.toLowerCase().includes(q));
 
-  const reunions = [...events.filter((e) => e.kind === "reunio")]
+  const reunions = [...events.filter((e) => e.kind === "event")]
     .sort((a, b) => new Date(b.starts_at ?? 0).getTime() - new Date(a.starts_at ?? 0).getTime())
     .filter((e) => !q || e.title.toLowerCase().includes(q));
 
@@ -279,6 +272,12 @@ export function JuntaView({
   const filteredMembers = members.filter((m) =>
     !q || `${m.full_name} ${m.nickname ?? ""} ${m.email}`.toLowerCase().includes(q)
   );
+
+  const bolosPag = usePagination(bolos, 15, "bolos" + search);
+  const reunionsPag = usePagination(reunions, 15, "reunions" + search);
+  const votacionsPag = usePagination(votacions, 15, "votacions" + search);
+  const membresPag = usePagination(filteredMembers, 20, "membres" + search);
+  const musicaPag = usePagination(songs, 20, "musica");
 
   const TABS: { key: Tab; label: string; count: number }[] = [
     { key: "bolos", label: t.junta.tabBolos, count: bolos.length },
@@ -368,30 +367,35 @@ export function JuntaView({
         {tab === "bolos" && (
           bolos.length === 0
             ? <p style={{ padding: 20, opacity: 0.5, fontSize: 14 }}>{t.junta.noEvents}</p>
-            : bolos.map((e) => <BoloRow key={e.id} event={e} onEdit={setEditingEvent} />)
+            : bolosPag.pageItems.map((e) => <BoloRow key={e.id} event={e} onEdit={setEditingEvent} />)
         )}
         {tab === "membres" && (
           filteredMembers.length === 0
             ? <p style={{ padding: 20, opacity: 0.5, fontSize: 14 }}>{t.junta.noMembers}</p>
-            : filteredMembers.map((m) => <MemberRow key={m.id} member={m} />)
+            : membresPag.pageItems.map((m) => <MemberRow key={m.id} member={m} />)
         )}
         {tab === "reunions" && (
           reunions.length === 0
             ? <p style={{ padding: 20, opacity: 0.5, fontSize: 14 }}>{t.junta.noEvents}</p>
-            : reunions.map((e) => <ReunioRow key={e.id} event={e} onEdit={setEditingEvent} />)
+            : reunionsPag.pageItems.map((e) => <ReunioRow key={e.id} event={e} onEdit={setEditingEvent} />)
         )}
         {tab === "votacions" && (
           votacions.length === 0
             ? <p style={{ padding: 20, opacity: 0.5, fontSize: 14 }}>{t.junta.noEvents}</p>
-            : votacions.map((e) => <VotacioRow key={e.id} event={e} onEdit={setEditingEvent} />)
+            : votacionsPag.pageItems.map((e) => <VotacioRow key={e.id} event={e} onEdit={setEditingEvent} />)
         )}
       </div>}
+
+      {tab === "bolos" && <Pagination {...bolosPag} onPrev={bolosPag.prev} onNext={bolosPag.next} />}
+      {tab === "membres" && <Pagination {...membresPag} onPrev={membresPag.prev} onNext={membresPag.next} />}
+      {tab === "reunions" && <Pagination {...reunionsPag} onPrev={reunionsPag.prev} onNext={reunionsPag.next} />}
+      {tab === "votacions" && <Pagination {...votacionsPag} onPrev={votacionsPag.prev} onNext={votacionsPag.next} />}
 
       {tab === "musica" && (
         <div style={{ background: "var(--color-surface)", borderRadius: 22, boxShadow: "var(--shadow-sm)", overflow: "hidden" }}>
           {songs.length === 0
             ? <p style={{ padding: 20, opacity: 0.5, fontSize: 14 }}>{t.songs.noSongs}</p>
-            : songs.map((song) => (
+            : musicaPag.pageItems.map((song) => (
               <SongListRow
                 key={song.id}
                 song={song}
@@ -401,6 +405,7 @@ export function JuntaView({
           }
         </div>
       )}
+      {tab === "musica" && <Pagination {...musicaPag} onPrev={musicaPag.prev} onNext={musicaPag.next} />}
 
       {tab === "quotes" && (
         <QuotaYearView

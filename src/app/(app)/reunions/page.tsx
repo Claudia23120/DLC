@@ -15,7 +15,7 @@ function relevantDate(e: EventListItem): string | null {
   return e.kind === "votacio" ? e.closes_at : e.starts_at;
 }
 
-function ReunioCard({ event, myResponse }: { event: EventListItem; myResponse?: string | null }) {
+function EventCard({ event }: { event: EventListItem }) {
   const href = event.kind === "votacio"
     ? `/reunions/votacions/${event.id}`
     : `/reunions/${event.id}`;
@@ -39,16 +39,6 @@ function ReunioCard({ event, myResponse }: { event: EventListItem; myResponse?: 
           <Tag variant="custom" bg={meta.bg} color={meta.color} style={{ fontSize: 10 }}>
             {meta.label}
           </Tag>
-          {myResponse === "yes" && !past && (
-            <Tag variant="custom" bg="rgba(34,197,94,.12)" color="#16a34a" style={{ fontSize: 10 }}>
-              {t.meetings.willAttend}
-            </Tag>
-          )}
-          {myResponse === "no" && !past && (
-            <Tag variant="custom" bg="rgba(32,30,29,.07)" color="rgba(32,30,29,.45)" style={{ fontSize: 10 }}>
-              {t.meetings.cantAttend}
-            </Tag>
-          )}
           {event.kind === "votacio" && event.closes_at && !past && (
             <Tag variant="custom" bg="rgba(34,197,94,.12)" color="#16a34a" style={{ fontSize: 10 }}>
               {t.junta.pollOpen}
@@ -70,11 +60,6 @@ function ReunioCard({ event, myResponse }: { event: EventListItem; myResponse?: 
             {" · "}{t.junta.votes(event.counts.vote_count ?? 0)}
           </div>
         ) : null}
-        {event.kind === "reunio" ? (
-          <div style={{ fontSize: 12, opacity: 0.55 }}>
-            {t.meetings.attendCount(event.counts.confirmed_count ?? 0)}
-          </div>
-        ) : null}
       </div>
     </Link>
   );
@@ -85,17 +70,7 @@ export default async function ReunionsPage() {
   const supabase = await createClient();
 
   const allEvents = await listEvents(supabase, profile.id);
-  const meetingEvents = allEvents.filter((e) => e.kind === "reunio" || e.kind === "votacio");
-
-  // Fetch the user's meeting responses
-  const { data: myResponses } = await supabase
-    .from("meeting_attendance")
-    .select("event_id, response")
-    .eq("member_id", profile.id);
-
-  const responseById = new Map<string, string>(
-    (myResponses ?? []).map((r) => [r.event_id, r.response]),
-  );
+  const meetingEvents = allEvents.filter((e) => e.kind === "event" || e.kind === "votacio");
 
   const upcoming = meetingEvents
     .filter((e) => !isPast(relevantDate(e)))
@@ -122,7 +97,7 @@ export default async function ReunionsPage() {
           {upcoming.length > 0 ? (
             <section style={{ display: "flex", flexDirection: "column", gap: 10 }}>
               {upcoming.map((e) => (
-                <ReunioCard key={e.id} event={e} myResponse={responseById.get(e.id)} />
+                <EventCard key={e.id} event={e} />
               ))}
             </section>
           ) : (
@@ -135,7 +110,7 @@ export default async function ReunionsPage() {
                 {t.bolos.tabHistory}
               </h3>
               {past.map((e) => (
-                <ReunioCard key={e.id} event={e} myResponse={responseById.get(e.id)} />
+                <EventCard key={e.id} event={e} />
               ))}
             </section>
           ) : null}

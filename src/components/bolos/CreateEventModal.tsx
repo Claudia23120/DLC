@@ -13,7 +13,7 @@ import type { EventKind, MemberRole } from "@/types/database";
 const initial: CreateEventState = {};
 const KIND_TABS: { value: EventKind; label: string }[] = [
   { value: "bolo", label: t.kinds.bolo },
-  { value: "reunio", label: t.kinds.reunio },
+  { value: "event", label: t.kinds.reunio },
   { value: "votacio", label: t.kinds.votacio },
 ];
 const ROLES: MemberRole[] = ["diable", "tabaler", "supporter"];
@@ -25,9 +25,10 @@ export function CreateEventModal({ open, onClose }: { open: boolean; onClose: ()
   const [askCars, setAskCars] = useState(true);
   const [askSizes, setAskSizes] = useState(true);
   const [options, setOptions] = useState<string[]>(["", ""]);
+  const [allowMultipleVotes, setAllowMultipleVotes] = useState(false);
 
   const title =
-    kind === "bolo" ? t.create.newBolo : kind === "reunio" ? t.create.newMeeting : t.create.newPoll;
+    kind === "bolo" ? t.create.newBolo : kind === "event" ? t.create.newMeeting : t.create.newPoll;
   const cta = kind === "votacio" ? t.create.openPoll : t.create.publishAndNotify;
 
   return (
@@ -136,7 +137,7 @@ export function CreateEventModal({ open, onClose }: { open: boolean; onClose: ()
         ) : null}
 
         {/* Reunió-specific */}
-        {kind === "reunio" ? (
+        {kind === "event" ? (
           <>
             <Field label={t.create.affects} name="affects" defaultValue="Tota la colla" style={{ height: 48 }} />
             <Field label={t.meetings.agenda} name="agenda" style={{ height: 48 }} />
@@ -161,6 +162,11 @@ export function CreateEventModal({ open, onClose }: { open: boolean; onClose: ()
               {t.polls.addOption}
             </button>
             <Field label={t.polls.closesOn} name="closes_at" type="datetime-local" style={{ height: 48 }} />
+            <div style={{ display: "flex", alignItems: "center", gap: 12, padding: "12px 16px", borderRadius: 999, background: "var(--color-surface)", boxShadow: "var(--shadow-sm)" }}>
+              <div style={{ flex: 1, fontFamily: "var(--font-heading)", fontSize: 15 }}>Permet seleccionar múltiples opcions</div>
+              <Toggle checked={allowMultipleVotes} onChange={setAllowMultipleVotes} label="Permet seleccionar múltiples opcions" />
+              {allowMultipleVotes ? <input type="hidden" name="allow_multiple_votes" value="on" /> : null}
+            </div>
           </>
         ) : null}
 

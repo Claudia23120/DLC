@@ -5,7 +5,7 @@
 export const ca = {
   app: {
     name: "Diables de les Corts",
-    tagline: "L'espai intern de la colla: bolos, reunions i tot el que cou.",
+    tagline: "L'espai intern de la colla: bolos, events i tot el que cou.",
   },
 
   nav: {
@@ -70,7 +70,7 @@ export const ca = {
   // Event kinds (bolo / meeting / poll).
   kinds: {
     bolo: "Bolo",
-    reunio: "Reunió",
+    reunio: "Event",
     votacio: "Votació",
   },
 
@@ -82,10 +82,10 @@ export const ca = {
     tabHistory: "Històric",
     filterAll: "Tot",
     filterBolos: "Bolos",
-    filterMeetings: "Reunions",
+    filterMeetings: "Events",
     filterPolls: "Votacions",
     searchHistory: "Cerca a l'històric…",
-    create: "+ Crea bolo, reunió o votació",
+    create: "+ Crea bolo, event o votació",
     seasonSummary: "Resum de la temporada",
     signedCount: (n: number) => `${n} apuntats`,
     confirmedCount: (n: number) => `${n} confirmats`,
@@ -122,14 +122,14 @@ export const ca = {
   },
 
   meetings: {
-    upcoming: "Properes reunions",
+    upcoming: "Propers events",
     willAttend: "Hi seré",
     cantAttend: "No puc",
     whoAttends: "Qui hi assisteix",
     attendCount: (n: number) => `${n} confirmats`,
     agenda: "Ordre del dia",
     actaUrl: "Acta (enllaç)",
-    actaLabel: "Acta de la reunió",
+    actaLabel: "Acta de l'event",
     actaPlaceholder: "https://drive.google.com/…",
   },
 
@@ -181,6 +181,8 @@ export const ca = {
     fullName: "Nom i cognoms",
     nickname: "Mote",
     phone: "Mòbil",
+    nif: "DNI / NIF",
+    birthDate: "Data de naixement",
     email: "Correu",
     emergencyContact: "Contacte d'emergència",
     medicalNotes: "Al·lèrgies o observacions mèdiques",
@@ -239,7 +241,7 @@ export const ca = {
     title: "Panell de junta",
     tabBolos: "Bolos",
     tabMembres: "Membres",
-    tabReunions: "Reunions",
+    tabReunions: "Events",
     tabVotacions: "Votacions",
     open: "Obert",
     closed: "Tancat",
@@ -251,7 +253,7 @@ export const ca = {
     votes: (n: number) => `${n} vot${n === 1 ? "" : "s"}`,
     pollOpen: "Oberta",
     pollClosed: "Tancada",
-    createBolo: "+ Nou bolo / reunió / votació",
+    createBolo: "+ Nou bolo / event / votació",
     createMember: "+ Nou membre",
     noEvents: "Cap esdeveniment.",
     noMembers: "Cap membre.",
@@ -297,7 +299,7 @@ export const ca = {
 
   create: {
     newBolo: "Nou bolo",
-    newMeeting: "Nova reunió",
+    newMeeting: "Nou event",
     newPoll: "Nova votació",
     newMember: "Nou membre",
     newBadge: "Nova insígnia",
@@ -328,7 +330,7 @@ export const ca = {
     createAnother: "Crea'n un altre",
     titleRequired: "Cal un títol.",
     editBolo: "Edita el bolo",
-    editMeeting: "Edita la reunió",
+    editMeeting: "Edita l'event",
     editPoll: "Edita la votació",
     saveChanges: "Desa els canvis",
     deleteEvent: "Elimina",
@@ -339,12 +341,12 @@ export const ca = {
   // Email notification copy (used by the Resend fan-out).
   emails: {
     newBoloSubject: (title: string) => `Nou bolo: ${title}`,
-    newMeetingSubject: (title: string) => `Nova reunió: ${title}`,
+    newMeetingSubject: (title: string) => `Nou event: ${title}`,
     newPollSubject: (title: string) => `Nova votació: ${title}`,
     greeting: "Hola,",
     newBoloBody: "La junta ha publicat un nou bolo. Entra a l'app per apuntar-t'hi.",
     newMeetingBody:
-      "S'ha convocat una nova reunió. Entra a l'app per confirmar si hi seràs.",
+      "S'ha creat un nou event. Entra a l'app per confirmar si hi seràs.",
     newPollBody: "Hi ha una nova votació oberta. Entra a l'app per votar.",
     remindSubject: (title: string) => `Encara no has respost: ${title}`,
     remindBody:

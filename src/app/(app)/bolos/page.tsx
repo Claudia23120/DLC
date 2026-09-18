@@ -5,11 +5,20 @@ import { requireProfile } from "@/lib/auth/session";
 import { createClient } from "@/lib/supabase/server";
 import { listEvents } from "@/lib/data/events";
 import { t } from "@/i18n/t";
+import type { BirthdayItem } from "@/components/bolos/CalendarMonth";
 
 export default async function BolosPage() {
   const profile = await requireProfile();
   const supabase = await createClient();
-  const events = await listEvents(supabase, profile.id);
+  const [events, birthdaysResult] = await Promise.all([
+    listEvents(supabase, profile.id),
+    supabase
+      .from("profiles")
+      .select("id, full_name, nickname, birth_date")
+      .not("birth_date", "is", null)
+      .eq("member_status", "active"),
+  ]);
+  const birthdays = (birthdaysResult.data ?? []) as BirthdayItem[];
   const firstName = profile.full_name.split(" ")[0];
 
   return (
@@ -20,7 +29,7 @@ export default async function BolosPage() {
         userName={profile.full_name}
       />
       <PageContainer>
-        <BolosView events={events} isAdmin={profile.is_admin} />
+        <BolosView events={events} isAdmin={profile.is_admin} birthdays={birthdays} />
       </PageContainer>
     </>
   );

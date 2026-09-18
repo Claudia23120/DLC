@@ -10,12 +10,19 @@ import { madridParts, monthYearLabel, WEEKDAYS_CAL, formatDay, formatMonthShort,
 import { googleCalendarUrl } from "@/lib/calendar/ics";
 import type { EventListItem } from "@/lib/data/events";
 
+export interface BirthdayItem {
+  id: string;
+  full_name: string;
+  nickname: string | null;
+  birth_date: string;
+}
+
 /** Relevant calendar date for an event (bolo/reunió start, votació close). */
 function eventDate(e: EventListItem): string | null {
   return e.kind === "votacio" ? e.closes_at : e.starts_at;
 }
 
-export function CalendarMonth({ events }: { events: EventListItem[] }) {
+export function CalendarMonth({ events, birthdays = [] }: { events: EventListItem[]; birthdays?: BirthdayItem[] }) {
   const now = madridParts(new Date().toISOString());
   const [cursor, setCursor] = useState({ year: now.year, month: now.month });
 
@@ -32,6 +39,19 @@ export function CalendarMonth({ events }: { events: EventListItem[] }) {
     [events, cursor],
   );
 
+  // birthdays this month (recurring — match only month and day)
+  const birthdaysInMonth = useMemo(
+    () =>
+      birthdays
+        .filter((b) => {
+          const parts = b.birth_date.slice(5, 7); // "MM"
+          return parseInt(parts, 10) === cursor.month;
+        })
+        .map((b) => ({ ...b, day: parseInt(b.birth_date.slice(8, 10), 10) }))
+        .sort((a, b) => a.day - b.day),
+    [birthdays, cursor],
+  );
+
   // day-of-month → kind (for the coloured dot)
   const marks = useMemo(() => {
     const m = new Map<number, keyof typeof KIND_META>();
@@ -41,6 +61,12 @@ export function CalendarMonth({ events }: { events: EventListItem[] }) {
     }
     return m;
   }, [inMonth]);
+
+  // days with birthdays
+  const birthdayDays = useMemo(
+    () => new Set(birthdaysInMonth.map((b) => b.day)),
+    [birthdaysInMonth],
+  );
 
   const firstWeekday = new Date(Date.UTC(cursor.year, cursor.month - 1, 1)).getUTCDay(); // 0=Sun
   const leadingBlanks = (firstWeekday + 6) % 7; // Monday-first grid
@@ -79,70 +105,104 @@ export function CalendarMonth({ events }: { events: EventListItem[] }) {
           {Array.from({ length: daysInMonth }).map((_, i) => {
             const day = i + 1;
             const kind = marks.get(day);
+            const hasBirthday = birthdayDays.has(day);
             const isToday = isCurrentMonth && day === now.day;
             return (
-              <div
-                key={day}
-                style={{
-                  aspectRatio: "1",
-                  borderRadius: "50%",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  fontSize: 13,
-                  background: kind ? KIND_META[kind].dot : "transparent",
-                  color: kind ? "#fff" : "var(--color-text)",
-                  boxShadow: isToday ? "inset 0 0 0 2px var(--color-accent-500)" : undefined,
-                }}
-              >
-                {day}
+              <div key={day} style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 2 }}>
+                <div
+                  style={{
+                    width: "100%",
+                    aspectRatio: "1",
+                    borderRadius: "50%",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    fontSize: 13,
+                    background: kind ? KIND_META[kind].dot : "transparent",
+                    color: kind ? "#fff" : "var(--color-text)",
+                    boxShadow: isToday ? "inset 0 0 0 2px var(--color-accent-500)" : undefined,
+                  }}
+                >
+                  {day}
+                </div>
+                {hasBirthday ? <span style={{ fontSize: 8, lineHeight: 1 }}>🎂</span> : null}
               </div>
             );
           })}
         </div>
 
-        <div style={{ display: "flex", gap: 14, marginTop: 14 }}>
-          {(["bolo", "reunio", "votacio"] as const).map((k) => (
+        <div style={{ display: "flex", gap: 14, marginTop: 14, flexWrap: "wrap" }}>
+          {(["bolo", "event", "votacio"] as const).map((k) => (
             <span key={k} style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 11, opacity: 0.7 }}>
               <span style={{ width: 10, height: 10, borderRadius: "50%", background: KIND_META[k].dot }} />
               {KIND_META[k].label}
             </span>
           ))}
+          <span style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 11, opacity: 0.7 }}>
+            🎂 Aniversari
+          </span>
         </div>
       </div>
 
       {/* Agenda for the visible month */}
       <div style={{ background: "var(--color-surface)", borderRadius: 22, boxShadow: "var(--shadow-sm)", padding: "4px 14px" }}>
-        {inMonth.length === 0 ? (
+        {inMonth.length === 0 && birthdaysInMonth.length === 0 ? (
           <div style={{ padding: "16px 0", fontSize: 13, opacity: 0.55 }}>Cap esdeveniment aquest mes.</div>
-        ) : (
-          inMonth.map((e) => {
-            const iso = eventDate(e)!;
-            const kind = KIND_META[e.kind];
-            return (
-              <div key={e.id} style={{ display: "flex", alignItems: "center", gap: 12, padding: "10px 0", borderBottom: "1px solid rgba(32,30,29,.07)" }}>
-                <div style={{ width: 34, flex: "none", textAlign: "center" }}>
-                  <div style={{ fontFamily: "var(--font-heading)", fontSize: 17, lineHeight: 1 }}>{formatDay(iso)}</div>
-                  <div style={{ fontSize: 9, textTransform: "uppercase", opacity: 0.5 }}>{formatMonthShort(iso)}</div>
-                </div>
-                <Link href={eventDetailHref(e.id, e.kind)} style={{ flex: 1, minWidth: 0, textDecoration: "none", color: "inherit" }}>
-                  <div style={{ fontSize: 14, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{e.title}</div>
-                  <div style={{ fontSize: 11, opacity: 0.55 }}>
-                    {[e.starts_at ? formatTime(e.starts_at) : null, e.location].filter(Boolean).join(" · ")}
+        ) : (() => {
+          type AgendaEntry =
+            | { type: "event"; day: number; event: EventListItem }
+            | { type: "birthday"; day: number; birthday: BirthdayItem & { day: number } };
+
+          const entries: AgendaEntry[] = [
+            ...inMonth.map((e) => ({ type: "event" as const, day: madridParts(eventDate(e)!).day, event: e })),
+            ...birthdaysInMonth.map((b) => ({ type: "birthday" as const, day: b.day, birthday: b })),
+          ].sort((a, b) => a.day - b.day);
+
+          return entries.map((entry, i) => {
+            if (entry.type === "event") {
+              const e = entry.event;
+              const iso = eventDate(e)!;
+              const kind = KIND_META[e.kind];
+              return (
+                <div key={e.id} style={{ display: "flex", alignItems: "center", gap: 12, padding: "10px 0", borderBottom: "1px solid rgba(32,30,29,.07)" }}>
+                  <div style={{ width: 34, flex: "none", textAlign: "center" }}>
+                    <div style={{ fontFamily: "var(--font-heading)", fontSize: 17, lineHeight: 1 }}>{formatDay(iso)}</div>
+                    <div style={{ fontSize: 9, textTransform: "uppercase", opacity: 0.5 }}>{formatMonthShort(iso)}</div>
                   </div>
+                  <Link href={eventDetailHref(e.id, e.kind)} style={{ flex: 1, minWidth: 0, textDecoration: "none", color: "inherit" }}>
+                    <div style={{ fontSize: 14, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{e.title}</div>
+                    <div style={{ fontSize: 11, opacity: 0.55 }}>
+                      {[e.starts_at ? formatTime(e.starts_at) : null, e.location].filter(Boolean).join(" · ")}
+                    </div>
+                  </Link>
+                  <Tag variant="custom" bg={kind.bg} color={kind.color} style={{ flex: "none" }}>{kind.label}</Tag>
+                  {e.starts_at ? (
+                    <AddToCalendarButton
+                      icsHref={`/api/events/${e.id}/ics`}
+                      googleHref={googleCalendarUrl({ uid: e.id, title: e.title, start: e.starts_at, location: e.location ?? undefined })}
+                      variant="icon"
+                    />
+                  ) : null}
+                </div>
+              );
+            }
+
+            const b = entry.birthday;
+            const displayName = b.nickname ? `${b.full_name} «${b.nickname}»` : b.full_name;
+            return (
+              <div key={`bd-${b.id}-${i}`} style={{ display: "flex", alignItems: "center", gap: 12, padding: "10px 0", borderBottom: "1px solid rgba(32,30,29,.07)" }}>
+                <div style={{ width: 34, flex: "none", textAlign: "center" }}>
+                  <div style={{ fontFamily: "var(--font-heading)", fontSize: 17, lineHeight: 1 }}>{b.day}</div>
+                  <div style={{ fontSize: 9, textTransform: "uppercase", opacity: 0.5 }}>{formatMonthShort(`${cursor.year}-${String(cursor.month).padStart(2, "0")}-${String(b.day).padStart(2, "0")}`)}</div>
+                </div>
+                <Link href={`/membres/${b.id}`} style={{ flex: 1, minWidth: 0, textDecoration: "none", color: "inherit" }}>
+                  <div style={{ fontSize: 14, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>🎂 {displayName}</div>
                 </Link>
-                <Tag variant="custom" bg={kind.bg} color={kind.color} style={{ flex: "none" }}>{kind.label}</Tag>
-                {e.starts_at ? (
-                  <AddToCalendarButton
-                    icsHref={`/api/events/${e.id}/ics`}
-                    googleHref={googleCalendarUrl({ uid: e.id, title: e.title, start: e.starts_at, location: e.location ?? undefined })}
-                    variant="icon"
-                  />
-                ) : null}
+                <Tag variant="neutral" style={{ flex: "none" }}>Aniversari</Tag>
               </div>
             );
-          })
-        )}
+          });
+        })()}
       </div>
     </div>
   );

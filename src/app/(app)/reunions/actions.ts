@@ -27,23 +27,38 @@ export interface CastVoteResult {
   error?: string;
 }
 
-/** Cast (or change) the current member's vote in a poll. */
-export async function castVote(eventId: string, optionId: string): Promise<CastVoteResult> {
+/** Cast (or toggle) the current member's vote in a poll. */
+export async function castVote(eventId: string, optionId: string, allowMultiple: boolean): Promise<CastVoteResult> {
   const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const { data: { user } } = await supabase.auth.getUser();
   if (!user) return { error: "No autenticat" };
 
-  const { error } = await supabase
-    .from("poll_votes")
-    .upsert(
-      { event_id: eventId, option_id: optionId, member_id: user.id },
-      { onConflict: "event_id,member_id" },
-    );
+  if (allowMultiple) {
+    // Toggle: remove if already voted, add if not.
+    const { data: existing } = await supabase
+      .from("poll_votes")
+      .select("option_id")
+      .eq("event_id", eventId)
+      .eq("member_id", user.id)
+      .eq("option_id", optionId)
+      .maybeSingle();
 
-  // The guard_poll_open trigger rejects votes after closes_at.
-  if (error) return { error: "La votació ja està tancada" };
+    if (existing) {
+      await supabase.from("poll_votes").delete()
+        .eq("event_id", eventId).eq("member_id", user.id).eq("option_id", optionId);
+    } else {
+      const { error } = await supabase.from("poll_votes")
+        .insert({ event_id: eventId, option_id: optionId, member_id: user.id });
+      if (error) return { error: "La votació ja està tancada" };
+    }
+  } else {
+    // Single-select: replace any existing vote.
+    await supabase.from("poll_votes").delete()
+      .eq("event_id", eventId).eq("member_id", user.id);
+    const { error } = await supabase.from("poll_votes")
+      .insert({ event_id: eventId, option_id: optionId, member_id: user.id });
+    if (error) return { error: "La votació ja està tancada" };
+  }
 
   revalidatePath(`/reunions/votacions/${eventId}`);
   revalidatePath("/bolos");

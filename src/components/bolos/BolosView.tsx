@@ -4,6 +4,8 @@ import { useMemo, useState } from "react";
 import { SegmentedControl } from "@/components/ui/SegmentedControl";
 import { Input } from "@/components/ui/Input";
 import { Tag } from "@/components/ui/Tag";
+import { Pagination } from "@/components/ui/Pagination";
+import { usePagination } from "@/lib/hooks/usePagination";
 import { EventCard } from "./EventCard";
 import { CalendarMonth } from "./CalendarMonth";
 import { CreateEventModal } from "./CreateEventModal";
@@ -11,16 +13,17 @@ import { isPast } from "@/lib/utils/dates";
 import { t } from "@/i18n/t";
 import type { EventListItem } from "@/lib/data/events";
 import type { EventKind } from "@/types/database";
+import type { BirthdayItem } from "./CalendarMonth";
 
 type View = "llista" | "calendari" | "historic";
-type Filter = "Tot" | "bolo" | "reunio" | "votacio";
+type Filter = "Tot" | "bolo" | "event" | "votacio";
 
 /** Relevant date used to decide upcoming vs. past. */
 function relevantDate(e: EventListItem): string | null {
   return e.kind === "votacio" ? e.closes_at : e.starts_at;
 }
 
-export function BolosView({ events, isAdmin }: { events: EventListItem[]; isAdmin: boolean }) {
+export function BolosView({ events, isAdmin, birthdays = [] }: { events: EventListItem[]; isAdmin: boolean; birthdays?: BirthdayItem[] }) {
   const [view, setView] = useState<View>("llista");
   const [filter, setFilter] = useState<Filter>("Tot");
   const [search, setSearch] = useState("");
@@ -29,7 +32,7 @@ export function BolosView({ events, isAdmin }: { events: EventListItem[]; isAdmi
   const filterChips: { value: Filter; label: string }[] = [
     { value: "Tot", label: t.bolos.filterAll },
     { value: "bolo", label: t.bolos.filterBolos },
-    { value: "reunio", label: t.bolos.filterMeetings },
+    { value: "event", label: t.bolos.filterMeetings },
     { value: "votacio", label: t.bolos.filterPolls },
   ];
 
@@ -44,9 +47,12 @@ export function BolosView({ events, isAdmin }: { events: EventListItem[]; isAdmi
     () =>
       events
         .filter((e) => isPast(relevantDate(e)))
-        .filter((e) => e.title.toLowerCase().includes(search.toLowerCase())),
+        .filter((e) => e.title.toLowerCase().includes(search.toLowerCase()))
+        .sort((a, b) => (relevantDate(b) ?? "") > (relevantDate(a) ?? "") ? 1 : -1),
     [events, search],
   );
+
+  const historyPag = usePagination(history, 15, search);
 
   // Season summary (admins only).
   const stats = useMemo(() => {
@@ -129,7 +135,7 @@ export function BolosView({ events, isAdmin }: { events: EventListItem[]; isAdmi
         </>
       ) : null}
 
-      {view === "calendari" ? <CalendarMonth events={events} /> : null}
+      {view === "calendari" ? <CalendarMonth events={events} birthdays={birthdays} /> : null}
 
       {view === "historic" ? (
         <>
@@ -143,9 +149,10 @@ export function BolosView({ events, isAdmin }: { events: EventListItem[]; isAdmi
             {history.length === 0 ? (
               <p className="text-muted">{t.common.empty}</p>
             ) : (
-              history.map((e) => <EventCard key={e.id} event={e} />)
+              historyPag.pageItems.map((e) => <EventCard key={e.id} event={e} />)
             )}
           </div>
+          <Pagination {...historyPag} onPrev={historyPag.prev} onNext={historyPag.next} />
         </>
       ) : null}
 

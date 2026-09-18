@@ -11,7 +11,7 @@ function subjectFor(kind: EventKind, title: string): string {
   switch (kind) {
     case "bolo":
       return t.emails.newBoloSubject(title);
-    case "reunio":
+    case "event":
       return t.emails.newMeetingSubject(title);
     case "votacio":
       return t.emails.newPollSubject(title);
@@ -22,7 +22,7 @@ function bodyFor(kind: EventKind): string {
   switch (kind) {
     case "bolo":
       return t.emails.newBoloBody;
-    case "reunio":
+    case "event":
       return t.emails.newMeetingBody;
     case "votacio":
       return t.emails.newPollBody;

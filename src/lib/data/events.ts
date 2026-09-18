@@ -163,6 +163,7 @@ export interface CreateEventInput {
   askSizes?: boolean;
   allowedRoles?: ("diable" | "tabaler" | "supporter")[];
   allowMultipleOptions?: boolean;
+  allowMultipleVotes?: boolean;
   agenda?: string | null;
   affects?: string | null;
   closesAt?: string | null;
@@ -187,6 +188,7 @@ export async function createEvent(supabase: DB, input: CreateEventInput): Promis
       ask_sizes: input.askSizes ?? true,
       allowed_roles: input.allowedRoles ?? [],
       allow_multiple_options: input.allowMultipleOptions ?? false,
+      allow_multiple_votes: input.allowMultipleVotes ?? false,
       agenda: input.agenda ?? null,
       affects: input.affects ?? null,
       closes_at: input.closesAt ?? null,

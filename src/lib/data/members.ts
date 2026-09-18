@@ -89,7 +89,7 @@ export async function getFillols(supabase: DB, memberId: string): Promise<Fillol
 }
 
 const ADMIN_LIST_COLUMNS =
-  "id, full_name, nickname, email, board_position, member_status, joined_date, avatar_url, quota_automatic";
+  "id, full_name, nickname, email, board_position, member_status, inactive_since, joined_date, avatar_url, quota_automatic";
 
 export interface AdminMemberItem {
   id: string;
@@ -98,6 +98,7 @@ export interface AdminMemberItem {
   email: string;
   board_position: MemberRow["board_position"];
   member_status: MemberRow["member_status"];
+  inactive_since: string | null;
   joined_date: string | null;
   avatar_url: string | null;
   quota_automatic: boolean;

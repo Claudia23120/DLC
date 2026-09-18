@@ -18,6 +18,7 @@ interface AttendancePickerProps {
   eventOptions: EventOption[];
   initialOptionResponses: Record<string, string>;
   allowMultipleOptions: boolean;
+  closed?: boolean;
 }
 
 export function AttendancePicker({
@@ -29,6 +30,7 @@ export function AttendancePicker({
   eventOptions,
   initialOptionResponses,
   allowMultipleOptions,
+  closed = false,
 }: AttendancePickerProps) {
   const [response, setResponse] = useState<BoloResponse | null>(initialResponse);
   const [car, setCar] = useState(initialCar);
@@ -73,6 +75,14 @@ export function AttendancePicker({
 
   const showExtras = !!response && response !== "no";
   const hasOptions = eventOptions.length > 0;
+
+  if (closed) {
+    return (
+      <div style={{ padding: "16px 20px", borderRadius: 16, background: "var(--color-surface)", boxShadow: "var(--shadow-sm)", color: "var(--color-muted-text)", fontSize: 14, textAlign: "center" }}>
+        Aquest bolo ja ha passat
+      </div>
+    );
+  }
 
   return (
     <div>

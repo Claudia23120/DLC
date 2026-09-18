@@ -22,6 +22,7 @@ export function QuotaYearView({ members, initialYear, initialPaidIds }: Props) {
   const [fetching, startFetch] = useTransition();
 
   const billableMembers = members.filter((m) => {
+    if (m.member_status === "inactive") return false;
     const joinedYear = m.joined_date ? parseInt(m.joined_date.slice(0, 4), 10) : null;
     if (joinedYear && joinedYear > year) return false;
     if (filter === "domiciliada" && !m.quota_automatic) return false;

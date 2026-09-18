@@ -30,6 +30,9 @@ export async function setBoloAttendance(
     .eq("id", user.id)
     .single();
 
+  const { data: ev } = await supabase.from("events").select("cancelled, starts_at").eq("id", eventId).single();
+  if (!ev || ev.cancelled || (ev.starts_at && new Date(ev.starts_at) < new Date())) return;
+
   await supabase.from("bolo_attendance").upsert(
     {
       event_id: eventId,
@@ -123,7 +126,7 @@ export async function createEventAction(
           customOptions.map((label, position) => ({ event_id: newId, label: label.trim(), kind: "boolean" as const, position })),
         );
       }
-    } else if (kind === "reunio") {
+    } else if (kind === "event") {
       const event = await createEvent(supabase, {
         kind,
         title,
@@ -143,6 +146,7 @@ export async function createEventAction(
         startsAt: null,
         closesAt: closes ? new Date(closes).toISOString() : null,
         pollOptions: options,
+        allowMultipleVotes: formData.get("allow_multiple_votes") === "on",
         createdBy: user.id,
       });
       newId = event.id;

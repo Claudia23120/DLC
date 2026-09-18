@@ -8,27 +8,37 @@ interface PollVotingProps {
   eventId: string;
   options: PollOptionResult[];
   closed: boolean;
+  allowMultiple: boolean;
 }
 
-/** Poll options with live results; click to vote (unless closed). */
-export function PollVoting({ eventId, options, closed }: PollVotingProps) {
+type OptAction = { optionId: string; allowMultiple: boolean };
+
+export function PollVoting({ eventId, options, closed, allowMultiple }: PollVotingProps) {
   const [, startTransition] = useTransition();
-  // Optimistically mark the chosen option while the vote is written.
+
   const [optimistic, setOptimistic] = useOptimistic(
     options,
-    (state, chosenId: string) => state.map((o) => ({ ...o, mine: o.id === chosenId })),
+    (state, { optionId, allowMultiple: multi }: OptAction) => {
+      if (multi) {
+        return state.map((o) => o.id === optionId ? { ...o, mine: !o.mine } : o);
+      }
+      return state.map((o) => ({ ...o, mine: o.id === optionId }));
+    },
   );
 
   const vote = (optionId: string) => {
     if (closed) return;
     startTransition(async () => {
-      setOptimistic(optionId);
-      await castVote(eventId, optionId);
+      setOptimistic({ optionId, allowMultiple });
+      await castVote(eventId, optionId, allowMultiple);
     });
   };
 
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+      {allowMultiple && !closed && (
+        <p style={{ fontSize: 12, opacity: 0.5, margin: 0 }}>Pots seleccionar més d&apos;una opció.</p>
+      )}
       {optimistic.map((o) => (
         <button
           key={o.id}
@@ -41,7 +51,7 @@ export function PollVoting({ eventId, options, closed }: PollVotingProps) {
             border: `1px solid ${o.mine ? "var(--color-accent-500)" : "rgba(32,30,29,.14)"}`,
             borderRadius: 18,
             padding: "14px 16px",
-            background: "transparent",
+            background: o.mine ? "var(--color-accent-50, rgba(198,47,40,.04))" : "transparent",
           }}
         >
           <div style={{ display: "flex", alignItems: "center", gap: 8 }}>

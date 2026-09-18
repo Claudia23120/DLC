@@ -16,7 +16,7 @@ export type BoardPosition =
 
 export type MemberRole = "diable" | "tabaler" | "supporter";
 export type MemberStatus = "active" | "inactive" | "intermittent";
-export type EventKind = "bolo" | "reunio" | "votacio";
+export type EventKind = "bolo" | "event" | "votacio";
 export type BoloResponse = "diable" | "tabaler" | "supporter" | "no" | "si";
 export type MeetingResponse = "yes" | "no";
 export type BadgeType = "automatic" | "manual" | "repte";
@@ -33,12 +33,13 @@ export interface Database {
           nickname: string | null;
           email: string;
           phone: string | null;
+          nif: string | null;
+          birth_date: string | null;
           emergency_contact: string | null;
           medical_notes: string | null;
           bio: string | null;
           board_position: BoardPosition | null;
           is_admin: boolean;
-          joined_year: number | null;
           joined_date: string | null;
           sizes: Record<string, unknown>;
           gear_needs: Record<string, unknown>;
@@ -48,6 +49,7 @@ export interface Database {
           padri_foc_id: string | null;
           padri_tabal_id: string | null;
           member_status: MemberStatus;
+          inactive_since: string | null;
           has_cre: boolean;
           has_rgcre: boolean;
           quota_automatic: boolean;
@@ -61,11 +63,12 @@ export interface Database {
           email: string;
           nickname?: string | null;
           phone?: string | null;
+          nif?: string | null;
+          birth_date?: string | null;
           emergency_contact?: string | null;
           medical_notes?: string | null;
           bio?: string | null;
           board_position?: BoardPosition | null;
-          joined_year?: number | null;
           joined_date?: string | null;
           sizes?: Record<string, unknown>;
           gear_needs?: Record<string, unknown>;
@@ -96,6 +99,7 @@ export interface Database {
           ask_sizes: boolean;
           allowed_roles: MemberRole[];
           allow_multiple_options: boolean;
+          allow_multiple_votes: boolean;
           agenda: string | null;
           affects: string | null;
           acta_url: string | null;
@@ -119,6 +123,7 @@ export interface Database {
           ask_sizes?: boolean;
           allowed_roles?: MemberRole[];
           allow_multiple_options?: boolean;
+          allow_multiple_votes?: boolean;
           agenda?: string | null;
           affects?: string | null;
           acta_url?: string | null;

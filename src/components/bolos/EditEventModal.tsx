@@ -5,6 +5,7 @@ import { Modal } from "@/components/ui/Modal";
 import { Field } from "@/components/ui/Field";
 import { Toggle } from "@/components/ui/Toggle";
 import { RichTextEditor } from "@/components/ui/RichTextEditor";
+import { BoloOptionsAdmin } from "@/components/bolos/BoloOptionsAdmin";
 import { updateEventAction, type UpdateEventState } from "@/app/(app)/junta/actions";
 import { RESPONSE_META } from "@/lib/domain/events";
 import { madridParts } from "@/lib/utils/dates";
@@ -51,6 +52,7 @@ export function EditEventModal({
   const [askCars, setAskCars] = useState(event.ask_cars ?? true);
   const [askSizes, setAskSizes] = useState(event.ask_sizes ?? true);
   const [allowMultiple, setAllowMultiple] = useState(event.allow_multiple_options ?? false);
+  const [allowMultipleVotes, setAllowMultipleVotes] = useState(event.allow_multiple_votes ?? false);
 
   useEffect(() => {
     if (state.ok) onClose();
@@ -59,7 +61,7 @@ export function EditEventModal({
   const title =
     event.kind === "bolo"
       ? t.create.editBolo
-      : event.kind === "reunio"
+      : event.kind === "event"
       ? t.create.editMeeting
       : t.create.editPoll;
 
@@ -133,10 +135,11 @@ export function EditEventModal({
             <ToggleRow label={t.create.askCars} checked={askCars} onChange={setAskCars} name="ask_cars" />
             <ToggleRow label={t.create.askSizes} checked={askSizes} onChange={setAskSizes} name="ask_sizes" />
             <ToggleRow label="Permet seleccionar múltiples opcions" checked={allowMultiple} onChange={setAllowMultiple} name="allow_multiple_options" />
+            <BoloOptionsAdmin eventId={event.id} />
           </>
         ) : null}
 
-        {event.kind === "reunio" ? (
+        {event.kind === "event" ? (
           <>
             <Field label={t.create.affects} name="affects" defaultValue={event.affects ?? "Tota la colla"} style={{ height: 48 }} />
             <Field label={t.meetings.agenda} name="agenda" defaultValue={event.agenda ?? ""} style={{ height: 48 }} />
@@ -145,13 +148,16 @@ export function EditEventModal({
         ) : null}
 
         {event.kind === "votacio" ? (
-          <Field
-            label={t.polls.closesOn}
-            name="closes_at"
-            type="datetime-local"
-            defaultValue={closesAtToInput(event.closes_at)}
-            style={{ height: 48 }}
-          />
+          <>
+            <Field
+              label={t.polls.closesOn}
+              name="closes_at"
+              type="datetime-local"
+              defaultValue={closesAtToInput(event.closes_at)}
+              style={{ height: 48 }}
+            />
+            <ToggleRow label="Permet seleccionar múltiples opcions" checked={allowMultipleVotes} onChange={setAllowMultipleVotes} name="allow_multiple_votes" />
+          </>
         ) : null}
 
         {state.error ? (

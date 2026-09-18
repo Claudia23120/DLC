@@ -4,7 +4,7 @@ export default function manifest(): MetadataRoute.Manifest {
   return {
     name: "Diables de les Corts",
     short_name: "Diables",
-    description: "L'espai intern de la colla: bolos, reunions i tot el que cou.",
+    description: "L'espai intern de la colla: bolos, events i tot el que cou.",
     start_url: "/bolos",
     display: "standalone",
     orientation: "portrait",

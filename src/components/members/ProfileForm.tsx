@@ -45,9 +45,34 @@ export function ProfileForm({
         <Field label={t.profile.fullName} name="full_name" defaultValue={profile.full_name} style={{ height: 48 }} />
         <Field label={t.profile.nickname} name="nickname" defaultValue={profile.nickname ?? ""} style={{ height: 48 }} />
         <Field label={t.profile.phone} name="phone" defaultValue={profile.phone ?? ""} style={{ height: 48 }} />
+        <Field label={t.profile.nif} name="nif" defaultValue={profile.nif ?? ""} style={{ height: 48 }} />
+        <div className="field">
+          <label style={{ fontSize: 12, letterSpacing: ".06em", textTransform: "uppercase", opacity: 0.55, display: "block", marginBottom: 6 }}>
+            {t.profile.birthDate}
+          </label>
+          <input
+            type="date"
+            name="birth_date"
+            defaultValue={profile.birth_date?.slice(0, 10) ?? ""}
+            className="input"
+            style={{ height: 48 }}
+          />
+        </div>
         <Field label={t.profile.email} name="email_display" defaultValue={profile.email} disabled style={{ height: 48, opacity: 0.6 }} />
         <Field label={t.profile.emergencyContact} name="emergency_contact" defaultValue={profile.emergency_contact ?? ""} style={{ height: 48 }} />
         <Field label={t.profile.medicalNotes} name="medical_notes" defaultValue={profile.medical_notes ?? ""} style={{ height: 48 }} />
+        <div className="field">
+          <label style={{ fontSize: 12, letterSpacing: ".06em", textTransform: "uppercase", opacity: 0.55, display: "block", marginBottom: 6 }}>
+            Data d&apos;entrada a la colla
+          </label>
+          <input
+            type="date"
+            name="joined_date"
+            defaultValue={profile.joined_date?.slice(0, 10) ?? ""}
+            className="input"
+            style={{ height: 48 }}
+          />
+        </div>
         <div className="field">
           <label>Bio</label>
           <textarea

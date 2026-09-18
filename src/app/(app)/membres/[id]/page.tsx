@@ -14,7 +14,7 @@ import { AdminOnly } from "@/components/ui/AdminOnly";
 import { grantBadgeAction, revokeBadgeAction } from "@/app/(app)/colla/badge-actions";
 import { revalidatePath } from "next/cache";
 import { t } from "@/i18n/t";
-import type { MemberStatus } from "@/types/database";
+import type { BoloResponse, MemberStatus } from "@/types/database";
 import Link from "next/link";
 import type { ReactNode } from "react";
 
@@ -29,7 +29,7 @@ export default async function MemberPage({ params }: PageProps) {
 
   const adminClient = viewer.is_admin ? createServiceRoleClient() : null;
 
-  const [member, fillols, memberBadges, allBadges, quotaPaymentsResult] = await Promise.all([
+  const [member, fillols, memberBadges, allBadges, quotaPaymentsResult, attendanceResult, bolosResult] = await Promise.all([
     getMemberWithPadrins(supabase, id),
     getFillols(supabase, id),
     getMemberBadges(supabase, id),
@@ -37,11 +37,32 @@ export default async function MemberPage({ params }: PageProps) {
     adminClient
       ? adminClient.from("quota_payments").select("year, paid").eq("member_id", id).order("year")
       : Promise.resolve({ data: [] }),
+    viewer.is_admin
+      ? supabase.from("bolo_attendance").select("response, event:event_id(starts_at)").eq("member_id", id)
+      : Promise.resolve({ data: [] }),
+    viewer.is_admin
+      ? supabase.from("events").select("starts_at").eq("kind", "bolo")
+      : Promise.resolve({ data: [] }),
   ]);
 
   const quotaPayments: Record<number, boolean> = Object.fromEntries(
     (quotaPaymentsResult.data ?? []).map((r) => [r.year, r.paid])
   );
+
+  const joinedDate = member?.joined_date ?? null;
+  const allBolos = (bolosResult.data ?? []).filter(
+    (b) => !joinedDate || !b.starts_at || b.starts_at >= joinedDate,
+  );
+  const totalBolos = allBolos.length;
+  const attendance = (attendanceResult.data ?? []).filter((a) => {
+    const eventDate = (a.event as { starts_at: string | null } | null)?.starts_at ?? null;
+    return !joinedDate || !eventDate || eventDate >= joinedDate;
+  });
+  const participated = attendance.filter(
+    (a) => (["diable", "tabaler", "supporter"] as BoloResponse[]).includes(a.response as BoloResponse),
+  ).length;
+  const declined = attendance.filter((a) => a.response === "no").length;
+  const noResponse = Math.max(0, totalBolos - attendance.length);
 
   if (!member) notFound();
 
@@ -49,9 +70,12 @@ export default async function MemberPage({ params }: PageProps) {
   const facts: { label: string; value: string }[] = [
     { label: t.profile.phone, value: (member.phone as string) ?? "—" },
     { label: t.profile.email, value: member.email },
+    member.birth_date
+      ? { label: t.profile.birthDate, value: new Date(member.birth_date).toLocaleDateString("ca", { day: "numeric", month: "long" }) }
+      : null,
     { label: t.profile.emergencyContact, value: (member.emergency_contact as string) ?? "—" },
     { label: t.profile.medicalNotes, value: (member.medical_notes as string) ?? "—" },
-  ];
+  ].filter(Boolean) as { label: string; value: string }[];
   const sizeRows: { label: string; value: string }[] = [
     { label: t.profile.casaca, value: sizeText(sizes.own_suit_foc, sizes.casaca) },
     { label: t.profile.pantalo, value: sizeText(sizes.own_suit_foc, sizes.pantalo) },
@@ -89,14 +113,20 @@ export default async function MemberPage({ params }: PageProps) {
     const status = String(fd.get("member_status") ?? "") as MemberStatus;
     const validStatuses: MemberStatus[] = ["active", "inactive", "intermittent"];
     if (!validStatuses.includes(status)) return;
+    const boardPositionRaw = String(fd.get("board_position") ?? "").trim();
+    const validPositions = ["presidenta", "vicepresidenta", "secretaria", "tresorera", "cap_de_foc", "cap_de_tabals"];
+    const boardPosition = validPositions.includes(boardPositionRaw) ? boardPositionRaw : null;
     const admin = createServiceRoleClient();
     await admin.from("profiles").update({
       member_status: status,
+      board_position: boardPosition,
       has_cre: fd.get("has_cre") === "on",
       has_rgcre: fd.get("has_rgcre") === "on",
       quota_automatic: fd.get("quota_automatic") === "on",
     }).eq("id", id);
     revalidatePath(`/membres/${id}`);
+    revalidatePath("/colla");
+    revalidatePath("/junta");
   }
 
   async function saveQuotaPayments(fd: FormData) {
@@ -143,6 +173,20 @@ export default async function MemberPage({ params }: PageProps) {
           ) : null}
 
           {member.bio ? <p style={{ fontSize: 14, margin: 0 }}>{member.bio}</p> : null}
+
+          {viewer.is_admin && totalBolos > 0 ? (
+            <section style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+              <h3 style={{ fontSize: 20, margin: 0 }}>{t.profile.boloStats}</h3>
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 8 }}>
+                <StatCard label={t.profile.statsParticipated} value={participated} total={totalBolos} bg="rgba(34,197,94,.08)" color="#16a34a" />
+                <StatCard label={t.profile.statsDeclined} value={declined} total={totalBolos} bg="rgba(239,68,68,.08)" color="#dc2626" />
+                <StatCard label={t.profile.statsNoResponse} value={noResponse} total={totalBolos} bg="rgba(32,30,29,.05)" color="rgba(32,30,29,.45)" />
+              </div>
+              <div style={{ fontSize: 12, opacity: 0.45, textAlign: "center" }}>
+                {joinedDate ? t.profile.statsTotal(totalBolos) : `${totalBolos} bolos publicats en total`}
+              </div>
+            </section>
+          ) : null}
 
           {(hasPadrins || hasFillols) ? (
             <div>
@@ -237,6 +281,20 @@ export default async function MemberPage({ params }: PageProps) {
                       <option value="intermittent">{t.member.statusIntermittent}</option>
                     </select>
                   </div>
+                  <div className="field" style={{ marginBottom: 14 }}>
+                    <label style={{ fontSize: 12, letterSpacing: ".06em", textTransform: "uppercase", opacity: 0.55, display: "block", marginBottom: 6 }}>
+                      Posició a la junta
+                    </label>
+                    <select name="board_position" className="input" defaultValue={member.board_position ?? ""} style={{ height: 44 }}>
+                      <option value="">Membre (sense càrrec)</option>
+                      <option value="presidenta">Presidenta</option>
+                      <option value="vicepresidenta">Vicepresidenta</option>
+                      <option value="secretaria">Secretària</option>
+                      <option value="tresorera">Tresorera</option>
+                      <option value="cap_de_foc">Cap de Foc</option>
+                      <option value="cap_de_tabals">Cap de Tabals</option>
+                    </select>
+                  </div>
                   <div style={{ display: "flex", flexDirection: "column", gap: 10, marginBottom: 14 }}>
                     <label style={{ display: "flex", alignItems: "center", gap: 10, fontSize: 14, cursor: "pointer" }}>
                       <input type="checkbox" name="has_cre" defaultChecked={member.has_cre} style={{ width: 18, height: 18 }} />
@@ -269,6 +327,17 @@ export default async function MemberPage({ params }: PageProps) {
         </div>
       </PageContainer>
     </>
+  );
+}
+
+function StatCard({ label, value, total, bg, color }: { label: string; value: number; total: number; bg: string; color: string }) {
+  const pct = total > 0 ? Math.round((value / total) * 100) : 0;
+  return (
+    <div style={{ background: bg, borderRadius: 20, padding: "14px 12px", textAlign: "center" }}>
+      <div style={{ fontFamily: "var(--font-heading)", fontSize: 28, color }}>{value}</div>
+      <div style={{ fontFamily: "var(--font-heading)", fontSize: 13, color, opacity: 0.7 }}>{pct}%</div>
+      <div style={{ fontSize: 11, color, opacity: 0.85, marginTop: 2, lineHeight: 1.2 }}>{label}</div>
+    </div>
   );
 }
 

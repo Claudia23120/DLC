@@ -41,7 +41,6 @@ export async function createMemberAction(
   const phone = String(formData.get("phone") ?? "").trim() || null;
   const joinedDateRaw = String(formData.get("joined_date") ?? "").trim();
   const joinedDate = /^\d{4}-\d{2}-\d{2}$/.test(joinedDateRaw) ? joinedDateRaw : null;
-  const joinedYear = joinedDate ? parseInt(joinedDate.slice(0, 4), 10) : null;
 
   if (!fullName || !email) return { error: "Cal nom i correu." };
 
@@ -82,7 +81,6 @@ export async function createMemberAction(
       phone,
       board_position: boardPosition,
       joined_date: joinedDate,
-      joined_year: joinedYear,
       member_status: memberStatus,
       has_cre: hasCre,
       has_rgcre: hasRgcre,

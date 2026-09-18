@@ -35,7 +35,7 @@ export function EventsTabBar({ active }: Props) {
               transition: "all .15s",
             }}
           >
-            {key === "bolos" ? "Bolos" : "Reunions"}
+            {key === "bolos" ? "Bolos" : "Events"}
           </Link>
         );
       })}

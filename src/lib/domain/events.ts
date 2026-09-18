@@ -7,7 +7,7 @@ export const KIND_META: Record<
   { label: string; bg: string; color: string; dot: string }
 > = {
   bolo: { label: t.kinds.bolo, bg: "var(--color-accent-100)", color: "var(--color-accent-800)", dot: "var(--color-accent-500)" },
-  reunio: { label: t.kinds.reunio, bg: "var(--color-sage-200)", color: "var(--color-sage-800)", dot: "var(--color-sage-500)" },
+  event: { label: t.kinds.event, bg: "var(--color-sage-200)", color: "var(--color-sage-800)", dot: "var(--color-sage-500)" },
   votacio: { label: t.kinds.votacio, bg: "var(--color-sand-200)", color: "var(--color-sand-800)", dot: "var(--color-sand-800)" },
 };
 
@@ -28,7 +28,7 @@ export function eventDetailHref(id: string, kind: EventKind): string {
   switch (kind) {
     case "bolo":
       return `/bolos/${id}`;
-    case "reunio":
+    case "event":
       return `/reunions/${id}`;
     case "votacio":
       return `/reunions/votacions/${id}`;
@@ -40,7 +40,7 @@ export function countLabel(kind: EventKind, counts: EventCounts): string {
   switch (kind) {
     case "bolo":
       return t.bolos.signedCount(counts.signup_count);
-    case "reunio":
+    case "event":
       return t.bolos.confirmedCount(counts.confirmed_count);
     case "votacio":
       return t.bolos.votesCount(counts.vote_count);

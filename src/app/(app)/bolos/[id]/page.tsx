@@ -11,7 +11,6 @@ import { CommentSection } from "@/components/bolos/CommentSection";
 import { BoloAdminSummary, type SummaryCell } from "@/components/bolos/BoloAdminSummary";
 import { BoloAttendanceAdmin } from "@/components/bolos/BoloAttendanceAdmin";
 import { BoloFocEditor } from "@/components/bolos/BoloFocEditor";
-import { BoloOptionsAdmin } from "@/components/bolos/BoloOptionsAdmin";
 import { AdminOnly } from "@/components/ui/AdminOnly";
 import { requireProfile } from "@/lib/auth/session";
 import { createClient } from "@/lib/supabase/server";
@@ -40,7 +39,7 @@ export default async function BoloDetailPage({ params }: PageProps) {
     getBoloSignups(supabase, id),
     getComments(supabase, id),
     getMyBoloResponse(supabase, id, profile.id),
-    supabase.from("profiles").select("*", { count: "exact", head: true }),
+    supabase.from("profiles").select("*", { count: "exact", head: true }).in("member_status", ["active", "intermittent"]),
     profile.is_admin ? listMembers(supabase) : Promise.resolve([]),
     getEventOptions(supabase, id),
     getMyOptionResponses(supabase, id, profile.id),
@@ -125,6 +124,7 @@ export default async function BoloDetailPage({ params }: PageProps) {
             eventOptions={eventOptions}
             initialOptionResponses={myOptionResponses}
             allowMultipleOptions={event.allow_multiple_options}
+            closed={event.cancelled || (event.starts_at ? new Date(event.starts_at) < new Date() : false)}
           />
 
           {event.map_url ? (
@@ -149,7 +149,6 @@ export default async function BoloDetailPage({ params }: PageProps) {
                 allMembers={allMembers}
                 signups={signups}
               />
-              <BoloOptionsAdmin eventId={event.id} options={eventOptions} />
               <BoloFocEditor
                 eventId={event.id}
                 defaultTitle={event.title}

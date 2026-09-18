@@ -94,7 +94,9 @@ export default async function PerfilPage() {
               />
             </div>
             <div style={{ fontSize: 12, opacity: 0.45, textAlign: "center" }}>
-              {t.profile.statsTotal(totalBolos)}
+              {joinedDate
+                ? t.profile.statsTotal(totalBolos)
+                : `${totalBolos} bolos publicats en total (sense data d'entrada)`}
             </div>
           </section>
 

@@ -18,7 +18,7 @@ function statusFor(event: EventListItem): { label: string; bg: string; color: st
     }
     return { label: t.responses.noResponse, bg: "var(--color-accent-100)", color: "var(--color-accent-800)" };
   }
-  if (event.kind === "reunio") {
+  if (event.kind === "event") {
     return { label: isPast(event.starts_at) ? "Passada" : "Confirma assistència", bg: kind.bg, color: kind.color };
   }
   const closed = event.closes_at ? isPast(event.closes_at) : false;

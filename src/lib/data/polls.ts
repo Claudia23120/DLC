@@ -7,17 +7,17 @@ export interface PollOptionResult {
   id: string;
   label: string;
   count: number;
-  pct: number; // 0-100
+  pct: number; // 0-100 (relative to unique voters)
   mine: boolean;
 }
 
 export interface PollResults {
   options: PollOptionResult[];
-  total: number;
-  myOptionId: string | null;
+  total: number; // unique members who have voted
+  myVotedIds: string[];
 }
 
-/** Poll options with live vote tallies and the current member's choice. */
+/** Poll options with live vote tallies and the current member's selections. */
 export async function getPollResults(
   supabase: DB,
   eventId: string,
@@ -29,12 +29,16 @@ export async function getPollResults(
   ]);
 
   const tally = new Map<string, number>();
-  let myOptionId: string | null = null;
+  const myVotedIds: string[] = [];
+  const uniqueVoters = new Set<string>();
+
   for (const v of votes ?? []) {
     tally.set(v.option_id, (tally.get(v.option_id) ?? 0) + 1);
-    if (v.member_id === userId) myOptionId = v.option_id;
+    uniqueVoters.add(v.member_id);
+    if (v.member_id === userId) myVotedIds.push(v.option_id);
   }
-  const total = votes?.length ?? 0;
+
+  const total = uniqueVoters.size;
 
   const results: PollOptionResult[] = (options ?? []).map((o) => {
     const count = tally.get(o.id) ?? 0;
@@ -43,9 +47,9 @@ export async function getPollResults(
       label: o.label,
       count,
       pct: total > 0 ? Math.round((count / total) * 100) : 0,
-      mine: myOptionId === o.id,
+      mine: myVotedIds.includes(o.id),
     };
   });
 
-  return { options: results, total, myOptionId };
+  return { options: results, total, myVotedIds };
 }

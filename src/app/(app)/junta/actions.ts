@@ -2,9 +2,10 @@
 
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
+import { createServiceRoleClient } from "@/lib/supabase/admin";
 import { madridDateTimeToISO } from "@/lib/utils/dates";
 import { t } from "@/i18n/t";
-import type { EventKind, MemberRole } from "@/types/database";
+import type { BoardPosition, EventKind, MemberRole } from "@/types/database";
 
 async function assertAdmin() {
   const supabase = await createClient();
@@ -13,6 +14,19 @@ async function assertAdmin() {
   const { data: me } = await supabase.from("profiles").select("is_admin").eq("id", user.id).single();
   if (!me?.is_admin) return null;
   return supabase;
+}
+
+export async function setBoardPositionAction(
+  memberId: string,
+  position: BoardPosition | null,
+): Promise<void> {
+  const supabase = await assertAdmin();
+  if (!supabase) return;
+  // board_position is protected by the guard trigger — needs service role.
+  const admin = createServiceRoleClient();
+  await admin.from("profiles").update({ board_position: position }).eq("id", memberId);
+  revalidatePath("/junta");
+  revalidatePath("/colla");
 }
 
 export async function setCancelledAction(eventId: string, cancelled: boolean) {
@@ -56,7 +70,7 @@ export async function updateEventAction(
       (r) => formData.get(`role_${r}`) === "on",
     );
     update.allowed_roles = roles;
-  } else if (kind === "reunio") {
+  } else if (kind === "event") {
     update.starts_at = madridDateTimeToISO(date, time);
     update.location = str("location");
     update.agenda = str("agenda");
@@ -65,6 +79,7 @@ export async function updateEventAction(
   } else {
     const closes = str("closes_at");
     update.closes_at = closes ? new Date(closes).toISOString() : null;
+    update.allow_multiple_votes = formData.get("allow_multiple_votes") === "on";
   }
 
   const { error } = await supabase.from("events").update(update).eq("id", eventId);

@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
+import { createServiceRoleClient } from "@/lib/supabase/admin";
 import { t } from "@/i18n/t";
 
 export interface ChangePasswordState {
@@ -56,6 +57,8 @@ export async function updateProfile(
       full_name: str("full_name") ?? "",
       nickname: str("nickname"),
       phone: str("phone"),
+      nif: str("nif"),
+      birth_date: str("birth_date") ?? null,
       emergency_contact: str("emergency_contact"),
       medical_notes: str("medical_notes"),
       bio: str("bio"),
@@ -66,7 +69,17 @@ export async function updateProfile(
     })
     .eq("id", user.id);
 
-  if (error) return { error: t.auth.genericError };
+  if (error) {
+    console.error("[updateProfile] Supabase error:", JSON.stringify(error));
+    return { error: t.auth.genericError };
+  }
+
+  // joined_date is protected by the guard trigger, so it needs the service role.
+  const rawDate = String(formData.get("joined_date") ?? "").trim();
+  if (/^\d{4}-\d{2}-\d{2}$/.test(rawDate)) {
+    const admin = createServiceRoleClient();
+    await admin.from("profiles").update({ joined_date: rawDate }).eq("id", user.id);
+  }
 
   revalidatePath("/perfil");
   return { ok: true };

@@ -1,27 +1,46 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useState, useEffect, useTransition } from "react";
+import { createClient } from "@/lib/supabase/client";
 import { saveEventOption, deleteEventOption } from "@/app/(app)/bolos/actions";
 import type { EventOption } from "@/lib/data/events";
 
 interface Props {
   eventId: string;
-  options: EventOption[];
 }
 
-export function BoloOptionsAdmin({ eventId, options }: Props) {
+export function BoloOptionsAdmin({ eventId }: Props) {
+  const [options, setOptions] = useState<EventOption[]>([]);
   const [label, setLabel] = useState("");
   const [, startTransition] = useTransition();
+
+  const fetchOptions = () => {
+    const supabase = createClient();
+    supabase
+      .from("event_options")
+      .select("*")
+      .eq("event_id", eventId)
+      .order("position", { ascending: true })
+      .then(({ data }) => setOptions(data ?? []));
+  };
+
+  useEffect(() => { fetchOptions(); }, [eventId]);
 
   const add = () => {
     const trimmed = label.trim();
     if (!trimmed) return;
     setLabel("");
-    startTransition(() => { void saveEventOption(eventId, trimmed, "boolean"); });
+    startTransition(async () => {
+      await saveEventOption(eventId, trimmed, "boolean");
+      fetchOptions();
+    });
   };
 
   const remove = (optionId: string) => {
-    startTransition(() => { void deleteEventOption(optionId, eventId); });
+    startTransition(async () => {
+      await deleteEventOption(optionId, eventId);
+      fetchOptions();
+    });
   };
 
   return (
@@ -44,7 +63,7 @@ export function BoloOptionsAdmin({ eventId, options }: Props) {
         </div>
       ))}
 
-      <div style={{ display: "flex", gap: 8, marginTop: 4 }}>
+      <div style={{ display: "flex", gap: 8 }}>
         <input
           type="text"
           value={label}
