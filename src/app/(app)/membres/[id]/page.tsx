@@ -38,10 +38,10 @@ export default async function MemberPage({ params }: PageProps) {
       ? adminClient.from("quota_payments").select("year, paid").eq("member_id", id).order("year")
       : Promise.resolve({ data: [] }),
     viewer.is_admin
-      ? supabase.from("bolo_attendance").select("response, event:event_id(starts_at)").eq("member_id", id)
+      ? supabase.from("bolo_attendance").select("response, event_id").eq("member_id", id)
       : Promise.resolve({ data: [] }),
     viewer.is_admin
-      ? supabase.from("events").select("starts_at").eq("kind", "bolo")
+      ? supabase.from("events").select("id, starts_at").eq("kind", "bolo")
       : Promise.resolve({ data: [] }),
   ]);
 
@@ -50,12 +50,14 @@ export default async function MemberPage({ params }: PageProps) {
   );
 
   const joinedDate = member?.joined_date ?? null;
-  const allBolos = (bolosResult.data ?? []).filter(
-    (b) => !joinedDate || !b.starts_at || b.starts_at >= joinedDate,
+  const boloDateById = new Map(
+    (bolosResult.data ?? []).map((b) => [b.id, b.starts_at]),
   );
-  const totalBolos = allBolos.length;
+  const totalBolos = [...boloDateById.values()].filter(
+    (d) => !joinedDate || !d || d >= joinedDate,
+  ).length;
   const attendance = (attendanceResult.data ?? []).filter((a) => {
-    const eventDate = (a.event as { starts_at: string | null } | null)?.starts_at ?? null;
+    const eventDate = boloDateById.get(a.event_id) ?? null;
     return !joinedDate || !eventDate || eventDate >= joinedDate;
   });
   const participated = attendance.filter(
