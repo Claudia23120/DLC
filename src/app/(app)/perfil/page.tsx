@@ -21,23 +21,25 @@ export default async function PerfilPage() {
     listMembers(supabase),
     supabase
       .from("bolo_attendance")
-      .select("response, event:event_id(starts_at)")
+      .select("response, event_id")
       .eq("member_id", profile.id),
     supabase
       .from("events")
-      .select("starts_at")
+      .select("id, starts_at")
       .eq("kind", "bolo"),
   ]);
 
   const joinedDate = full?.joined_date ?? null;
 
-  const allBolos = (bolosResult.data ?? []).filter(
-    (b) => !joinedDate || !b.starts_at || b.starts_at >= joinedDate,
+  const boloDateById = new Map(
+    (bolosResult.data ?? []).map((b) => [b.id, b.starts_at]),
   );
-  const totalBolos = allBolos.length;
+  const totalBolos = [...boloDateById.values()].filter(
+    (d) => !joinedDate || !d || d >= joinedDate,
+  ).length;
 
   const attendance = (attendanceResult.data ?? []).filter((a) => {
-    const eventDate = (a.event as { starts_at: string | null } | null)?.starts_at ?? null;
+    const eventDate = boloDateById.get(a.event_id) ?? null;
     return !joinedDate || !eventDate || eventDate >= joinedDate;
   });
 
