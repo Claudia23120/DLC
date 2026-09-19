@@ -10,10 +10,21 @@ type DB = Awaited<ReturnType<typeof createClient>>;
 
 export type EventRow = Database["public"]["Tables"]["events"]["Row"];
 
-export interface EventListItem extends EventRow {
+/** Light type used in all list views (bolos, reunions, junta). */
+export interface EventListItem {
+  id: string;
+  kind: EventKind;
+  title: string;
+  starts_at: string | null;
+  closes_at: string | null;
+  location: string | null;
+  cancelled: boolean;
+  allowed_roles: string[];
   counts: EventCounts;
-  myResponse: BoloResponse | null; // for bolos
+  myResponse: BoloResponse | null;
 }
+
+const LIST_COLS = "id, kind, title, starts_at, closes_at, location, cancelled, allowed_roles";
 
 const EMPTY_COUNTS = (id: string): EventCounts => ({
   event_id: id,
@@ -22,10 +33,10 @@ const EMPTY_COUNTS = (id: string): EventCounts => ({
   vote_count: 0,
 });
 
-/** All events with per-event counts and the current member's bolo response. */
-export async function listEvents(supabase: DB, userId: string): Promise<EventListItem[]> {
+/** Light query: only the columns needed for list views (no description, agenda, etc.). */
+export async function listEventsLight(supabase: DB, userId: string): Promise<EventListItem[]> {
   const [{ data: events }, { data: counts }, { data: mine }] = await Promise.all([
-    supabase.from("events").select("*").order("starts_at", { ascending: true }),
+    supabase.from("events").select(LIST_COLS).order("starts_at", { ascending: true }),
     supabase.from("event_counts").select("*"),
     supabase.from("bolo_attendance").select("event_id, response").eq("member_id", userId),
   ]);
@@ -38,7 +49,7 @@ export async function listEvents(supabase: DB, userId: string): Promise<EventLis
   );
 
   return (events ?? []).map((e) => ({
-    ...e,
+    ...(e as unknown as EventListItem),
     counts: countsById.get(e.id) ?? EMPTY_COUNTS(e.id),
     myResponse: responseById.get(e.id) ?? null,
   }));

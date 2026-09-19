@@ -125,7 +125,7 @@ export function CalendarMonth({ events, birthdays = [] }: { events: EventListIte
                 >
                   {day}
                 </div>
-                {hasBirthday ? <span style={{ fontSize: 8, lineHeight: 1 }}>🎂</span> : null}
+                {hasBirthday ? <span style={{ width: 5, height: 5, borderRadius: "50%", background: "#c4619e", display: "block", flexShrink: 0 }} /> : null}
               </div>
             );
           })}
@@ -139,7 +139,8 @@ export function CalendarMonth({ events, birthdays = [] }: { events: EventListIte
             </span>
           ))}
           <span style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 11, opacity: 0.7 }}>
-            🎂 Aniversari
+            <span style={{ width: 10, height: 10, borderRadius: "50%", background: "#c4619e", flexShrink: 0 }} />
+            Aniversari
           </span>
         </div>
       </div>
@@ -196,7 +197,10 @@ export function CalendarMonth({ events, birthdays = [] }: { events: EventListIte
                   <div style={{ fontSize: 9, textTransform: "uppercase", opacity: 0.5 }}>{formatMonthShort(`${cursor.year}-${String(cursor.month).padStart(2, "0")}-${String(b.day).padStart(2, "0")}`)}</div>
                 </div>
                 <Link href={`/membres/${b.id}`} style={{ flex: 1, minWidth: 0, textDecoration: "none", color: "inherit" }}>
-                  <div style={{ fontSize: 14, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>🎂 {displayName}</div>
+                  <div style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 14, minWidth: 0 }}>
+                    <span style={{ width: 8, height: 8, borderRadius: "50%", background: "#c4619e", flexShrink: 0 }} />
+                    <span style={{ whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{displayName}</span>
+                  </div>
                 </Link>
                 <Tag variant="neutral" style={{ flex: "none" }}>Aniversari</Tag>
               </div>

@@ -41,7 +41,6 @@ export function EventCard({ event }: { event: EventListItem }) {
     ? googleCalendarUrl({
         uid: event.id,
         title: event.title,
-        description: event.description ?? undefined,
         location: event.location ?? undefined,
         start: event.starts_at,
       })

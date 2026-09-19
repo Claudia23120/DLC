@@ -3,7 +3,7 @@ import { PageContainer } from "@/components/layout/PageContainer";
 import { JuntaView } from "@/components/junta/JuntaView";
 import { requireAdmin } from "@/lib/auth/session";
 import { createClient } from "@/lib/supabase/server";
-import { listEvents } from "@/lib/data/events";
+import { listEventsLight } from "@/lib/data/events";
 import { listAllMembersForAdmin } from "@/lib/data/members";
 import { listSongs } from "@/lib/data/songs";
 import { t } from "@/i18n/t";
@@ -15,7 +15,7 @@ export default async function JuntaPage() {
   const currentYear = new Date().getFullYear();
 
   const [events, members, quotaResult, songs] = await Promise.all([
-    listEvents(supabase, profile.id),
+    listEventsLight(supabase, profile.id),
     listAllMembersForAdmin(supabase),
     supabase
       .from("quota_payments")

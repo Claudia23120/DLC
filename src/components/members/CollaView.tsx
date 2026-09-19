@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { usePersistedState } from "@/lib/hooks/usePersistedState";
 import { SegmentedControl } from "@/components/ui/SegmentedControl";
 import { Card } from "@/components/ui/Card";
 import { MembersList } from "./MembersList";
@@ -29,7 +30,7 @@ export function CollaView({
   lineage: LineageItem[];
   badgesWithCounts: BadgeWithCount[];
 }) {
-  const [tab, setTab] = useState<Tab>("info");
+  const [tab, setTab] = usePersistedState<Tab>("colla-tab", "info");
   const [ibanCopied, setIbanCopied] = useState(false);
   const [createBadgeOpen, setCreateBadgeOpen] = useState(false);
 

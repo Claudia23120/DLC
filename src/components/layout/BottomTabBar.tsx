@@ -11,14 +11,14 @@ export function BottomTabBar({ isAdmin }: { isAdmin: boolean }) {
 
   return (
     <div
-      className="mobile-only"
+      className="mobile-only bottom-tab-bar"
       style={{
         position: "fixed",
         bottom: 0,
         left: 0,
         right: 0,
         zIndex: 100,
-        padding: "10px 12px calc(16px + env(safe-area-inset-bottom))",
+        padding: "10px 12px 16px",
         background: "var(--color-surface)",
         boxShadow: "0 -6px 20px rgba(46,43,37,.08)",
       }}

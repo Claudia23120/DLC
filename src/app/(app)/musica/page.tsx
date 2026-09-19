@@ -3,13 +3,12 @@ import { PageContainer } from "@/components/layout/PageContainer";
 import { MusicaView } from "@/components/musica/MusicaView";
 import { requireProfile } from "@/lib/auth/session";
 import { createClient } from "@/lib/supabase/server";
-import { listSongs } from "@/lib/data/songs";
+import { listSongsLight } from "@/lib/data/songs";
 import { t } from "@/i18n/t";
 
 export default async function MusicaPage() {
-  const profile = await requireProfile();
-  const supabase = await createClient();
-  const songs = await listSongs(supabase);
+  const [profile, supabase] = await Promise.all([requireProfile(), createClient()]);
+  const songs = await listSongsLight(supabase);
 
   return (
     <>

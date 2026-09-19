@@ -6,6 +6,7 @@ import { createServiceRoleClient } from "@/lib/supabase/admin";
 import { madridDateTimeToISO } from "@/lib/utils/dates";
 import { t } from "@/i18n/t";
 import type { BoardPosition, EventKind, MemberRole } from "@/types/database";
+import type { EventRow } from "@/lib/data/events";
 
 async function assertAdmin() {
   const supabase = await createClient();
@@ -14,6 +15,13 @@ async function assertAdmin() {
   const { data: me } = await supabase.from("profiles").select("is_admin").eq("id", user.id).single();
   if (!me?.is_admin) return null;
   return supabase;
+}
+
+/** Fetch a single event's full row (for the edit modal). */
+export async function getEventAction(id: string): Promise<EventRow | null> {
+  const supabase = await createClient();
+  const { data } = await supabase.from("events").select("*").eq("id", id).single();
+  return data as EventRow | null;
 }
 
 export async function setBoardPositionAction(

@@ -5,7 +5,7 @@ import { EventsTabBar } from "@/components/layout/EventsTabBar";
 import { Tag } from "@/components/ui/Tag";
 import { requireProfile } from "@/lib/auth/session";
 import { createClient } from "@/lib/supabase/server";
-import { listEvents } from "@/lib/data/events";
+import { listEventsLight } from "@/lib/data/events";
 import { isPast, formatLongDate, formatTime } from "@/lib/utils/dates";
 import { KIND_META } from "@/lib/domain/events";
 import { t } from "@/i18n/t";
@@ -69,7 +69,7 @@ export default async function ReunionsPage() {
   const profile = await requireProfile();
   const supabase = await createClient();
 
-  const allEvents = await listEvents(supabase, profile.id);
+  const allEvents = await listEventsLight(supabase, profile.id);
   const meetingEvents = allEvents.filter((e) => e.kind === "event" || e.kind === "votacio");
 
   const upcoming = meetingEvents

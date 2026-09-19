@@ -3,7 +3,7 @@ import { PageContainer } from "@/components/layout/PageContainer";
 import { BolosView } from "@/components/bolos/BolosView";
 import { requireProfile } from "@/lib/auth/session";
 import { createClient } from "@/lib/supabase/server";
-import { listEvents } from "@/lib/data/events";
+import { listEventsLight } from "@/lib/data/events";
 import { t } from "@/i18n/t";
 import type { BirthdayItem } from "@/components/bolos/CalendarMonth";
 
@@ -11,7 +11,7 @@ export default async function BolosPage() {
   const profile = await requireProfile();
   const supabase = await createClient();
   const [events, birthdaysResult] = await Promise.all([
-    listEvents(supabase, profile.id),
+    listEventsLight(supabase, profile.id),
     supabase
       .from("profiles")
       .select("id, full_name, nickname, birth_date")

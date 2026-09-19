@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { usePersistedState } from "@/lib/hooks/usePersistedState";
 import Link from "next/link";
 import { Input } from "@/components/ui/Input";
 import { Avatar } from "@/components/ui/Avatar";
@@ -13,7 +14,7 @@ import { t } from "@/i18n/t";
 import type { MemberListItem } from "@/lib/data/members";
 
 export function MembersList({ members, isAdmin }: { members: MemberListItem[]; isAdmin: boolean }) {
-  const [search, setSearch] = useState("");
+  const [search, setSearch] = usePersistedState("members-search", "");
   const [createOpen, setCreateOpen] = useState(false);
 
   const filtered = members.filter((m) =>

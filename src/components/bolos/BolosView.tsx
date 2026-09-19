@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { usePersistedState } from "@/lib/hooks/usePersistedState";
 import { SegmentedControl } from "@/components/ui/SegmentedControl";
 import { Input } from "@/components/ui/Input";
 import { Tag } from "@/components/ui/Tag";
@@ -24,9 +25,9 @@ function relevantDate(e: EventListItem): string | null {
 }
 
 export function BolosView({ events, isAdmin, birthdays = [] }: { events: EventListItem[]; isAdmin: boolean; birthdays?: BirthdayItem[] }) {
-  const [view, setView] = useState<View>("llista");
-  const [filter, setFilter] = useState<Filter>("Tot");
-  const [search, setSearch] = useState("");
+  const [view, setView] = usePersistedState<View>("bolos-view", "llista");
+  const [filter, setFilter] = usePersistedState<Filter>("bolos-filter", "Tot");
+  const [search, setSearch] = usePersistedState("bolos-search", "");
   const [createOpen, setCreateOpen] = useState(false);
 
   const filterChips: { value: Filter; label: string }[] = [

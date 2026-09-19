@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, useTransition, useEffect } from "react";
+import { useState, useTransition } from "react";
+import { usePersistedState } from "@/lib/hooks/usePersistedState";
 import Link from "next/link";
 import { Input } from "@/components/ui/Input";
 import { Avatar } from "@/components/ui/Avatar";
@@ -12,7 +13,8 @@ import { EditEventModal } from "@/components/bolos/EditEventModal";
 import { CreateMemberModal } from "@/components/members/CreateMemberModal";
 import { QuotaYearView } from "@/components/junta/QuotaYearView";
 import { SongModal } from "@/components/junta/SongModal";
-import type { EventListItem } from "@/lib/data/events";
+import type { EventListItem, EventRow } from "@/lib/data/events";
+import { getEventAction } from "@/app/(app)/junta/actions";
 import type { AdminMemberItem } from "@/lib/data/members";
 import type { SongRow } from "@/lib/data/songs";
 import { t } from "@/i18n/t";
@@ -99,7 +101,7 @@ function DeleteBtn({ eventId }: { eventId: string }) {
 
 // ── Row components ────────────────────────────────────────────────────────
 
-function BoloRow({ event, onEdit }: { event: EventListItem; onEdit: (e: EventListItem) => void }) {
+function BoloRow({ event, onEdit }: { event: EventListItem; onEdit: (id: string) => void }) {
   const [pending, startTransition] = useTransition();
   const status = boloStatus(event);
 
@@ -120,7 +122,7 @@ function BoloRow({ event, onEdit }: { event: EventListItem; onEdit: (e: EventLis
       <div className="junta-row-end">
         <span style={{ fontSize: 12, opacity: 0.55 }}>{t.junta.participants(event.counts.signup_count ?? 0)}</span>
         <StatusPill {...status} />
-        <ActionBtn onClick={() => onEdit(event)}>{t.junta.edit}</ActionBtn>
+        <ActionBtn onClick={() => onEdit(event.id)}>{t.junta.edit}</ActionBtn>
         <ActionBtn onClick={toggleCancelled} disabled={pending}>
           {event.cancelled ? t.junta.reactivateBolo : t.junta.cancelBolo}
         </ActionBtn>
@@ -152,7 +154,7 @@ function MemberRow({ member }: { member: AdminMemberItem }) {
   );
 }
 
-function ReunioRow({ event, onEdit }: { event: EventListItem; onEdit: (e: EventListItem) => void }) {
+function ReunioRow({ event, onEdit }: { event: EventListItem; onEdit: (id: string) => void }) {
   const future = !event.starts_at || new Date(event.starts_at) > new Date();
   const status = future
     ? { label: t.junta.open, color: "#16a34a", bg: "rgba(34,197,94,.12)" }
@@ -166,14 +168,14 @@ function ReunioRow({ event, onEdit }: { event: EventListItem; onEdit: (e: EventL
       </Link>
       <div className="junta-row-end">
         <StatusPill {...status} />
-        <ActionBtn onClick={() => onEdit(event)}>{t.junta.edit}</ActionBtn>
+        <ActionBtn onClick={() => onEdit(event.id)}>{t.junta.edit}</ActionBtn>
         <DeleteBtn eventId={event.id} />
       </div>
     </div>
   );
 }
 
-function VotacioRow({ event, onEdit }: { event: EventListItem; onEdit: (e: EventListItem) => void }) {
+function VotacioRow({ event, onEdit }: { event: EventListItem; onEdit: (id: string) => void }) {
   const closed = !!event.closes_at && new Date(event.closes_at) <= new Date();
   const status = closed
     ? { label: t.junta.pollClosed, color: "rgba(32,30,29,.45)", bg: "rgba(32,30,29,.07)" }
@@ -190,7 +192,7 @@ function VotacioRow({ event, onEdit }: { event: EventListItem; onEdit: (e: Event
       <div className="junta-row-end">
         <span style={{ fontSize: 12, opacity: 0.55 }}>{t.junta.votes(event.counts.vote_count ?? 0)}</span>
         <StatusPill {...status} />
-        <ActionBtn onClick={() => onEdit(event)}>{t.junta.edit}</ActionBtn>
+        <ActionBtn onClick={() => onEdit(event.id)}>{t.junta.edit}</ActionBtn>
         <DeleteBtn eventId={event.id} />
       </div>
     </div>
@@ -245,15 +247,23 @@ export function JuntaView({
   quotaPaidIds: string[];
   songs: SongRow[];
 }) {
-  const [tab, setTab] = useState<Tab>("bolos");
-  const [search, setSearch] = useState("");
+  const [tab, setTab] = usePersistedState<Tab>("junta-tab", "bolos");
+  const [search, setSearch] = usePersistedState("junta-search", "");
   const [showCreateEvent, setShowCreateEvent] = useState(false);
   const [showCreateMember, setShowCreateMember] = useState(false);
-  const [editingEvent, setEditingEvent] = useState<EventListItem | null>(null);
+  const [editingEvent, setEditingEvent] = useState<EventRow | null>(null);
   const [showSongModal, setShowSongModal] = useState(false);
   const [editingSong, setEditingSong] = useState<SongRow | null>(null);
 
-  useEffect(() => { setSearch(""); }, [tab]);
+  async function handleEditEvent(id: string) {
+    const full = await getEventAction(id);
+    if (full) setEditingEvent(full);
+  }
+
+  const handleTabChange = (next: Tab) => {
+    setTab(next);
+    setSearch("");
+  };
 
   const q = search.toLowerCase();
 
@@ -313,7 +323,7 @@ export function JuntaView({
         {TABS.map((tb) => (
           <button
             key={tb.key}
-            onClick={() => setTab(tb.key)}
+            onClick={() => handleTabChange(tb.key)}
             style={{
               height: 36, padding: "0 14px", borderRadius: 999,
               border: "none", cursor: "pointer", fontSize: 13,
@@ -367,7 +377,7 @@ export function JuntaView({
         {tab === "bolos" && (
           bolos.length === 0
             ? <p style={{ padding: 20, opacity: 0.5, fontSize: 14 }}>{t.junta.noEvents}</p>
-            : bolosPag.pageItems.map((e) => <BoloRow key={e.id} event={e} onEdit={setEditingEvent} />)
+            : bolosPag.pageItems.map((e) => <BoloRow key={e.id} event={e} onEdit={handleEditEvent} />)
         )}
         {tab === "membres" && (
           filteredMembers.length === 0
@@ -377,12 +387,12 @@ export function JuntaView({
         {tab === "reunions" && (
           reunions.length === 0
             ? <p style={{ padding: 20, opacity: 0.5, fontSize: 14 }}>{t.junta.noEvents}</p>
-            : reunionsPag.pageItems.map((e) => <ReunioRow key={e.id} event={e} onEdit={setEditingEvent} />)
+            : reunionsPag.pageItems.map((e) => <ReunioRow key={e.id} event={e} onEdit={handleEditEvent} />)
         )}
         {tab === "votacions" && (
           votacions.length === 0
             ? <p style={{ padding: 20, opacity: 0.5, fontSize: 14 }}>{t.junta.noEvents}</p>
-            : votacionsPag.pageItems.map((e) => <VotacioRow key={e.id} event={e} onEdit={setEditingEvent} />)
+            : votacionsPag.pageItems.map((e) => <VotacioRow key={e.id} event={e} onEdit={handleEditEvent} />)
         )}
       </div>}
 

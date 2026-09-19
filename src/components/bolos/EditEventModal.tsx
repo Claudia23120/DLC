@@ -10,7 +10,7 @@ import { updateEventAction, type UpdateEventState } from "@/app/(app)/junta/acti
 import { RESPONSE_META } from "@/lib/domain/events";
 import { madridParts } from "@/lib/utils/dates";
 import { t } from "@/i18n/t";
-import type { EventListItem } from "@/lib/data/events";
+import type { EventRow } from "@/lib/data/events";
 import type { MemberRole } from "@/types/database";
 
 const initial: UpdateEventState = {};
@@ -36,7 +36,7 @@ export function EditEventModal({
   open,
   onClose,
 }: {
-  event: EventListItem;
+  event: EventRow;
   open: boolean;
   onClose: () => void;
 }) {

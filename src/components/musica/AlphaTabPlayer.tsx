@@ -21,23 +21,29 @@ function ensureAlphaTab(): Promise<void> {
   return atLoadPromise;
 }
 
+// iOS Safari suspends AudioContext until a user gesture. Calling resume() inside
+// a click handler unlocks audio for ALL contexts on the page (including AlphaTab's).
+function unlockAudioContext() {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const AudioCtx = window.AudioContext ?? (window as any).webkitAudioContext;
+  if (!AudioCtx) return;
+  const tmp = new AudioCtx() as AudioContext;
+  tmp.resume().finally(() => tmp.close()).catch(() => {});
+}
+
 function trackIcon(name: string): string {
   const n = name.toLowerCase();
-  if (n.includes("surdo"))                    return "🔵";
-  if (n.includes("caixa") || n.includes("snare")) return "🟡";
-  if (n.includes("repenique"))                return "🔴";
-  if (n.includes("agogo"))                    return "🔔";
-  if (n.includes("tamborim"))                 return "⚪";
-  if (n.includes("timba"))                    return "🟠";
-  if (n.includes("goliath") || n.includes("tom")) return "🟤";
+  if (n.includes("surdo"))                         return "🔵";
+  if (n.includes("caixa") || n.includes("snare"))  return "🟡";
+  if (n.includes("repenique"))                      return "🔴";
+  if (n.includes("agogo"))                          return "🔔";
+  if (n.includes("tamborim"))                       return "⚪";
+  if (n.includes("timba"))                          return "🟠";
+  if (n.includes("goliath") || n.includes("tom"))   return "🟤";
   return "🥁";
 }
 
-interface TrackState {
-  name: string;
-  muted: boolean;
-  solo: boolean;
-}
+interface TrackState { name: string; muted: boolean; solo: boolean; }
 
 export function AlphaTabPlayer({ gpUrl }: { gpUrl: string }) {
   const scoreRef  = useRef<HTMLDivElement>(null);
@@ -46,13 +52,12 @@ export function AlphaTabPlayer({ gpUrl }: { gpUrl: string }) {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const tracksRef = useRef<any[]>([]);
 
-  const [status,       setStatus]       = useState<"loading" | "ready" | "error">("loading");
-  const [playing,      setPlaying]      = useState(false);
-  const [tracks,       setTracks]       = useState<TrackState[]>([]);
-  // null = show all tracks; number = show only track at that index
-  const [activeIdx,    setActiveIdx]    = useState<number | null>(null);
-  const [currentBar,   setCurrentBar]   = useState(0);
-  const [totalBars,    setTotalBars]    = useState(0);
+  const [status,     setStatus]     = useState<"loading" | "ready" | "error">("loading");
+  const [playing,    setPlaying]    = useState(false);
+  const [tracks,     setTracks]     = useState<TrackState[]>([]);
+  const [activeIdx,  setActiveIdx]  = useState<number | null>(null);
+  const [currentBar, setCurrentBar] = useState(0);
+  const [totalBars,  setTotalBars]  = useState(0);
 
   useEffect(() => {
     let destroyed = false;
@@ -68,12 +73,7 @@ export function AlphaTabPlayer({ gpUrl }: { gpUrl: string }) {
         const at = (window as any).alphaTab;
         api = new at.AlphaTabApi(scoreRef.current, {
           core: { logLevel: 0 },
-          player: {
-            enablePlayer: true,
-            enableCursor: true,
-            soundFont: SF_CDN,
-            scrollMode: 1,
-          },
+          player: { enablePlayer: true, enableCursor: true, soundFont: SF_CDN, scrollMode: 1 },
           display: { layoutMode: 0, scale: 0.9 },
         });
         apiRef.current = api;
@@ -82,7 +82,7 @@ export function AlphaTabPlayer({ gpUrl }: { gpUrl: string }) {
         api.scoreLoaded.on((score: any) => {
           if (destroyed) return;
           tracksRef.current = score.tracks;
-          api.renderTracks(score.tracks); // show all by default
+          api.renderTracks(score.tracks);
           setTotalBars(score.masterBars?.length ?? 0);
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
           setTracks(score.tracks.map((tr: any) => ({ name: tr.name || `Instrument ${tr.index + 1}`, muted: false, solo: false })));
@@ -108,11 +108,15 @@ export function AlphaTabPlayer({ gpUrl }: { gpUrl: string }) {
     return () => { destroyed = true; if (api) { try { api.destroy(); } catch { /* */ } } };
   }, [gpUrl]);
 
-  // ── Visual track selection ────────────────────────────────────────────────
+  function handlePlayPause() {
+    // Must be called synchronously inside this click handler so iOS unlocks audio
+    unlockAudioContext();
+    apiRef.current?.playPause();
+  }
+
   function selectTrack(i: number) {
     if (!apiRef.current) return;
     if (activeIdx === i) {
-      // clicking the active track → show all
       setActiveIdx(null);
       apiRef.current.renderTracks(tracksRef.current);
     } else {
@@ -121,7 +125,6 @@ export function AlphaTabPlayer({ gpUrl }: { gpUrl: string }) {
     }
   }
 
-  // ── Audio mute / solo ─────────────────────────────────────────────────────
   function toggleMute(i: number, e: React.MouseEvent) {
     e.stopPropagation();
     setTracks((prev) => {
@@ -145,18 +148,28 @@ export function AlphaTabPlayer({ gpUrl }: { gpUrl: string }) {
   return (
     <div style={{ borderRadius: 16, overflow: "hidden", boxShadow: "var(--shadow-sm)", background: "var(--color-surface)", display: "flex", flexDirection: "column" }}>
 
-      {/* ── Top controls ───────────────────────────────────────────── */}
-      <div style={{ display: "flex", alignItems: "center", gap: 12, padding: "10px 16px", borderBottom: "1px solid rgba(32,30,29,.07)" }}>
+      {/* ── Controls — sticky so always visible while scrolling the score ── */}
+      <div style={{
+        position: "sticky",
+        top: 0,
+        zIndex: 10,
+        display: "flex",
+        alignItems: "center",
+        gap: 12,
+        padding: "10px 16px",
+        background: "var(--color-surface)",
+        borderBottom: "1px solid rgba(32,30,29,.07)",
+        boxShadow: "0 2px 8px rgba(46,43,37,.06)",
+      }}>
         <button
-          onClick={() => apiRef.current?.playPause()}
+          onClick={handlePlayPause}
           disabled={status !== "ready"}
           className="btn btn-primary"
-          style={{ height: 38, padding: "0 18px", fontSize: 14, flex: "none" }}
+          style={{ height: 42, padding: "0 22px", fontSize: 15, flex: "none" }}
         >
           {isLoading ? t.common.loading : playing ? t.songs.stop : t.songs.play}
         </button>
 
-        {/* Progress bar */}
         {totalBars > 0 && (
           <div style={{ flex: 1, display: "flex", alignItems: "center", gap: 8 }}>
             <div style={{ flex: 1, height: 4, background: "rgba(32,30,29,.1)", borderRadius: 99, overflow: "hidden" }}>
@@ -171,14 +184,11 @@ export function AlphaTabPlayer({ gpUrl }: { gpUrl: string }) {
         )}
       </div>
 
-      {/* ── Sidebar + score ────────────────────────────────────────── */}
+      {/* ── Sidebar + score ── */}
       <div style={{ display: "flex", minHeight: 400 }}>
 
-        {/* Sidebar */}
         {tracks.length > 0 && (
           <div style={{ width: 100, flex: "none", borderRight: "1px solid rgba(32,30,29,.07)", background: "#faf8f5", display: "flex", flexDirection: "column", overflowY: "auto" }}>
-
-            {/* "Tots" button */}
             <button
               onClick={() => { setActiveIdx(null); apiRef.current?.renderTracks(tracksRef.current); }}
               style={{
@@ -191,7 +201,6 @@ export function AlphaTabPlayer({ gpUrl }: { gpUrl: string }) {
               <span style={{ fontSize: 9, opacity: 0.7, letterSpacing: ".04em" }}>TOTS</span>
             </button>
 
-            {/* One row per instrument */}
             {tracks.map((tr, i) => {
               const isActive = activeIdx === i;
               return (
@@ -213,28 +222,11 @@ export function AlphaTabPlayer({ gpUrl }: { gpUrl: string }) {
                   <span style={{ fontSize: 9, lineHeight: 1.2, opacity: 0.65, maxWidth: 86, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
                     {tr.name}
                   </span>
-                  {/* M / S buttons */}
                   <div style={{ display: "flex", gap: 3 }}>
-                    <button
-                      onClick={(e) => toggleMute(i, e)}
-                      title="Silencia"
-                      style={{
-                        width: 22, height: 16, fontSize: 8, fontWeight: 700,
-                        border: "none", borderRadius: 3, cursor: "pointer",
-                        background: tr.muted ? "#374151" : "rgba(32,30,29,.15)",
-                        color: tr.muted ? "#fff" : "inherit",
-                      }}
-                    >M</button>
-                    <button
-                      onClick={(e) => toggleSolo(i, e)}
-                      title="Solo"
-                      style={{
-                        width: 22, height: 16, fontSize: 8, fontWeight: 700,
-                        border: "none", borderRadius: 3, cursor: "pointer",
-                        background: tr.solo ? "var(--color-accent-500)" : "rgba(32,30,29,.15)",
-                        color: tr.solo ? "#fff" : "inherit",
-                      }}
-                    >S</button>
+                    <button onClick={(e) => toggleMute(i, e)} title="Silencia"
+                      style={{ width: 22, height: 16, fontSize: 8, fontWeight: 700, border: "none", borderRadius: 3, cursor: "pointer", background: tr.muted ? "#374151" : "rgba(32,30,29,.15)", color: tr.muted ? "#fff" : "inherit" }}>M</button>
+                    <button onClick={(e) => toggleSolo(i, e)} title="Solo"
+                      style={{ width: 22, height: 16, fontSize: 8, fontWeight: 700, border: "none", borderRadius: 3, cursor: "pointer", background: tr.solo ? "var(--color-accent-500)" : "rgba(32,30,29,.15)", color: tr.solo ? "#fff" : "inherit" }}>S</button>
                   </div>
                 </div>
               );
@@ -242,7 +234,6 @@ export function AlphaTabPlayer({ gpUrl }: { gpUrl: string }) {
           </div>
         )}
 
-        {/* Score */}
         <div style={{ flex: 1, overflow: "auto", position: "relative", background: "#fff" }}>
           <div ref={scoreRef} />
         </div>

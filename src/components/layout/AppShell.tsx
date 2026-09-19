@@ -16,7 +16,7 @@ export function AppShell({ name, isAdmin, children }: AppShellProps) {
   return (
     <div style={{ minHeight: "100vh", display: "flex", flexDirection: "column" }}>
       <TopNav name={name} isAdmin={isAdmin} />
-      <main className="app-scroll" style={{ flex: 1, minHeight: 0, overflowY: "auto" }}>
+      <main className="app-scroll" style={{ flex: 1, minHeight: 0, overflowY: "auto", overflowX: "hidden" }}>
         {children}
       </main>
       <BottomTabBar isAdmin={isAdmin} />

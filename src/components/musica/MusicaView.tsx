@@ -1,17 +1,18 @@
 "use client";
 
 import { useState } from "react";
+import { usePersistedState } from "@/lib/hooks/usePersistedState";
 import Link from "next/link";
 import { SegmentedControl } from "@/components/ui/SegmentedControl";
 import { Card } from "@/components/ui/Card";
 import { musicaContent } from "@/content/musica";
 import { t } from "@/i18n/t";
-import type { SongRow } from "@/lib/data/songs";
+import type { SongListItem } from "@/lib/data/songs";
 
 type Tab = "instruments" | "repertori" | "glossari";
 
-export function MusicaView({ songs }: { songs: SongRow[] }) {
-  const [tab, setTab] = useState<Tab>("instruments");
+export function MusicaView({ songs }: { songs: SongListItem[] }) {
+  const [tab, setTab] = usePersistedState<Tab>("musica-tab", "instruments");
 
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>

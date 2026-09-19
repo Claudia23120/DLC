@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useTransition } from "react";
+import { usePersistedState } from "@/lib/hooks/usePersistedState";
 import { Avatar } from "@/components/ui/Avatar";
 import { createClient } from "@/lib/supabase/client";
 import { setQuotaPaymentAction } from "@/app/(app)/junta/actions";
@@ -18,7 +19,7 @@ type QuotaFilter = "all" | "domiciliada" | "no-domiciliada";
 export function QuotaYearView({ members, initialYear, initialPaidIds }: Props) {
   const [year, setYear] = useState(initialYear);
   const [paidIds, setPaidIds] = useState(new Set(initialPaidIds));
-  const [filter, setFilter] = useState<QuotaFilter>("all");
+  const [filter, setFilter] = usePersistedState<QuotaFilter>("quota-filter", "all");
   const [fetching, startFetch] = useTransition();
 
   const billableMembers = members.filter((m) => {
