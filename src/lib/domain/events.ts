@@ -7,7 +7,7 @@ export const KIND_META: Record<
   { label: string; bg: string; color: string; dot: string }
 > = {
   bolo: { label: t.kinds.bolo, bg: "var(--color-accent-100)", color: "var(--color-accent-800)", dot: "var(--color-accent-500)" },
-  event: { label: t.kinds.event, bg: "var(--color-sage-200)", color: "var(--color-sage-800)", dot: "var(--color-sage-500)" },
+  event: { label: t.kinds.reunio, bg: "var(--color-sage-200)", color: "var(--color-sage-800)", dot: "var(--color-sage-500)" },
   votacio: { label: t.kinds.votacio, bg: "var(--color-sand-200)", color: "var(--color-sand-800)", dot: "var(--color-sand-800)" },
 };
 

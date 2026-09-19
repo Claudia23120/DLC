@@ -14,7 +14,7 @@ import { AdminOnly } from "@/components/ui/AdminOnly";
 import { grantBadgeAction, revokeBadgeAction } from "@/app/(app)/colla/badge-actions";
 import { revalidatePath } from "next/cache";
 import { t } from "@/i18n/t";
-import type { BoloResponse, MemberStatus } from "@/types/database";
+import type { BoloResponse, BoardPosition, MemberStatus } from "@/types/database";
 import Link from "next/link";
 import type { ReactNode } from "react";
 
@@ -117,7 +117,7 @@ export default async function MemberPage({ params }: PageProps) {
     if (!validStatuses.includes(status)) return;
     const boardPositionRaw = String(fd.get("board_position") ?? "").trim();
     const validPositions = ["presidenta", "vicepresidenta", "secretaria", "tresorera", "cap_de_foc", "cap_de_tabals"];
-    const boardPosition = validPositions.includes(boardPositionRaw) ? boardPositionRaw : null;
+    const boardPosition = validPositions.includes(boardPositionRaw) ? boardPositionRaw as BoardPosition : null;
     const admin = createServiceRoleClient();
     await admin.from("profiles").update({
       member_status: status,
