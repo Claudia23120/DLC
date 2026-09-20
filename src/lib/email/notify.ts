@@ -23,7 +23,7 @@ export async function notifyNewEvent(params: {
   eventId: string;
   creatorEmail?: string;
 }): Promise<void> {
-  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "";
+  const siteUrl = process.env.SITE_URL ?? "";
   const url = `${siteUrl}/bolos/${params.eventId}`;
   const { subject, html, text } = renderNewEventEmail({
     kind: params.kind,

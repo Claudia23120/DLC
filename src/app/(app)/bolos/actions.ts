@@ -304,7 +304,7 @@ export async function remindPending(eventId: string): Promise<void> {
     .map((m) => m.email)
     .filter((e): e is string => Boolean(e) && !respondedEmails.has(e));
 
-  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "";
+  const siteUrl = process.env.SITE_URL ?? "";
   await sendEmail({
     to: pending,
     subject: t.emails.remindSubject(event.title),
