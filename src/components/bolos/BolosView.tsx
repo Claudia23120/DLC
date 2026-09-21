@@ -48,12 +48,13 @@ export function BolosView({ events, isAdmin, birthdays = [] }: { events: EventLi
     () =>
       events
         .filter((e) => isPast(relevantDate(e)))
+        .filter(byFilter)
         .filter((e) => e.title.toLowerCase().includes(search.toLowerCase()))
         .sort((a, b) => (relevantDate(b) ?? "") > (relevantDate(a) ?? "") ? 1 : -1),
-    [events, search],
+    [events, filter, search],
   );
 
-  const historyPag = usePagination(history, 15, search);
+  const historyPag = usePagination(history, 15, filter + search);
 
   // Season summary (admins only).
   const stats = useMemo(() => {
@@ -140,6 +141,30 @@ export function BolosView({ events, isAdmin, birthdays = [] }: { events: EventLi
 
       {view === "historic" ? (
         <>
+          <div style={{ display: "flex", gap: 8, overflowX: "auto", paddingBottom: 2 }}>
+            {filterChips.map((c) => (
+              <button
+                key={c.value}
+                type="button"
+                onClick={() => setFilter(c.value)}
+                style={{
+                  height: 34,
+                  padding: "0 16px",
+                  borderRadius: 999,
+                  cursor: "pointer",
+                  fontSize: 12,
+                  whiteSpace: "nowrap",
+                  borderWidth: 1,
+                  borderStyle: "solid",
+                  borderColor: filter === c.value ? "var(--color-accent-500)" : "rgba(32,30,29,.22)",
+                  background: filter === c.value ? "var(--color-accent-500)" : "transparent",
+                  color: filter === c.value ? "#fff" : "var(--color-text)",
+                }}
+              >
+                {c.label}
+              </button>
+            ))}
+          </div>
           <Input
             placeholder={t.bolos.searchHistory}
             value={search}

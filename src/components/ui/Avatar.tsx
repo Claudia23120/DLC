@@ -1,3 +1,4 @@
+import Image from "next/image";
 import type { CSSProperties } from "react";
 
 interface AvatarProps {
@@ -45,12 +46,14 @@ export function Avatar({
 
   if (url) {
     return (
-      // eslint-disable-next-line @next/next/no-img-element
-      <img
+      <Image
         src={url}
         alt={name}
+        width={size}
+        height={size}
         className={className}
         style={{ ...base, objectFit: "cover" }}
+        loading="lazy"
       />
     );
   }

@@ -10,6 +10,7 @@ export function BadgeGrid({ badges }: { badges: MemberBadgeWithDef[] }) {
           key={mb.id}
           title={mb.badge.description ?? mb.badge.name}
           style={{
+            position: "relative",
             display: "flex",
             flexDirection: "column",
             alignItems: "center",
@@ -25,6 +26,27 @@ export function BadgeGrid({ badges }: { badges: MemberBadgeWithDef[] }) {
           <span style={{ fontSize: 11, fontFamily: "var(--font-heading)", textAlign: "center", lineHeight: 1.2 }}>
             {mb.badge.name}
           </span>
+          {mb.repte_count != null && mb.repte_count > 0 ? (
+            <span style={{
+              position: "absolute",
+              top: 6,
+              right: 6,
+              minWidth: 18,
+              height: 18,
+              borderRadius: 999,
+              background: "var(--color-accent-500)",
+              color: "#fff",
+              fontSize: 10,
+              fontFamily: "var(--font-heading)",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              padding: "0 4px",
+              lineHeight: 1,
+            }}>
+              {mb.repte_count}
+            </span>
+          ) : null}
         </div>
       ))}
     </div>

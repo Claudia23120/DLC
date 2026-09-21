@@ -170,15 +170,12 @@ img { display: block; max-width: 100%; }
 }
 
 /* Reserve space at the bottom of the scroll container so page content
-   never hides under the fixed mobile tab bar. */
+   never hides under the fixed mobile tab bar.
+   env(safe-area-inset-bottom) is 0 in a normal browser and non-zero only
+   when the viewport extends behind a home indicator (PWA / notch devices). */
 @media (max-width: 999px) {
-  .app-scroll { padding-bottom: 96px; }
-}
-/* In standalone (PWA) mode the viewport extends behind the home indicator,
-   so we need the extra safe-area offset. In browser mode we do not. */
-@media (max-width: 999px) and (display-mode: standalone) {
-  .app-scroll { padding-bottom: calc(96px + env(safe-area-inset-bottom)); }
-  .bottom-tab-bar { padding-bottom: calc(16px + env(safe-area-inset-bottom)) !important; }
+  .app-scroll { padding-bottom: calc(96px + env(safe-area-inset-bottom, 0px)); }
+  .bottom-tab-bar { padding-bottom: calc(16px + env(safe-area-inset-bottom, 0px)) !important; }
 }
 
 /* Per-page header (kicker + title + back). Padding matches the prototype's

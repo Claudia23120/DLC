@@ -8,7 +8,7 @@ import { AddToCalendarButton } from "@/components/bolos/AddToCalendarButton";
 import { AttendancePicker } from "@/components/bolos/AttendancePicker";
 import { SignupList } from "@/components/bolos/SignupList";
 import { CommentSection } from "@/components/bolos/CommentSection";
-import { BoloAdminSummary, type SummaryCell } from "@/components/bolos/BoloAdminSummary";
+import { BoloSummary, BoloAdminSummary, type SummaryCell } from "@/components/bolos/BoloAdminSummary";
 import { BoloAttendanceAdmin } from "@/components/bolos/BoloAttendanceAdmin";
 import { BoloFocEditor } from "@/components/bolos/BoloFocEditor";
 import { AdminOnly } from "@/components/ui/AdminOnly";
@@ -51,6 +51,7 @@ export default async function BoloDetailPage({ params }: PageProps) {
   const by = (r: string) => signups.filter((s) => s.response === r).length;
   const cars = signups.filter((s) => s.brings_car).length;
   const hasRoles = event.allowed_roles.length > 0;
+  const carsCell: SummaryCell = { label: "Cotxes", value: String(cars), bg: "var(--color-sage-100)", color: "var(--color-sage-800)" };
   const summaryCells: SummaryCell[] = hasRoles
     ? [
         { label: t.responses.diable,    value: String(by("diable")),    bg: RESPONSE_META.diable.bg,    color: RESPONSE_META.diable.color },
@@ -58,13 +59,13 @@ export default async function BoloDetailPage({ params }: PageProps) {
         { label: t.responses.supporter, value: String(by("supporter")), bg: RESPONSE_META.supporter.bg, color: RESPONSE_META.supporter.color },
         { label: t.responses.no,        value: String(by("no")),        bg: RESPONSE_META.no.bg,        color: RESPONSE_META.no.color },
         { label: t.responses.noResponse, value: String(Math.max(0, totalMembers - signups.length)), bg: "var(--color-surface)", color: "var(--color-muted-text)" },
-        { label: "Cotxes", value: String(cars), bg: "var(--color-sage-100)", color: "var(--color-sage-800)" },
+        ...(event.ask_cars ? [carsCell] : []),
       ]
     : [
         { label: t.responses.si,  value: String(by("si")),  bg: RESPONSE_META.si.bg,  color: RESPONSE_META.si.color },
         { label: t.responses.no,  value: String(by("no")),  bg: RESPONSE_META.no.bg,  color: RESPONSE_META.no.color },
         { label: t.responses.noResponse, value: String(Math.max(0, totalMembers - signups.length)), bg: "var(--color-surface)", color: "var(--color-muted-text)" },
-        { label: "Cotxes", value: String(cars), bg: "var(--color-sage-100)", color: "var(--color-sage-800)" },
+        ...(event.ask_cars ? [carsCell] : []),
       ];
 
   const icsHref = `/api/events/${event.id}/ics`;
@@ -136,13 +137,15 @@ export default async function BoloDetailPage({ params }: PageProps) {
             </div>
           ) : null}
 
+          <BoloSummary cells={summaryCells} />
+
           <SignupList signups={signups} total={totalMembers} />
 
           <CommentSection eventId={event.id} comments={comments} />
 
           {profile.is_admin ? (
             <AdminOnly>
-              <BoloAdminSummary eventId={event.id} cells={summaryCells} />
+              <BoloAdminSummary eventId={event.id} />
               <BoloAttendanceAdmin
                 eventId={event.id}
                 allowedRoles={event.allowed_roles}

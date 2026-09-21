@@ -87,7 +87,9 @@ export async function updateEventAction(
   } else {
     const closes = str("closes_at");
     update.closes_at = closes ? new Date(closes).toISOString() : null;
+    update.description = str("description");
     update.allow_multiple_votes = formData.get("allow_multiple_votes") === "on";
+    update.secret_vote = formData.get("secret_vote") === "on";
   }
 
   const { error } = await supabase.from("events").update(update).eq("id", eventId);

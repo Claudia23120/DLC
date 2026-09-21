@@ -272,7 +272,7 @@ export default async function MemberPage({ params }: PageProps) {
 
               <div>
                 <h3 style={{ fontSize: 20, marginBottom: 10 }}>{t.member.adminSection}</h3>
-                <form action={saveAdminFields} style={{ background: "var(--color-surface)", borderRadius: 22, boxShadow: "var(--shadow-sm)", padding: "16px" }}>
+                <form action={saveAdminFields} key={`${member.member_status}-${member.board_position}-${member.has_cre}-${member.has_rgcre}-${member.quota_automatic}`} style={{ background: "var(--color-surface)", borderRadius: 22, boxShadow: "var(--shadow-sm)", padding: "16px" }}>
                   <div className="field" style={{ marginBottom: 14 }}>
                     <label style={{ fontSize: 12, letterSpacing: ".06em", textTransform: "uppercase", opacity: 0.55, display: "block", marginBottom: 6 }}>
                       {t.member.memberStatus}

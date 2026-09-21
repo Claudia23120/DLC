@@ -21,7 +21,7 @@ COPY . .
 # docker-compose passes them through via the `args`/`environment` blocks.
 ARG NEXT_PUBLIC_SUPABASE_URL
 ARG NEXT_PUBLIC_SUPABASE_ANON_KEY
-ARG NEXT_PUBLIC_SITE_URL
+ARG SITE_URL
 ENV NEXT_TELEMETRY_DISABLED=1
 RUN npm run build
 

@@ -144,9 +144,11 @@ export async function createEventAction(
         kind,
         title,
         startsAt: null,
+        description: String(formData.get("description") ?? "") || null,
         closesAt: closes ? new Date(closes).toISOString() : null,
         pollOptions: options,
         allowMultipleVotes: formData.get("allow_multiple_votes") === "on",
+        secretVote: formData.get("secret_vote") === "on",
         createdBy: user.id,
       });
       newId = event.id;
@@ -155,8 +157,9 @@ export async function createEventAction(
     return { error: e instanceof Error ? e.message : t.auth.genericError };
   }
 
-  // Fire-and-forget notification (safe no-op when emails are disabled).
-  await notifyNewEvent({ kind, title, eventId: newId, creatorEmail: profile.email ?? undefined });
+  if (formData.get("send_email") === "on") {
+    await notifyNewEvent({ kind, title, eventId: newId, creatorEmail: profile.email ?? undefined });
+  }
 
   revalidatePath("/bolos");
   redirect(eventDetailHref(newId, kind));

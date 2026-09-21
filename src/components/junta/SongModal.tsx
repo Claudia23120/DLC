@@ -79,7 +79,14 @@ export function SongModal({
       : await createSongAction(fd);
 
     if (result?.error) { setError(result.error); setPending(false); }
-    else { onClose(); }
+    else {
+      setPending(false);
+      if (!isEdit) {
+        setTitle(""); setSlug(""); setKind(""); setTempo(""); setNotes(""); setFile(null);
+        if (fileRef.current) fileRef.current.value = "";
+      }
+      onClose();
+    }
   }
 
   return (

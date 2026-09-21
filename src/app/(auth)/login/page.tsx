@@ -1,14 +1,16 @@
 "use client";
 
-import { useActionState } from "react";
+import { useActionState, useState } from "react";
 import Image from "next/image";
 import { signIn, type LoginState } from "./actions";
+import { EyeIcon, EyeOffIcon } from "@/components/ui/icons";
 import { t } from "@/i18n/t";
 
 const initialState: LoginState = {};
 
 export default function LoginPage() {
   const [state, formAction, pending] = useActionState(signIn, initialState);
+  const [showPassword, setShowPassword] = useState(false);
 
   return (
     <div
@@ -61,14 +63,24 @@ export default function LoginPage() {
           placeholder={t.auth.emailPlaceholder}
           style={{ background: "rgba(253,236,233,.08)", borderColor: "rgba(253,236,233,.28)", color: "#fdece9", height: 52, fontSize: 15 }}
         />
-        <input
-          className="input"
-          type="password"
-          name="password"
-          required
-          placeholder={t.auth.passwordPlaceholder}
-          style={{ background: "rgba(253,236,233,.08)", borderColor: "rgba(253,236,233,.28)", color: "#fdece9", height: 52, fontSize: 15 }}
-        />
+        <div style={{ position: "relative" }}>
+          <input
+            className="input"
+            type={showPassword ? "text" : "password"}
+            name="password"
+            required
+            placeholder={t.auth.passwordPlaceholder}
+            style={{ background: "rgba(253,236,233,.08)", borderColor: "rgba(253,236,233,.28)", color: "#fdece9", height: 52, fontSize: 15, width: "100%", paddingRight: 48 }}
+          />
+          <button
+            type="button"
+            onClick={() => setShowPassword((v) => !v)}
+            style={{ position: "absolute", right: 14, top: "50%", transform: "translateY(-50%)", background: "none", border: "none", cursor: "pointer", color: "rgba(253,236,233,.6)", padding: 0, display: "flex" }}
+            aria-label={showPassword ? "Amaga la contrasenya" : "Mostra la contrasenya"}
+          >
+            {showPassword ? <EyeOffIcon size={20} /> : <EyeIcon size={20} />}
+          </button>
+        </div>
 
         {state.error ? (
           <p style={{ margin: 0, fontSize: 13, color: "#f2aaa2" }} role="alert">

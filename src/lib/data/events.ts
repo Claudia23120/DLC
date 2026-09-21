@@ -69,17 +69,19 @@ export interface Signup {
   needs: string[];
   full_name: string;
   nickname: string | null;
+  sizes: { pantalo?: string; casaca?: string; tabaler?: string };
 }
 
 /** Everyone who has responded to a bolo, with their profile basics. */
 export async function getBoloSignups(supabase: DB, eventId: string): Promise<Signup[]> {
   const { data } = await supabase
     .from("bolo_attendance")
-    .select("member_id, response, brings_car, car_seats, needs, profiles!inner(full_name, nickname)")
+    .select("member_id, response, brings_car, car_seats, needs, profiles!inner(full_name, nickname, sizes)")
     .eq("event_id", eventId);
 
   return (data ?? []).map((row) => {
-    const profile = row.profiles as unknown as { full_name: string; nickname: string | null };
+    const profile = row.profiles as unknown as { full_name: string; nickname: string | null; sizes: Record<string, unknown> };
+    const s = (profile.sizes ?? {}) as Record<string, unknown>;
     return {
       member_id: row.member_id,
       response: row.response as BoloResponse,
@@ -88,6 +90,11 @@ export async function getBoloSignups(supabase: DB, eventId: string): Promise<Sig
       needs: row.needs ?? [],
       full_name: profile.full_name,
       nickname: profile.nickname,
+      sizes: {
+        pantalo: typeof s.pantalo === "string" ? s.pantalo : undefined,
+        casaca: typeof s.casaca === "string" ? s.casaca : undefined,
+        tabaler: typeof s.tabaler === "string" ? s.tabaler : undefined,
+      },
     };
   });
 }
@@ -175,6 +182,7 @@ export interface CreateEventInput {
   allowedRoles?: ("diable" | "tabaler" | "supporter")[];
   allowMultipleOptions?: boolean;
   allowMultipleVotes?: boolean;
+  secretVote?: boolean;
   agenda?: string | null;
   affects?: string | null;
   closesAt?: string | null;
@@ -200,6 +208,7 @@ export async function createEvent(supabase: DB, input: CreateEventInput): Promis
       allowed_roles: input.allowedRoles ?? [],
       allow_multiple_options: input.allowMultipleOptions ?? false,
       allow_multiple_votes: input.allowMultipleVotes ?? false,
+      secret_vote: input.secretVote ?? false,
       agenda: input.agenda ?? null,
       affects: input.affects ?? null,
       closes_at: input.closesAt ?? null,

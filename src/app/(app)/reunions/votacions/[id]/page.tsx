@@ -3,7 +3,6 @@ import { PageHeader } from "@/components/layout/PageHeader";
 import { PageContainer } from "@/components/layout/PageContainer";
 import { Card } from "@/components/ui/Card";
 import { Tag } from "@/components/ui/Tag";
-import { ClockIcon } from "@/components/ui/icons";
 import { PollVoting } from "@/components/polls/PollVoting";
 import { CommentSection } from "@/components/bolos/CommentSection";
 import { requireProfile } from "@/lib/auth/session";
@@ -30,7 +29,7 @@ export default async function PollDetailPage({ params }: PageProps) {
   const [results, comments, { count: memberCount }] = await Promise.all([
     getPollResults(supabase, id, profile.id),
     getComments(supabase, id),
-    supabase.from("profiles").select("*", { count: "exact", head: true }),
+    supabase.from("profiles").select("*", { count: "exact", head: true }).in("member_status", ["active", "intermittent"]),
   ]);
 
   const closed = event.closes_at ? isPast(event.closes_at) : false;
@@ -60,20 +59,23 @@ export default async function PollDetailPage({ params }: PageProps) {
               <Tag variant={closed ? "neutral" : "accent"}>
                 {closed ? t.polls.closed : t.polls.open}
               </Tag>
+              {event.closes_at ? (
+                <Tag variant="neutral">
+                  {closed ? "Tancada el " : "Fins al "}{formatLongDate(event.closes_at)}
+                </Tag>
+              ) : null}
+              {event.secret_vote ? (
+                <Tag variant="neutral">Secreta</Tag>
+              ) : null}
             </div>
 
             <div style={{ display: "flex", flexDirection: "column", gap: 8, marginTop: 4 }}>
-              {event.closes_at ? (
-                <div style={{ display: "flex", gap: 10, alignItems: "center", fontSize: 14 }}>
-                  <span style={{ flex: "none" }}>
-                    <ClockIcon size={18} stroke="var(--color-accent-500)" />
-                  </span>
-                  <span>
-                    {closed
-                      ? `Tancada el ${formatLongDate(event.closes_at)}`
-                      : `Oberta fins al ${formatLongDate(event.closes_at)}`}
-                  </span>
-                </div>
+              {event.description ? (
+                <div
+                  className="rich-text"
+                  style={{ fontSize: 14, lineHeight: 1.55 }}
+                  dangerouslySetInnerHTML={{ __html: event.description }}
+                />
               ) : null}
               <div style={{ display: "flex", gap: 10, alignItems: "center", fontSize: 14, opacity: 0.6 }}>
                 <span style={{ flex: "none", width: 18, textAlign: "center" }}>🗳</span>
@@ -92,6 +94,7 @@ export default async function PollDetailPage({ params }: PageProps) {
             options={results.options}
             closed={closed}
             allowMultiple={event.allow_multiple_votes ?? false}
+            secret={event.secret_vote ?? false}
           />
 
           <CommentSection eventId={event.id} comments={comments} />

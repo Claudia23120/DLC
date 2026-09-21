@@ -26,6 +26,8 @@ export function CreateEventModal({ open, onClose }: { open: boolean; onClose: ()
   const [askSizes, setAskSizes] = useState(true);
   const [options, setOptions] = useState<string[]>(["", ""]);
   const [allowMultipleVotes, setAllowMultipleVotes] = useState(false);
+  const [secretVote, setSecretVote] = useState(false);
+  const [sendEmail, setSendEmail] = useState(true);
 
   const title =
     kind === "bolo" ? t.create.newBolo : kind === "event" ? t.create.newMeeting : t.create.newPoll;
@@ -147,6 +149,7 @@ export function CreateEventModal({ open, onClose }: { open: boolean; onClose: ()
         {/* Votació-specific */}
         {kind === "votacio" ? (
           <>
+            <RichTextEditor name="description" label={t.create.description} />
             {options.map((opt, i) => (
               <Field
                 key={i}
@@ -167,8 +170,15 @@ export function CreateEventModal({ open, onClose }: { open: boolean; onClose: ()
               <Toggle checked={allowMultipleVotes} onChange={setAllowMultipleVotes} label="Permet seleccionar múltiples opcions" />
               {allowMultipleVotes ? <input type="hidden" name="allow_multiple_votes" value="on" /> : null}
             </div>
+            <div style={{ display: "flex", alignItems: "center", gap: 12, padding: "12px 16px", borderRadius: 999, background: "var(--color-surface)", boxShadow: "var(--shadow-sm)" }}>
+              <div style={{ flex: 1, fontFamily: "var(--font-heading)", fontSize: 15 }}>Votació secreta</div>
+              <Toggle checked={secretVote} onChange={setSecretVote} label="Votació secreta" />
+              {secretVote ? <input type="hidden" name="secret_vote" value="on" /> : null}
+            </div>
           </>
         ) : null}
+
+        <ToggleRow label="Notificar per email als membres" checked={sendEmail} onChange={setSendEmail} name="send_email" />
 
         {state.error ? (
           <p style={{ margin: 0, fontSize: 13, color: "var(--color-accent-500)" }} role="alert">

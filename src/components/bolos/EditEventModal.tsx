@@ -53,6 +53,7 @@ export function EditEventModal({
   const [askSizes, setAskSizes] = useState(event.ask_sizes ?? true);
   const [allowMultiple, setAllowMultiple] = useState(event.allow_multiple_options ?? false);
   const [allowMultipleVotes, setAllowMultipleVotes] = useState(event.allow_multiple_votes ?? false);
+  const [secretVote, setSecretVote] = useState(event.secret_vote ?? false);
 
   useEffect(() => {
     if (state.ok) onClose();
@@ -149,6 +150,7 @@ export function EditEventModal({
 
         {event.kind === "votacio" ? (
           <>
+            <RichTextEditor name="description" label={t.create.description} defaultValue={event.description ?? ""} />
             <Field
               label={t.polls.closesOn}
               name="closes_at"
@@ -157,6 +159,7 @@ export function EditEventModal({
               style={{ height: 48 }}
             />
             <ToggleRow label="Permet seleccionar múltiples opcions" checked={allowMultipleVotes} onChange={setAllowMultipleVotes} name="allow_multiple_votes" />
+            <ToggleRow label="Votació secreta" checked={secretVote} onChange={setSecretVote} name="secret_vote" />
           </>
         ) : null}
 

@@ -104,6 +104,7 @@ export interface Database {
           affects: string | null;
           acta_url: string | null;
           closes_at: Timestamptz | null;
+          secret_vote: boolean;
           created_by: string | null;
           created_at: Timestamptz;
           cancelled: boolean;
@@ -128,6 +129,7 @@ export interface Database {
           affects?: string | null;
           acta_url?: string | null;
           closes_at?: Timestamptz | null;
+          secret_vote?: boolean;
           created_by?: string | null;
           cancelled?: boolean;
         };
@@ -276,6 +278,7 @@ export interface Database {
           earned_at: Timestamptz;
           granted_by: string | null;
           notes: string | null;
+          repte_count: number | null;
         };
         Insert: {
           id?: string;
@@ -284,6 +287,7 @@ export interface Database {
           earned_at?: Timestamptz;
           granted_by?: string | null;
           notes?: string | null;
+          repte_count?: number | null;
         };
         Update: Partial<Database["public"]["Tables"]["member_badges"]["Insert"]>;
         Relationships: [];
