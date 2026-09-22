@@ -12,7 +12,7 @@ export const collaContent = {
   fee: {
     intro:
       "El pagament de la quota la podeu fer a la tresorera o secretari en mà, Bizum o bé fer l'ingrés a:",
-    iban: "ES00 0000 0000 0000 0000 0000",
+    iban: "ES96 3140 0001 9300 1591 0900",
     concept: "Nom Cognom_Any_Quota_45E",
   },
 

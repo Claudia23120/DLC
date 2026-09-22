@@ -174,8 +174,8 @@ img { display: block; max-width: 100%; }
    env(safe-area-inset-bottom) is 0 in a normal browser and non-zero only
    when the viewport extends behind a home indicator (PWA / notch devices). */
 @media (max-width: 999px) {
-  .app-scroll { padding-bottom: calc(96px + env(safe-area-inset-bottom, 0px)); }
-  .bottom-tab-bar { padding-bottom: calc(16px + env(safe-area-inset-bottom, 0px)) !important; }
+  .app-scroll { padding-bottom: calc(86px + env(safe-area-inset-bottom, 0px)); }
+  .bottom-tab-bar { padding-bottom: calc(6px + env(safe-area-inset-bottom, 0px)) !important; }
 }
 
 /* Per-page header (kicker + title + back). Padding matches the prototype's
