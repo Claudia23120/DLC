@@ -15,6 +15,19 @@ const PUBLIC_PATHS = ["/login", "/auth", "/forgot-password", "/reset-password", 
 export async function updateSession(request: NextRequest) {
   let response = NextResponse.next({ request });
 
+  // Supabase's default email link can land on / or /login with ?code=… when the
+  // redirect URL isn't allow-listed. Forward it to the handler that exchanges
+  // the code and sends the person on to choose their password.
+  const code = request.nextUrl.searchParams.get("code");
+  if (code && (request.nextUrl.pathname === "/" || request.nextUrl.pathname === "/login")) {
+    const url = request.nextUrl.clone();
+    url.pathname = "/auth/confirm";
+    url.search = "";
+    url.searchParams.set("code", code);
+    url.searchParams.set("next", "/reset-password");
+    return NextResponse.redirect(url);
+  }
+
   const supabase = createServerClient<Database>(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
