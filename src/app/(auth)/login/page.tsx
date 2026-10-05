@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState, useState } from "react";
+import { use, useActionState, useState } from "react";
 import Image from "next/image";
 import { signIn, type LoginState } from "./actions";
 import { Row } from "@/components/ui/Layout";
@@ -10,7 +10,8 @@ import { t } from "@/i18n/t";
 
 const initialState: LoginState = {};
 
-export default function LoginPage() {
+export default function LoginPage({ searchParams }: { searchParams: Promise<{ error?: string }> }) {
+  const { error: linkError } = use(searchParams);
   const [state, formAction, pending] = useActionState(signIn, initialState);
   const [showPassword, setShowPassword] = useState(false);
 
@@ -56,6 +57,12 @@ export default function LoginPage() {
             {showPassword ? <EyeOffIcon size={20} /> : <EyeIcon size={20} />}
           </button>
         </div>
+
+        {linkError && !state.error ? (
+          <p style={{ margin: 0, fontSize: 13, color: "#f2aaa2" }} role="alert">
+            {t.auth.linkInvalid}
+          </p>
+        ) : null}
 
         {state.error ? (
           <p style={{ margin: 0, fontSize: 13, color: "#f2aaa2" }} role="alert">
