@@ -1,42 +1,11 @@
-import { type NextRequest, NextResponse } from "next/server";
-import { createServerClient, type CookieOptions } from "@supabase/ssr";
-import { cookies } from "next/headers";
-import type { Database } from "@/types/database";
+import { NextResponse } from "next/server";
+import { getAdminContext } from "@/lib/auth/session";
+import { csvRow as row } from "@/lib/utils/csv";
 
-type CookieToSet = { name: string; value: string; options: CookieOptions };
-
-function escapeCSV(val: unknown): string {
-  const s = val == null ? "" : String(val);
-  if (s.includes(",") || s.includes('"') || s.includes("\n")) {
-    return `"${s.replace(/"/g, '""')}"`;
-  }
-  return s;
-}
-
-function row(values: unknown[]): string {
-  return values.map(escapeCSV).join(",");
-}
-
-export async function GET(_req: NextRequest) {
-  const cookieStore = await cookies();
-  const supabase = createServerClient<Database>(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-    {
-      cookies: {
-        getAll() { return cookieStore.getAll(); },
-        setAll(cookiesToSet: CookieToSet[]) {
-          cookiesToSet.forEach(({ name, value, options }) => cookieStore.set(name, value, options));
-        },
-      },
-    },
-  );
-
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-
-  const { data: me } = await supabase.from("profiles").select("is_admin").eq("id", user.id).single();
-  if (!me?.is_admin) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+export async function GET() {
+  const ctx = await getAdminContext();
+  if (!ctx) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  const { supabase } = ctx;
 
   const { data: members } = await supabase
     .from("profiles")

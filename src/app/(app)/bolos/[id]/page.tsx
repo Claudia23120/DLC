@@ -20,6 +20,7 @@ import { eventDetailHref, RESPONSE_META, KIND_META } from "@/lib/domain/events";
 import { googleCalendarUrl } from "@/lib/calendar/ics";
 import { formatLongDate, formatTime } from "@/lib/utils/dates";
 import { t } from "@/i18n/t";
+import { Row, Stack } from "@/components/ui/Layout";
 
 interface PageProps {
   params: Promise<{ id: string }>;
@@ -39,7 +40,7 @@ export default async function BoloDetailPage({ params }: PageProps) {
     getBoloSignups(supabase, id),
     getComments(supabase, id),
     getMyBoloResponse(supabase, id, profile.id),
-    supabase.from("profiles").select("*", { count: "exact", head: true }).in("member_status", ["active", "intermittent"]),
+    supabase.from("profiles").select("id", { count: "exact", head: true }).in("member_status", ["active", "intermittent"]),
     profile.is_admin ? listMembers(supabase) : Promise.resolve([]),
     getEventOptions(supabase, id),
     getMyOptionResponses(supabase, id, profile.id),
@@ -82,14 +83,14 @@ export default async function BoloDetailPage({ params }: PageProps) {
         userName={profile.full_name}
       />
       <PageContainer>
-        <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
+        <Stack gap={20}>
           {/* Info card */}
           <Card style={{ padding: 18, gap: 10 }}>
-            <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
+            <Row gap={10} wrap>
               <Tag variant="accent">{KIND_META.bolo.label}</Tag>
               {event.starts_at ? <Tag variant="neutral">{formatLongDate(event.starts_at)}</Tag> : null}
-            </div>
-            <div style={{ display: "flex", flexDirection: "column", gap: 8, marginTop: 4 }}>
+            </Row>
+            <Stack gap={8} style={{ marginTop: 4 }}>
               {event.location ? (
                 <InfoRow icon={<MapPinIcon size={18} stroke="var(--color-accent-500)" />} title={event.location} note={event.place_note} />
               ) : null}
@@ -99,7 +100,7 @@ export default async function BoloDetailPage({ params }: PageProps) {
               {event.organizer ? (
                 <InfoRow icon={<OrganizerIcon size={18} stroke="var(--color-accent-500)" />} title={t.boloDetail.organizedBy} note={event.organizer} />
               ) : null}
-            </div>
+            </Stack>
             {event.description ? (
               <div
                 className="rich-content"
@@ -160,7 +161,7 @@ export default async function BoloDetailPage({ params }: PageProps) {
               />
             </AdminOnly>
           ) : null}
-        </div>
+        </Stack>
       </PageContainer>
     </>
   );
@@ -168,12 +169,12 @@ export default async function BoloDetailPage({ params }: PageProps) {
 
 function InfoRow({ icon, title, note }: { icon: React.ReactNode; title: string; note?: string | null }) {
   return (
-    <div style={{ display: "flex", gap: 10, alignItems: "flex-start", fontSize: 14 }}>
+    <Row gap={10} align="start" style={{ fontSize: 14 }}>
       <span style={{ marginTop: 2, flex: "none" }}>{icon}</span>
-      <div>
+      <div className="break-anywhere" style={{ minWidth: 0 }}>
         <strong>{title}</strong>
         {note ? <div style={{ opacity: 0.6, fontSize: 13 }}>{note}</div> : null}
       </div>
-    </div>
+    </Row>
   );
 }

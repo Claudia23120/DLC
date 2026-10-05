@@ -9,8 +9,6 @@ import type { Signup } from "@/lib/data/events";
 import type { MemberListItem } from "@/lib/data/members";
 import type { BoloResponse, MemberRole } from "@/types/database";
 
-const RESPONSES: (BoloResponse | null)[] = ["diable", "tabaler", "supporter", "no", null];
-
 const RESPONSE_LABELS: Record<string, string> = {
   diable: "D",
   tabaler: "T",
@@ -54,7 +52,7 @@ export function BoloAttendanceAdmin({ eventId, allowedRoles, allMembers, signups
       </button>
 
       {open ? (
-        <div style={{ marginTop: 12, display: "flex", flexDirection: "column", gap: 0, background: "var(--color-surface)", borderRadius: 22, boxShadow: "var(--shadow-sm)", overflow: "hidden" }}>
+        <div className="surface-card" style={{ marginTop: 12, overflow: "hidden" }}>
           <div style={{ padding: "12px 16px 8px" }}>
             <input
               className="input"
@@ -106,18 +104,14 @@ function MemberAttendanceRow({
   }
 
   return (
-    <div style={{
-      display: "flex", alignItems: "center", gap: 10,
-      padding: "9px 16px", borderBottom: "1px solid rgba(32,30,29,.06)",
-      opacity: pending ? 0.6 : 1,
-    }}>
+    <div className="att-row" style={{ opacity: pending ? 0.6 : 1 }}>
       <Avatar name={member.full_name} url={member.avatar_url} size={32} />
-      <div style={{ flex: 1, minWidth: 0 }}>
+      <div className="att-name">
         <div style={{ fontSize: 13, fontFamily: "var(--font-heading)", textTransform: "uppercase", lineHeight: 1.2, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
           {member.full_name}
         </div>
       </div>
-      <div style={{ display: "flex", gap: 4, flex: "none" }}>
+      <div className="att-buttons">
         {visibleResponses.map((r, i) => {
           const isNull = r === null;
           const active = isNull ? current === null && !pending : current === r;
@@ -128,11 +122,8 @@ function MemberAttendanceRow({
               type="button"
               onClick={() => set(r)}
               disabled={pending}
+              className="att-btn"
               style={{
-                height: 28, minWidth: 28, padding: "0 6px",
-                borderRadius: 999, fontSize: 11, cursor: "pointer",
-                fontFamily: "var(--font-heading)",
-                borderWidth: 1, borderStyle: "solid",
                 borderColor: active && meta ? meta.dot : active ? "rgba(32,30,29,.3)" : "rgba(32,30,29,.15)",
                 background: active && meta ? meta.bg : active ? "rgba(32,30,29,.08)" : "transparent",
                 color: active && meta ? meta.color : "var(--color-text)",

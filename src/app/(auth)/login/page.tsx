@@ -3,6 +3,8 @@
 import { useActionState, useState } from "react";
 import Image from "next/image";
 import { signIn, type LoginState } from "./actions";
+import { Row } from "@/components/ui/Layout";
+import { AuthShell } from "@/components/layout/AuthShell";
 import { EyeIcon, EyeOffIcon } from "@/components/ui/icons";
 import { t } from "@/i18n/t";
 
@@ -13,69 +15,42 @@ export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false);
 
   return (
-    <div
-      style={{
-        minHeight: "100vh",
-        display: "flex",
-        flexDirection: "column",
-        justifyContent: "flex-end",
-        padding: "0 32px 40px",
-        background: "var(--color-accent-900)",
-        color: "#f6ece0",
-        position: "relative",
-        overflow: "hidden",
-      }}
+    <AuthShell
+      hero={
+        <>
+          <Image
+            src="/logo-white.png"
+            alt="Diables de les Corts"
+            width={140}
+            height={140}
+            style={{ objectFit: "contain" }}
+            priority
+          />
+          <p style={{ fontSize: 15, opacity: 0.72, margin: "16px 0 0", maxWidth: 270 }}>{t.app.tagline}</p>
+        </>
+      }
     >
-      {/* Decorative circles */}
-      <div style={{ position: "absolute", top: -120, right: -90, width: 320, height: 320, borderRadius: "50%", background: "var(--color-accent-700)" }} />
-      <div style={{ position: "absolute", top: 70, left: -70, width: 180, height: 180, borderRadius: "50%", background: "var(--color-accent-600)", opacity: 0.55 }} />
-
-      <div style={{ position: "relative", marginBottom: "auto", marginTop: 96 }}>
-        <Image
-          src="/logo-white.png"
-          alt="Diables de les Corts"
-          width={140}
-          height={140}
-          style={{ objectFit: "contain" }}
-          priority
-        />
-        <p style={{ fontSize: 15, opacity: 0.72, margin: "16px 0 0", maxWidth: 270 }}>{t.app.tagline}</p>
-      </div>
-
-      <form
-        action={formAction}
-        style={{
-          position: "relative",
-          display: "flex",
-          flexDirection: "column",
-          gap: 12,
-          marginTop: 40,
-          width: "100%",
-          maxWidth: 460,
-          alignSelf: "center",
-        }}
-      >
+      <form action={formAction} className="stack" style={{ gap: 12 }}>
         <input
-          className="input"
+          className="input input-dark"
           type="email"
           name="email"
           required
           placeholder={t.auth.emailPlaceholder}
-          style={{ background: "rgba(253,236,233,.08)", borderColor: "rgba(253,236,233,.28)", color: "#fdece9", height: 52, fontSize: 15 }}
         />
         <div style={{ position: "relative" }}>
           <input
-            className="input"
+            className="input input-dark"
             type={showPassword ? "text" : "password"}
             name="password"
             required
             placeholder={t.auth.passwordPlaceholder}
-            style={{ background: "rgba(253,236,233,.08)", borderColor: "rgba(253,236,233,.28)", color: "#fdece9", height: 52, fontSize: 15, width: "100%", paddingRight: 48 }}
+            style={{ paddingRight: 52 }}
           />
           <button
             type="button"
             onClick={() => setShowPassword((v) => !v)}
-            style={{ position: "absolute", right: 14, top: "50%", transform: "translateY(-50%)", background: "none", border: "none", cursor: "pointer", color: "rgba(253,236,233,.6)", padding: 0, display: "flex" }}
+            style={{ position: "absolute", right: 4, top: "50%", transform: "translateY(-50%)", width: 44, height: 44, background: "none", border: "none", cursor: "pointer", color: "rgba(253,236,233,.6)", padding: 0, display: "flex", alignItems: "center", justifyContent: "center" }}
             aria-label={showPassword ? "Amaga la contrasenya" : "Mostra la contrasenya"}
           >
             {showPassword ? <EyeOffIcon size={20} /> : <EyeIcon size={20} />}
@@ -97,11 +72,11 @@ export default function LoginPage() {
           {pending ? t.common.loading : t.auth.signIn}
         </button>
 
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: 4 }}>
-          <a href="/forgot-password" style={{ color: "rgba(253,236,233,.7)", fontSize: 13, textDecoration: "none" }}>{t.auth.forgotPassword}</a>
+        <Row justify="between" wrap style={{ marginTop: 4 }}>
+          <a href="/forgot-password" className="auth-link" style={{ fontSize: 13 }}>{t.auth.forgotPassword}</a>
           <span style={{ color: "#f2aaa2", fontSize: 13 }}>{t.auth.contactBoard}</span>
-        </div>
+        </Row>
       </form>
-    </div>
+    </AuthShell>
   );
 }

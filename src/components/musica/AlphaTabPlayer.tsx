@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
+import { Row } from "@/components/ui/Layout";
 import { t } from "@/i18n/t";
 
 const AT_CDN = "https://cdn.jsdelivr.net/npm/@coderline/alphatab@1.4.0/dist/alphaTab.min.js";
@@ -33,7 +34,6 @@ function patchAudioContext() {
   if (!OrigCtx) return;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   (window as any).AudioContext = function (...args: unknown[]) {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const ctx = new OrigCtx(...(args as []));
     capturedCtx = ctx;
     return ctx;
@@ -179,20 +179,7 @@ export function AlphaTabPlayer({ gpUrl }: { gpUrl: string }) {
 
   // Fixed controls bar rendered via portal so it's never inside overflow:hidden.
   const controlsBar = mounted ? createPortal(
-    <div style={{
-      position: "fixed",
-      bottom: "calc(64px + env(safe-area-inset-bottom, 0px))",
-      left: 0,
-      right: 0,
-      zIndex: 200,
-      display: "flex",
-      alignItems: "center",
-      gap: 12,
-      padding: "10px 16px",
-      background: "var(--color-bg)",
-      borderTop: "1px solid rgba(32,30,29,.10)",
-      boxShadow: "0 -4px 16px rgba(46,43,37,.10)",
-    }}>
+    <div className="player-bar">
       <button
         onClick={handlePlayPause}
         disabled={status !== "ready"}
@@ -228,41 +215,18 @@ export function AlphaTabPlayer({ gpUrl }: { gpUrl: string }) {
     <>
       {controlsBar}
 
-      {/* Score card — padding-bottom so content isn't hidden under the fixed bar */}
-      <div style={{
-        borderRadius: 16,
-        overflow: "hidden",
-        boxShadow: "var(--shadow-sm)",
-        background: "var(--color-surface)",
-        display: "flex",
-        paddingBottom: "calc(80px + env(safe-area-inset-bottom, 0px))",
-      }}>
+      {/* Score card — padding-bottom (in .player-card) keeps content clear of the fixed bar */}
+      <div className="player-card">
         {tracks.length > 0 && (
-          <div style={{
-            width: 100,
-            flex: "none",
-            borderRight: "1px solid rgba(32,30,29,.07)",
-            background: "#faf8f5",
-            display: "flex",
-            flexDirection: "column",
-            overflowY: "auto",
-          }}>
+          <div className="player-tracks">
             <button
+              type="button"
+              className="player-track"
               onClick={() => { setActiveIdx(null); apiRef.current?.renderTracks(tracksRef.current); }}
-              style={{
-                border: "none",
-                background: activeIdx === null ? "rgba(209,70,47,.1)" : "transparent",
-                borderBottom: "1px solid rgba(32,30,29,.07)",
-                padding: "10px 6px",
-                cursor: "pointer",
-                display: "flex",
-                flexDirection: "column",
-                alignItems: "center",
-                gap: 3,
-              }}
+              style={{ background: activeIdx === null ? "rgba(209,70,47,.1)" : "transparent" }}
             >
               <span style={{ fontSize: 18 }}>🎵</span>
-              <span style={{ fontSize: 9, opacity: 0.7, letterSpacing: ".04em" }}>TOTS</span>
+              <span style={{ fontSize: 11, opacity: 0.7, letterSpacing: ".04em" }}>TOTS</span>
             </button>
 
             {tracks.map((tr, i) => {
@@ -272,39 +236,29 @@ export function AlphaTabPlayer({ gpUrl }: { gpUrl: string }) {
                   key={i}
                   role="button"
                   tabIndex={0}
+                  className="player-track"
                   onClick={() => selectTrack(i)}
                   onKeyDown={(e) => e.key === "Enter" && selectTrack(i)}
                   style={{
-                    cursor: "pointer",
-                    textAlign: "center",
-                    padding: "10px 6px",
-                    borderBottom: "1px solid rgba(32,30,29,.06)",
                     background: isActive ? "rgba(209,70,47,.1)" : "transparent",
                     opacity: tr.muted ? 0.35 : 1,
-                    transition: "opacity .15s, background .1s",
-                    display: "flex",
-                    flexDirection: "column",
-                    alignItems: "center",
-                    gap: 4,
                   }}
                 >
                   <span style={{ fontSize: 24 }}>{trackIcon(tr.name)}</span>
-                  <span style={{ fontSize: 9, lineHeight: 1.2, opacity: 0.65, maxWidth: 86, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                  <span style={{ fontSize: 11, lineHeight: 1.2, opacity: 0.65, maxWidth: "100%", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
                     {tr.name}
                   </span>
-                  <div style={{ display: "flex", gap: 3 }}>
-                    <button onClick={(e) => toggleMute(i, e)} title="Silencia"
-                      style={{ width: 22, height: 16, fontSize: 8, fontWeight: 700, border: "none", borderRadius: 3, cursor: "pointer", background: tr.muted ? "#374151" : "rgba(32,30,29,.15)", color: tr.muted ? "#fff" : "inherit" }}>M</button>
-                    <button onClick={(e) => toggleSolo(i, e)} title="Solo"
-                      style={{ width: 22, height: 16, fontSize: 8, fontWeight: 700, border: "none", borderRadius: 3, cursor: "pointer", background: tr.solo ? "var(--color-accent-500)" : "rgba(32,30,29,.15)", color: tr.solo ? "#fff" : "inherit" }}>S</button>
-                  </div>
+                  <Row gap={4}>
+                    <button type="button" className="track-ms" data-kind="mute" aria-pressed={tr.muted} onClick={(e) => toggleMute(i, e)} title="Silencia">M</button>
+                    <button type="button" className="track-ms" data-kind="solo" aria-pressed={tr.solo} onClick={(e) => toggleSolo(i, e)} title="Solo">S</button>
+                  </Row>
                 </div>
               );
             })}
           </div>
         )}
 
-        <div style={{ flex: 1, overflow: "auto", position: "relative", background: "#fff" }}>
+        <div className="player-score">
           <div ref={scoreRef} />
         </div>
       </div>

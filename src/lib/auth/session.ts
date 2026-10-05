@@ -1,9 +1,9 @@
 import { cache } from "react";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
-import type { Database } from "@/types/database";
+import { PROFILE_COLUMNS, type ProfileRow } from "@/lib/data/profile-columns";
 
-export type Profile = Database["public"]["Tables"]["profiles"]["Row"];
+export type Profile = ProfileRow;
 
 /** The authenticated auth user, or null.
  *  Memoized per request so the layout + page don't each re-validate the token. */
@@ -24,7 +24,7 @@ export const getCurrentProfile = cache(async (): Promise<Profile | null> => {
   const supabase = await createClient();
   const { data } = await supabase
     .from("profiles")
-    .select("*")
+    .select(PROFILE_COLUMNS)
     .eq("id", user.id)
     .single();
 
@@ -45,4 +45,16 @@ export async function requireAdmin(): Promise<Profile> {
   const profile = await requireProfile();
   if (!profile.is_admin) redirect("/bolos");
   return profile;
+}
+
+/** For server actions and route handlers: the Supabase client + user when the
+ *  caller is an admin, or null (no redirect). The single place that decides
+ *  "is this caller a board member". */
+export async function getAdminContext() {
+  const user = await getCurrentUser();
+  if (!user) return null;
+  const supabase = await createClient();
+  const { data: me } = await supabase.from("profiles").select("is_admin").eq("id", user.id).single();
+  if (!me?.is_admin) return null;
+  return { supabase, user };
 }

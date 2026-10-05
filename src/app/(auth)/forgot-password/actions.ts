@@ -17,7 +17,8 @@ export async function requestPasswordReset(
   if (!email) return { error: t.auth.genericError };
 
   const headersList = await headers();
-  const origin = headersList.get("origin") ?? "";
+  // Prefer the configured site URL; the Origin header is client-controlled.
+  const origin = process.env.SITE_URL ?? headersList.get("origin") ?? "";
   const redirectTo = `${origin}/auth/confirm?next=/reset-password`;
 
   const supabase = await createClient();

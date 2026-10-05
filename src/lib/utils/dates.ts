@@ -79,11 +79,6 @@ export function formatLongDate(iso: string): string {
   return `${WEEKDAYS_ABBR[weekday]}. ${day} ${prep}${monthName}`;
 }
 
-/** "Dv. 12 de setembre · 21:30" */
-export function formatWhen(iso: string): string {
-  return `${formatLongDate(iso)} · ${formatTime(iso)}`;
-}
-
 /** Offset in minutes that Europe/Madrid is ahead of UTC at the given instant. */
 function madridOffsetMinutes(date: Date): number {
   const fmt = new Intl.DateTimeFormat("en-US", {
@@ -137,4 +132,31 @@ export function monthYearLabel(year: number, month1to12: number): string {
 export function isPast(iso: string | null): boolean {
   if (!iso) return false;
   return new Date(iso).getTime() < Date.now();
+}
+
+/** "5 set 2026" — compact date for admin lists (Europe/Madrid). */
+export function formatShortDate(iso: string | null): string {
+  if (!iso) return "—";
+  const { day, month, year } = madridParts(iso);
+  return `${day} ${MONTHS_SHORT[month - 1]} ${year}`;
+}
+
+const pad2 = (n: number) => String(n).padStart(2, "0");
+
+/** "2026-09-12" — value for an <input type="date"> (Europe/Madrid). */
+export function toInputDate(iso: string | null): string {
+  if (!iso) return "";
+  const { year, month, day } = madridParts(iso);
+  return `${year}-${pad2(month)}-${pad2(day)}`;
+}
+
+/** "21:30" — value for an <input type="time"> (Europe/Madrid). */
+export function toInputTime(iso: string | null): string {
+  return iso ? formatTime(iso) : "";
+}
+
+/** "2026-09-12T21:30" — value for an <input type="datetime-local"> (Europe/Madrid). */
+export function toInputDateTime(iso: string | null): string {
+  if (!iso) return "";
+  return `${toInputDate(iso)}T${formatTime(iso)}`;
 }

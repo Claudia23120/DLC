@@ -1,7 +1,8 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { createClient } from "@/lib/supabase/server";
+import { headers } from "next/headers";
+import { getAdminContext } from "@/lib/auth/session";
 import { createServiceRoleClient } from "@/lib/supabase/admin";
 import { t } from "@/i18n/t";
 import type { BoardPosition, MemberStatus } from "@/types/database";
@@ -9,31 +10,21 @@ import type { BoardPosition, MemberStatus } from "@/types/database";
 export interface CreateMemberState {
   error?: string;
   ok?: boolean;
-  tempPassword?: string;
-}
-
-/** A readable temporary password for the new member. */
-function generateTempPassword(): string {
-  return "Dlc-" + crypto.randomUUID().replace(/-/g, "").slice(0, 10);
+  /** Address the invitation was sent to. */
+  email?: string;
 }
 
 /**
- * Admin: create a new member account (no public sign-up). Creates the Supabase
- * Auth user with a temporary password, then fills in the profile. Returns the
- * temp password so the admin can pass it to the member.
+ * Admin: create a new member account (no public sign-up). Invites the member by
+ * email (Supabase "Invite user" template): the link logs them in at
+ * /auth/confirm and sends them to /reset-password to choose their own password.
+ * Then fills in the rest of the profile.
  */
 export async function createMemberAction(
   _prev: CreateMemberState,
   formData: FormData,
 ): Promise<CreateMemberState> {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) return { error: t.auth.genericError };
-
-  const { data: me } = await supabase.from("profiles").select("is_admin").eq("id", user.id).single();
-  if (!me?.is_admin) return { error: t.auth.genericError };
+  if (!(await getAdminContext())) return { error: t.auth.genericError };
 
   const fullName = String(formData.get("full_name") ?? "").trim();
   const email = String(formData.get("email") ?? "").trim().toLowerCase();
@@ -55,14 +46,16 @@ export async function createMemberAction(
   const hasRgcre = formData.get("has_rgcre") === "on";
 
   const admin = createServiceRoleClient();
-  const tempPassword = generateTempPassword();
 
-  // Create the auth user; the on_auth_user_created trigger creates the profile.
-  const { data: created, error: createError } = await admin.auth.admin.createUser({
-    email,
-    password: tempPassword,
-    email_confirm: true,
-    user_metadata: { full_name: fullName, nickname },
+  // Prefer the configured site URL; the Origin header is client-controlled.
+  const headersList = await headers();
+  const origin = process.env.SITE_URL ?? headersList.get("origin") ?? "";
+
+  // Create the auth user and email the invitation; the on_auth_user_created
+  // trigger creates the profile row.
+  const { data: created, error: createError } = await admin.auth.admin.inviteUserByEmail(email, {
+    data: { full_name: fullName, nickname },
+    redirectTo: `${origin}/auth/confirm?next=/reset-password`,
   });
 
   if (createError || !created.user) {
@@ -88,5 +81,5 @@ export async function createMemberAction(
     .eq("id", created.user.id);
 
   revalidatePath("/colla");
-  return { ok: true, tempPassword };
+  return { ok: true, email };
 }

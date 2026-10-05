@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import { getAdminContext } from "@/lib/auth/session";
 import { createServiceRoleClient } from "@/lib/supabase/admin";
 import { createEvent } from "@/lib/data/events";
 import { notifyNewEvent } from "@/lib/email/notify";
@@ -171,22 +172,31 @@ export async function adminSetBoloAttendance(
   memberId: string,
   response: BoloResponse | null,
 ): Promise<void> {
-  const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) return;
-  const { data: me } = await supabase.from("profiles").select("is_admin").eq("id", user.id).single();
-  if (!me?.is_admin) return;
+  if (!(await getAdminContext())) return;
 
+  // RLS only lets a member write their own row, so the admin write goes through
+  // the service role (the admin check above is the authorization).
+  const admin = createServiceRoleClient();
   if (response === null) {
-    await supabase.from("bolo_attendance").delete()
+    const { error } = await admin.from("bolo_attendance").delete()
       .eq("event_id", eventId).eq("member_id", memberId);
+    if (error) console.error("adminSetBoloAttendance delete", error);
   } else {
-    await supabase.from("bolo_attendance").upsert(
-      { event_id: eventId, member_id: memberId, response, brings_car: false },
+    const { data: target } = await admin.from("profiles").select("sizes").eq("id", memberId).single();
+    const { error } = await admin.from("bolo_attendance").upsert(
+      {
+        event_id: eventId,
+        member_id: memberId,
+        response,
+        brings_car: false,
+        size_snapshot: response === "no" ? null : (target?.sizes ?? null),
+      },
       { onConflict: "event_id,member_id" },
     );
+    if (error) console.error("adminSetBoloAttendance upsert", error);
   }
   revalidatePath(`/bolos/${eventId}`);
+  revalidatePath("/bolos");
 }
 
 /** Replace the current member's selected options for a bolo (single or multi-select). */
@@ -198,40 +208,11 @@ export async function setOptionSelections(
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return;
 
-  await supabase
-    .from("bolo_attendance_responses")
-    .delete()
-    .eq("event_id", eventId)
-    .eq("member_id", user.id);
-
-  if (selectedOptionIds.length) {
-    await supabase.from("bolo_attendance_responses").insert(
-      selectedOptionIds.map((option_id) => ({
-        event_id: eventId,
-        member_id: user.id,
-        option_id,
-        value: "true",
-      })),
-    );
-  }
-
-  revalidatePath(`/bolos/${eventId}`);
-}
-
-/** Save the current member's response to a custom boolean/text option. */
-export async function setOptionResponse(
-  eventId: string,
-  optionId: string,
-  value: string,
-): Promise<void> {
-  const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) return;
-
-  await supabase.from("bolo_attendance_responses").upsert(
-    { event_id: eventId, member_id: user.id, option_id: optionId, value },
-    { onConflict: "event_id,member_id,option_id" },
-  );
+  const { error } = await supabase.rpc("set_option_selections", {
+    p_event_id: eventId,
+    p_option_ids: selectedOptionIds,
+  });
+  if (error) console.error("setOptionSelections", error);
 
   revalidatePath(`/bolos/${eventId}`);
 }
@@ -242,11 +223,9 @@ export async function saveEventOption(
   label: string,
   kind: "boolean" | "text" = "boolean",
 ): Promise<void> {
-  const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) return;
-  const { data: me } = await supabase.from("profiles").select("is_admin").eq("id", user.id).single();
-  if (!me?.is_admin) return;
+  const ctx = await getAdminContext();
+  if (!ctx) return;
+  const { supabase } = ctx;
 
   const { data: last } = await supabase
     .from("event_options")
@@ -268,11 +247,9 @@ export async function saveEventOption(
 
 /** Admin: delete a custom option (cascades responses). */
 export async function deleteEventOption(optionId: string, eventId: string): Promise<void> {
-  const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) return;
-  const { data: me } = await supabase.from("profiles").select("is_admin").eq("id", user.id).single();
-  if (!me?.is_admin) return;
+  const ctx = await getAdminContext();
+  if (!ctx) return;
+  const { supabase } = ctx;
 
   await supabase.from("event_options").delete().eq("id", optionId);
 
@@ -281,14 +258,9 @@ export async function deleteEventOption(optionId: string, eventId: string): Prom
 
 /** Admin: email members who have not yet responded to a bolo. */
 export async function remindPending(eventId: string): Promise<void> {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) return;
-
-  const { data: me } = await supabase.from("profiles").select("is_admin").eq("id", user.id).single();
-  if (!me?.is_admin) return;
+  const ctx = await getAdminContext();
+  if (!ctx) return;
+  const { supabase } = ctx;
 
   const { data: event } = await supabase.from("events").select("title").eq("id", eventId).single();
   if (!event) return;
@@ -296,7 +268,7 @@ export async function remindPending(eventId: string): Promise<void> {
   // Members with no response yet (service role: read full roster + responses).
   const admin = createServiceRoleClient();
   const [{ data: members }, { data: responded }] = await Promise.all([
-    admin.from("profiles").select("email"),
+    admin.from("profiles").select("email").eq("member_status", "active"),
     admin.from("bolo_attendance").select("member_id, profiles!inner(email)").eq("event_id", eventId),
   ]);
 

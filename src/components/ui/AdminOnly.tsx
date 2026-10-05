@@ -18,7 +18,7 @@ export function AdminOnly({ children }: { children: ReactNode }) {
         padding: "6px 14px 2px",
       }}>
         <span style={{
-          fontSize: 10,
+          fontSize: 11,
           letterSpacing: ".08em",
           textTransform: "uppercase",
           color: "var(--color-accent-600, #c62f28)",

@@ -1,10 +1,11 @@
 "use client";
 
 import { useActionState } from "react";
-import { Modal } from "@/components/ui/Modal";
+import { Modal, ModalActions } from "@/components/ui/Modal";
 import { Field } from "@/components/ui/Field";
 import { createBadgeAction, type CreateBadgeState } from "@/app/(app)/colla/badge-actions";
 import { t } from "@/i18n/t";
+import { Stack } from "@/components/ui/Layout";
 
 const initial: CreateBadgeState = {};
 
@@ -14,16 +15,16 @@ export function CreateBadgeModal({ open, onClose }: { open: boolean; onClose: ()
   return (
     <Modal open={open} onClose={onClose} title={t.create.newBadge}>
       {state.ok ? (
-        <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+        <Stack gap={14}>
           <p style={{ margin: 0, fontSize: 15, color: "var(--color-sage-800)" }}>
             Insígnia creada correctament.
           </p>
           <button type="button" className="btn btn-primary btn-block" onClick={onClose} style={{ height: 48 }}>
             {t.common.done}
           </button>
-        </div>
+        </Stack>
       ) : (
-        <form action={formAction} style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+        <form action={formAction} className="stack" style={{ gap: 14 }}>
           <Field label="Nom" name="name" required placeholder="Nom de la insígnia" style={{ height: 48 }} />
           <Field label="Descripció" name="description" placeholder="Descripció breu" style={{ height: 48 }} />
           <Field label="Icona (emoji)" name="icon" placeholder="🏅" defaultValue="🏅" style={{ height: 48 }} />
@@ -44,12 +45,7 @@ export function CreateBadgeModal({ open, onClose }: { open: boolean; onClose: ()
             </p>
           ) : null}
 
-          <button type="submit" className="btn btn-primary btn-block" disabled={pending} style={{ height: 52, fontSize: 16, marginTop: 4 }}>
-            {pending ? t.common.loading : t.create.newBadge}
-          </button>
-          <button type="button" className="btn btn-ghost btn-block" onClick={onClose} style={{ height: 44 }}>
-            {t.common.cancel}
-          </button>
+          <ModalActions submitLabel={t.create.newBadge} pending={pending} onCancel={onClose} />
         </form>
       )}
     </Modal>

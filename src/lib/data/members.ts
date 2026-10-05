@@ -1,9 +1,9 @@
 import "server-only";
 import type { createClient } from "@/lib/supabase/server";
-import type { Database } from "@/types/database";
+import { PROFILE_COLUMNS, type ProfileRow } from "./profile-columns";
 
 type DB = Awaited<ReturnType<typeof createClient>>;
-export type MemberRow = Database["public"]["Tables"]["profiles"]["Row"];
+export type MemberRow = ProfileRow;
 
 export interface MemberListItem {
   id: string;
@@ -13,6 +13,8 @@ export interface MemberListItem {
   board_position: MemberRow["board_position"];
   avatar_url: string | null;
 }
+
+export type MemberPrivate = { nif: string | null; emergency_contact: string | null };
 
 export interface MemberWithPadrins extends MemberRow {
   padri_foc: { id: string; full_name: string } | null;
@@ -49,7 +51,17 @@ export async function getBoard(supabase: DB): Promise<MemberListItem[]> {
 
 /** A single member's full profile, or null. */
 export async function getMember(supabase: DB, id: string): Promise<MemberRow | null> {
-  const { data } = await supabase.from("profiles").select("*").eq("id", id).single();
+  const { data } = await supabase.from("profiles").select(PROFILE_COLUMNS).eq("id", id).single();
+  return data;
+}
+
+/**
+ * NIF + emergency contact. These columns can't be selected directly; the
+ * `get_member_private` function only answers for the member themselves or an
+ * admin, and returns null for anyone else.
+ */
+export async function getMemberPrivate(supabase: DB, id: string): Promise<MemberPrivate | null> {
+  const { data } = await supabase.rpc("get_member_private", { p_member_id: id }).maybeSingle();
   return data;
 }
 
@@ -60,7 +72,7 @@ export async function getMemberWithPadrins(
 ): Promise<MemberWithPadrins | null> {
   const { data } = await supabase
     .from("profiles")
-    .select("*, padri_foc:padri_foc_id(id, full_name), padri_tabal:padri_tabal_id(id, full_name)")
+    .select(`${PROFILE_COLUMNS}, padri_foc:padri_foc_id(id, full_name), padri_tabal:padri_tabal_id(id, full_name)` as const)
     .eq("id", id)
     .single();
   if (!data) return null;

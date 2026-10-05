@@ -1,3 +1,5 @@
+import { Row } from "./Layout";
+
 export function Pagination({
   page,
   totalPages,
@@ -16,12 +18,12 @@ export function Pagination({
   if (totalPages <= 1) return null;
 
   return (
-    <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 12, padding: "8px 0 4px" }}>
+    <Row gap={12} justify="center" style={{ padding: "8px 0 4px" }}>
       <button
         type="button"
         onClick={onPrev}
         disabled={!hasPrev}
-        className="btn btn-secondary"
+        className="btn btn-secondary btn-sm"
         style={{ height: 34, padding: "0 14px", fontSize: 13, opacity: hasPrev ? 1 : 0.35 }}
       >
         ← Anterior
@@ -33,11 +35,11 @@ export function Pagination({
         type="button"
         onClick={onNext}
         disabled={!hasNext}
-        className="btn btn-secondary"
+        className="btn btn-secondary btn-sm"
         style={{ height: 34, padding: "0 14px", fontSize: 13, opacity: hasNext ? 1 : 0.35 }}
       >
         Següent →
       </button>
-    </div>
+    </Row>
   );
 }

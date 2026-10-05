@@ -29,7 +29,7 @@ export default async function PollDetailPage({ params }: PageProps) {
   const [results, comments, { count: memberCount }] = await Promise.all([
     getPollResults(supabase, id, profile.id),
     getComments(supabase, id),
-    supabase.from("profiles").select("*", { count: "exact", head: true }).in("member_status", ["active", "intermittent"]),
+    supabase.from("profiles").select("id", { count: "exact", head: true }).in("member_status", ["active", "intermittent"]),
   ]);
 
   const closed = event.closes_at ? isPast(event.closes_at) : false;

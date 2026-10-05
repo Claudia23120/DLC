@@ -1,40 +1,22 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { createClient } from "@/lib/supabase/server";
-import { createServiceRoleClient } from "@/lib/supabase/admin";
+import { getAdminContext } from "@/lib/auth/session";
 import { madridDateTimeToISO } from "@/lib/utils/dates";
 import { t } from "@/i18n/t";
-import type { BoardPosition, EventKind, MemberRole } from "@/types/database";
+import type { EventKind, MemberRole } from "@/types/database";
 import type { EventRow } from "@/lib/data/events";
 
 async function assertAdmin() {
-  const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) return null;
-  const { data: me } = await supabase.from("profiles").select("is_admin").eq("id", user.id).single();
-  if (!me?.is_admin) return null;
-  return supabase;
+  return (await getAdminContext())?.supabase ?? null;
 }
 
 /** Fetch a single event's full row (for the edit modal). */
 export async function getEventAction(id: string): Promise<EventRow | null> {
-  const supabase = await createClient();
+  const supabase = await assertAdmin();
+  if (!supabase) return null;
   const { data } = await supabase.from("events").select("*").eq("id", id).single();
   return data as EventRow | null;
-}
-
-export async function setBoardPositionAction(
-  memberId: string,
-  position: BoardPosition | null,
-): Promise<void> {
-  const supabase = await assertAdmin();
-  if (!supabase) return;
-  // board_position is protected by the guard trigger — needs service role.
-  const admin = createServiceRoleClient();
-  await admin.from("profiles").update({ board_position: position }).eq("id", memberId);
-  revalidatePath("/junta");
-  revalidatePath("/colla");
 }
 
 export async function setCancelledAction(eventId: string, cancelled: boolean) {

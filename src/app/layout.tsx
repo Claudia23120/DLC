@@ -39,6 +39,9 @@ export const viewport: Viewport = {
   initialScale: 1,
   themeColor: "#3a0b0a",
   viewportFit: "cover",
+  // Android Chrome: shrink the layout viewport (and so dvh) when the keyboard
+  // opens, so modal inputs stay visible. iOS ignores this.
+  interactiveWidget: "resizes-content",
 };
 
 export default function RootLayout({

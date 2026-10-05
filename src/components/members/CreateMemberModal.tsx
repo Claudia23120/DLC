@@ -1,12 +1,13 @@
 "use client";
 
 import { useActionState, useState } from "react";
-import { Modal } from "@/components/ui/Modal";
+import { Modal, ModalActions } from "@/components/ui/Modal";
 import { Field } from "@/components/ui/Field";
 import { Card } from "@/components/ui/Card";
 import { createMemberAction, type CreateMemberState } from "@/app/(app)/colla/actions";
 import { t } from "@/i18n/t";
 import type { BoardPosition, MemberStatus } from "@/types/database";
+import { Row } from "@/components/ui/Layout";
 
 const initial: CreateMemberState = {};
 const BOARD_POSITIONS: BoardPosition[] = [
@@ -31,22 +32,19 @@ export function CreateMemberModal({ open, onClose }: { open: boolean; onClose: (
       {state.ok ? (
         <Card style={{ padding: 16, gap: 10 }}>
           <div style={{ fontFamily: "var(--font-heading)", fontSize: 16 }}>{t.create.memberCreated}</div>
-          <div style={{ fontSize: 13, opacity: 0.7 }}>{t.create.tempPasswordIntro}</div>
-          <div style={{ fontFamily: "ui-monospace, monospace", fontSize: 18, padding: "10px 14px", background: "var(--color-bg)", borderRadius: 12, letterSpacing: ".04em" }}>
-            {state.tempPassword}
-          </div>
-          <div style={{ fontSize: 12, opacity: 0.6 }}>{t.create.tempPasswordNote}</div>
-          <div style={{ display: "flex", gap: 8, marginTop: 4 }}>
+          <div className="break-anywhere" style={{ fontSize: 14 }}>{t.create.inviteSentTo(state.email ?? "")}</div>
+          <div style={{ fontSize: 12, opacity: 0.6 }}>{t.create.inviteNote}</div>
+          <Row gap={8} style={{ marginTop: 4 }}>
             <button type="button" className="btn btn-secondary" onClick={reset} style={{ flex: 1, height: 44 }}>
               {t.create.createAnother}
             </button>
             <button type="button" className="btn btn-primary" onClick={onClose} style={{ flex: 1, height: 44 }}>
               {t.common.done}
             </button>
-          </div>
+          </Row>
         </Card>
       ) : (
-        <form key={formKey} action={formAction} style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+        <form key={formKey} action={formAction} className="stack" style={{ gap: 14 }}>
           <Field label={t.profile.fullName} name="full_name" required placeholder="Nom Cognoms" style={{ height: 48 }} />
           <Field label={t.profile.nickname} name="nickname" placeholder="Puigrí" style={{ height: 48 }} />
           <Field label={t.profile.email} name="email" type="email" required placeholder="nom@diableslescorts.cat" style={{ height: 48 }} />
@@ -72,13 +70,13 @@ export function CreateMemberModal({ open, onClose }: { open: boolean; onClose: (
             </select>
           </div>
 
-          <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-            <label style={{ display: "flex", alignItems: "center", gap: 10, fontSize: 14, cursor: "pointer" }}>
-              <input type="checkbox" name="has_cre" style={{ width: 18, height: 18 }} />
+          <div>
+            <label className="check-row">
+              <input type="checkbox" name="has_cre" />
               {t.member.hasCre}
             </label>
-            <label style={{ display: "flex", alignItems: "center", gap: 10, fontSize: 14, cursor: "pointer" }}>
-              <input type="checkbox" name="has_rgcre" style={{ width: 18, height: 18 }} />
+            <label className="check-row">
+              <input type="checkbox" name="has_rgcre" />
               {t.member.hasRgcre}
             </label>
           </div>
@@ -87,12 +85,7 @@ export function CreateMemberModal({ open, onClose }: { open: boolean; onClose: (
             <p style={{ margin: 0, fontSize: 13, color: "var(--color-accent-500)" }} role="alert">{state.error}</p>
           ) : null}
 
-          <button type="submit" className="btn btn-primary btn-block" disabled={pending} style={{ height: 52, fontSize: 16, marginTop: 4 }}>
-            {pending ? t.common.loading : t.create.createMemberCta}
-          </button>
-          <button type="button" className="btn btn-ghost btn-block" onClick={onClose} style={{ height: 44 }}>
-            {t.common.cancel}
-          </button>
+          <ModalActions submitLabel={t.create.createMemberCta} pending={pending} onCancel={onClose} />
         </form>
       )}
     </Modal>

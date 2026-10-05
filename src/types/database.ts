@@ -344,6 +344,12 @@ export interface Database {
       refresh_member_counts: { Args: { p_member_id: string }; Returns: void };
       award_automatic_badges: { Args: { p_member_id: string }; Returns: void };
       award_repte_badges: { Args: { p_member_id: string }; Returns: void };
+      get_member_private: {
+        Args: { p_member_id: string };
+        Returns: { nif: string | null; emergency_contact: string | null }[];
+      };
+      cast_vote: { Args: { p_event_id: string; p_option_id: string }; Returns: void };
+      set_option_selections: { Args: { p_event_id: string; p_option_ids: string[] }; Returns: void };
     };
     Enums: {
       board_position: BoardPosition;

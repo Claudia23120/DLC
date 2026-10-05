@@ -4,6 +4,7 @@ import { useState } from "react";
 import { RESPONSE_META } from "@/lib/domain/events";
 import type { Signup } from "@/lib/data/events";
 import { t } from "@/i18n/t";
+import { Row } from "@/components/ui/Layout";
 
 type Filter = "tots" | "diable" | "tabaler" | "supporter" | "no";
 
@@ -30,13 +31,13 @@ export function SignupList({ signups, total }: { signups: Signup[]; total: numbe
 
   return (
     <div>
-      <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", marginBottom: 10 }}>
+      <Row align="baseline" justify="between" style={{ marginBottom: 10 }}>
         <h3 style={{ fontSize: 20, margin: 0 }}>{t.boloDetail.whoSignedUp}</h3>
         <span style={{ fontSize: 12, opacity: 0.55 }}>{t.boloDetail.responded(responded, total)}</span>
-      </div>
+      </Row>
 
       {visibleFilters.length > 2 && (
-        <div style={{ display: "flex", gap: 6, marginBottom: 10, flexWrap: "wrap" }}>
+        <Row gap={6} wrap style={{ marginBottom: 10 }}>
           {visibleFilters.map((f) => {
             const active = filter === f.key;
             return (
@@ -59,10 +60,10 @@ export function SignupList({ signups, total }: { signups: Signup[]; total: numbe
               </button>
             );
           })}
-        </div>
+        </Row>
       )}
 
-      <div style={{ background: "var(--color-surface)", borderRadius: 22, boxShadow: "var(--shadow-sm)", padding: "4px 14px" }}>
+      <div className="list-card">
         {filtered.length === 0 ? (
           <div style={{ padding: "12px 0", fontSize: 13, opacity: 0.55 }}>{t.common.empty}</div>
         ) : (
@@ -73,7 +74,7 @@ export function SignupList({ signups, total }: { signups: Signup[]; total: numbe
             const subName = s.nickname ? s.full_name : null;
 
             return (
-              <div key={s.member_id} style={{ display: "flex", alignItems: "center", gap: 10, padding: "9px 0", borderBottom: "1px solid rgba(32,30,29,.07)" }}>
+              <Row key={s.member_id} gap={10} className="list-row">
                 <span style={{ width: 7, height: 7, flex: "none", borderRadius: "50%", background: meta.dot, alignSelf: "flex-start", marginTop: 6 }} />
                 <div style={{ flex: 1, minWidth: 0 }}>
                   <div style={{ fontSize: 14, fontWeight: 600, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
@@ -90,18 +91,18 @@ export function SignupList({ signups, total }: { signups: Signup[]; total: numbe
                     {meta.label}
                   </span>
                   {isAttending && s.response === "diable" && (s.sizes.pantalo || s.sizes.casaca) ? (
-                    <div style={{ display: "flex", gap: 4, marginTop: 3, justifyContent: "flex-end", flexWrap: "wrap" }}>
+                    <Row gap={4} wrap justify="end" style={{ marginTop: 3 }}>
                       {s.sizes.pantalo ? <SizeChip label="Pant." value={s.sizes.pantalo} /> : null}
                       {s.sizes.casaca ? <SizeChip label="Cas." value={s.sizes.casaca} /> : null}
-                    </div>
+                    </Row>
                   ) : null}
                   {isAttending && s.response === "tabaler" && s.sizes.tabaler ? (
-                    <div style={{ display: "flex", gap: 4, marginTop: 3, justifyContent: "flex-end" }}>
+                    <Row gap={4} justify="end" style={{ marginTop: 3 }}>
                       <SizeChip label="Pant." value={s.sizes.tabaler} />
-                    </div>
+                    </Row>
                   ) : null}
                 </div>
-              </div>
+              </Row>
             );
           })
         )}

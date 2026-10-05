@@ -31,7 +31,7 @@ export function PollVoting({ eventId, options, closed, allowMultiple, secret }: 
     if (closed) return;
     startTransition(async () => {
       setOptimistic({ optionId, allowMultiple });
-      await castVote(eventId, optionId, allowMultiple);
+      await castVote(eventId, optionId);
     });
   };
 

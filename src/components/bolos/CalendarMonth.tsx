@@ -8,6 +8,7 @@ import { AddToCalendarButton } from "./AddToCalendarButton";
 import { KIND_META, eventDetailHref } from "@/lib/domain/events";
 import { madridParts, monthYearLabel, WEEKDAYS_CAL, formatDay, formatMonthShort, formatTime } from "@/lib/utils/dates";
 import { googleCalendarUrl } from "@/lib/calendar/ics";
+import { Row, Stack } from "@/components/ui/Layout";
 import type { EventListItem } from "@/lib/data/events";
 
 export interface BirthdayItem {
@@ -80,9 +81,9 @@ export function CalendarMonth({ events, birthdays = [] }: { events: EventListIte
     });
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+    <Stack gap={14}>
       <div style={{ background: "var(--color-surface)", borderRadius: 28, boxShadow: "var(--shadow-sm)", padding: 16 }}>
-        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 12 }}>
+        <Row justify="between" style={{ marginBottom: 12 }}>
           <button type="button" className="btn btn-icon" aria-label="Mes anterior" onClick={() => step(-1)} style={{ width: 34, height: 34, background: "var(--color-accent-100)", color: "var(--color-accent-800)" }}>
             <ChevronLeftIcon size={16} />
           </button>
@@ -92,15 +93,15 @@ export function CalendarMonth({ events, birthdays = [] }: { events: EventListIte
           <button type="button" className="btn btn-icon" aria-label="Mes següent" onClick={() => step(1)} style={{ width: 34, height: 34, background: "var(--color-accent-100)", color: "var(--color-accent-800)" }}>
             <ChevronRightIcon size={16} />
           </button>
-        </div>
+        </Row>
 
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(7, minmax(0, 44px))", gap: 4, marginBottom: 4, justifyContent: "center" }}>
+        <div className="cal-grid" style={{ marginBottom: 4 }}>
           {WEEKDAYS_CAL.map((d) => (
             <div key={d} style={{ textAlign: "center", fontSize: 10, letterSpacing: ".06em", textTransform: "uppercase", opacity: 0.45 }}>{d}</div>
           ))}
         </div>
 
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(7, minmax(0, 44px))", gap: 4, justifyContent: "center" }}>
+        <div className="cal-grid">
           {Array.from({ length: leadingBlanks }).map((_, i) => <div key={`b${i}`} />)}
           {Array.from({ length: daysInMonth }).map((_, i) => {
             const day = i + 1;
@@ -131,7 +132,7 @@ export function CalendarMonth({ events, birthdays = [] }: { events: EventListIte
           })}
         </div>
 
-        <div style={{ display: "flex", gap: 14, marginTop: 14, flexWrap: "wrap" }}>
+        <Row gap={14} wrap style={{ marginTop: 14 }}>
           {(["bolo", "event", "votacio"] as const).map((k) => (
             <span key={k} style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 11, opacity: 0.7 }}>
               <span style={{ width: 10, height: 10, borderRadius: "50%", background: KIND_META[k].dot }} />
@@ -142,11 +143,11 @@ export function CalendarMonth({ events, birthdays = [] }: { events: EventListIte
             <span style={{ width: 10, height: 10, borderRadius: "50%", background: "#c4619e", flexShrink: 0 }} />
             Aniversari
           </span>
-        </div>
+        </Row>
       </div>
 
       {/* Agenda for the visible month */}
-      <div style={{ background: "var(--color-surface)", borderRadius: 22, boxShadow: "var(--shadow-sm)", padding: "4px 14px" }}>
+      <div className="list-card">
         {inMonth.length === 0 && birthdaysInMonth.length === 0 ? (
           <div style={{ padding: "16px 0", fontSize: 13, opacity: 0.55 }}>Cap esdeveniment aquest mes.</div>
         ) : (() => {
@@ -165,7 +166,7 @@ export function CalendarMonth({ events, birthdays = [] }: { events: EventListIte
               const iso = eventDate(e)!;
               const kind = KIND_META[e.kind];
               return (
-                <div key={e.id} style={{ display: "flex", alignItems: "center", gap: 12, padding: "10px 0", borderBottom: "1px solid rgba(32,30,29,.07)" }}>
+                <Row key={e.id} gap={12} className="list-row">
                   <div style={{ width: 34, flex: "none", textAlign: "center" }}>
                     <div style={{ fontFamily: "var(--font-heading)", fontSize: 17, lineHeight: 1 }}>{formatDay(iso)}</div>
                     <div style={{ fontSize: 9, textTransform: "uppercase", opacity: 0.5 }}>{formatMonthShort(iso)}</div>
@@ -184,30 +185,30 @@ export function CalendarMonth({ events, birthdays = [] }: { events: EventListIte
                       variant="icon"
                     />
                   ) : null}
-                </div>
+                </Row>
               );
             }
 
             const b = entry.birthday;
             const displayName = b.nickname ? `${b.full_name} «${b.nickname}»` : b.full_name;
             return (
-              <div key={`bd-${b.id}-${i}`} style={{ display: "flex", alignItems: "center", gap: 12, padding: "10px 0", borderBottom: "1px solid rgba(32,30,29,.07)" }}>
+              <Row key={`bd-${b.id}-${i}`} gap={12} className="list-row">
                 <div style={{ width: 34, flex: "none", textAlign: "center" }}>
                   <div style={{ fontFamily: "var(--font-heading)", fontSize: 17, lineHeight: 1 }}>{b.day}</div>
                   <div style={{ fontSize: 9, textTransform: "uppercase", opacity: 0.5 }}>{formatMonthShort(`${cursor.year}-${String(cursor.month).padStart(2, "0")}-${String(b.day).padStart(2, "0")}`)}</div>
                 </div>
                 <Link href={`/membres/${b.id}`} style={{ flex: 1, minWidth: 0, textDecoration: "none", color: "inherit" }}>
-                  <div style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 14, minWidth: 0 }}>
+                  <Row gap={6} style={{ fontSize: 14, minWidth: 0 }}>
                     <span style={{ width: 8, height: 8, borderRadius: "50%", background: "#c4619e", flexShrink: 0 }} />
                     <span style={{ whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{displayName}</span>
-                  </div>
+                  </Row>
                 </Link>
                 <Tag variant="neutral" style={{ flex: "none" }}>Aniversari</Tag>
-              </div>
+              </Row>
             );
           });
         })()}
       </div>
-    </div>
+    </Stack>
   );
 }

@@ -1,20 +1,19 @@
 import { t } from "@/i18n/t";
 import { FlameIcon } from "@/components/ui/icons";
+import { Stack } from "@/components/ui/Layout";
 
 export default function CompteInactiu() {
   return (
-    <div
+    <Stack
+      gap={16}
+      className="min-screen"
       style={{
-        minHeight: "100vh",
-        display: "flex",
-        flexDirection: "column",
         alignItems: "center",
         justifyContent: "center",
-        padding: "0 32px",
+        padding: "env(safe-area-inset-top, 0px) 32px env(safe-area-inset-bottom, 0px)",
         background: "var(--color-accent-900)",
         color: "#f6ece0",
         textAlign: "center",
-        gap: 16,
       }}
     >
       <div
@@ -46,16 +45,12 @@ export default function CompteInactiu() {
         {t.inactiveAccount.message}
       </p>
       <a
-        href={`mailto:junta@diableslescorts.cat`}
-        style={{
-          marginTop: 8,
-          fontSize: 14,
-          color: "#f2aaa2",
-          textDecoration: "none",
-        }}
+        href="mailto:junta@diableslescorts.cat"
+        className="auth-link"
+        style={{ marginTop: 8, color: "#f2aaa2" }}
       >
         {t.inactiveAccount.contactBoard}
       </a>
-    </div>
+    </Stack>
   );
 }

@@ -9,16 +9,14 @@ interface AppShellProps {
 }
 
 /**
- * App frame: desktop top nav / mobile bottom tabs with a scrollable content
- * region in between. The per-page header lives inside each page.
+ * App frame: desktop top nav / mobile bottom tabs with the page content in between
+ * (the document itself scrolls). The per-page header lives inside each page.
  */
 export function AppShell({ name, isAdmin, children }: AppShellProps) {
   return (
-    <div style={{ minHeight: "100vh", display: "flex", flexDirection: "column" }}>
+    <div className="min-screen" style={{ display: "flex", flexDirection: "column" }}>
       <TopNav name={name} isAdmin={isAdmin} />
-      <main className="app-scroll" style={{ flex: 1, minHeight: 0, overflowY: "auto", overflowX: "hidden" }}>
-        {children}
-      </main>
+      <main className="app-main">{children}</main>
       <BottomTabBar isAdmin={isAdmin} />
     </div>
   );

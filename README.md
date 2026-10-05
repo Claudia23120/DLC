@@ -63,6 +63,18 @@ Dashboard → SQL editor, or the Supabase CLI):
 3. `0003_rls_policies.sql` — Row Level Security
 4. `0004_event_counts_view.sql` — per-event count view for the agenda cards
 5. `0005_profile_guard_service_role.sql` — let server code manage member roles
+6. `0006` … `0021` — later features (polls, songs, event options, badges, …)
+7. `0022_hide_private_profile_columns.sql` — hides NIF + emergency contact
+   from other members (column privileges + `get_member_private()`)
+8. `0023_atomic_vote_and_option_rpcs.sql` — `cast_vote` and
+   `set_option_selections`, used by the vote / option server actions
+
+> Apply `0022` and `0023` **before** deploying this version of the app: the
+> app reads the profile with an explicit column list (`PROFILE_COLUMNS`) and
+> votes through `cast_vote`. After `0022`, `select *` on `profiles` fails for
+> logged-in users; when you add a column members should read, also run
+> `grant select (new_column) on public.profiles to authenticated;` and add it
+> to `src/lib/data/profile-columns.ts`.
 
 Then create the **first admin** (chicken-and-egg bootstrap):
 
@@ -108,6 +120,8 @@ Once the domain is verified, set `EMAILS_ENABLED=true` — no code changes.
 npm install
 npm run dev        # http://localhost:3000
 npm run typecheck  # type check
+npm run lint       # ESLint (next/core-web-vitals + TypeScript)
+npm test           # unit tests (Vitest)
 npm run build      # production build
 ```
 

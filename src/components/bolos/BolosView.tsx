@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { usePersistedState } from "@/lib/hooks/usePersistedState";
 import { SegmentedControl } from "@/components/ui/SegmentedControl";
 import { Input } from "@/components/ui/Input";
@@ -15,6 +15,7 @@ import { t } from "@/i18n/t";
 import type { EventListItem } from "@/lib/data/events";
 import type { EventKind } from "@/types/database";
 import type { BirthdayItem } from "./CalendarMonth";
+import { Grid, Row, Stack } from "@/components/ui/Layout";
 
 type View = "llista" | "calendari" | "historic";
 type Filter = "Tot" | "bolo" | "event" | "votacio";
@@ -37,11 +38,14 @@ export function BolosView({ events, isAdmin, birthdays = [] }: { events: EventLi
     { value: "votacio", label: t.bolos.filterPolls },
   ];
 
-  const byFilter = (e: EventListItem) => filter === "Tot" || e.kind === (filter as EventKind);
+  const byFilter = useCallback(
+    (e: EventListItem) => filter === "Tot" || e.kind === (filter as EventKind),
+    [filter],
+  );
 
   const upcoming = useMemo(
     () => events.filter((e) => !isPast(relevantDate(e))).filter(byFilter),
-    [events, filter],
+    [events, byFilter],
   );
 
   const history = useMemo(
@@ -51,7 +55,7 @@ export function BolosView({ events, isAdmin, birthdays = [] }: { events: EventLi
         .filter(byFilter)
         .filter((e) => e.title.toLowerCase().includes(search.toLowerCase()))
         .sort((a, b) => (relevantDate(b) ?? "") > (relevantDate(a) ?? "") ? 1 : -1),
-    [events, filter, search],
+    [events, byFilter, search],
   );
 
   const historyPag = usePagination(history, 15, filter + search);
@@ -69,7 +73,7 @@ export function BolosView({ events, isAdmin, birthdays = [] }: { events: EventLi
   }, [events]);
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+    <Stack gap={14}>
       <SegmentedControl
         options={[
           { value: "llista", label: t.bolos.tabList },
@@ -82,49 +86,26 @@ export function BolosView({ events, isAdmin, birthdays = [] }: { events: EventLi
 
       {view === "llista" ? (
         <>
-          <div style={{ display: "flex", gap: 8, overflowX: "auto", paddingBottom: 2 }}>
-            {filterChips.map((c) => (
-              <button
-                key={c.value}
-                type="button"
-                onClick={() => setFilter(c.value)}
-                style={{
-                  height: 34,
-                  padding: "0 16px",
-                  borderRadius: 999,
-                  cursor: "pointer",
-                  fontSize: 12,
-                  whiteSpace: "nowrap",
-                  borderWidth: 1,
-                  borderStyle: "solid",
-                  borderColor: filter === c.value ? "var(--color-accent-500)" : "rgba(32,30,29,.22)",
-                  background: filter === c.value ? "var(--color-accent-500)" : "transparent",
-                  color: filter === c.value ? "#fff" : "var(--color-text)",
-                }}
-              >
-                {c.label}
-              </button>
-            ))}
-          </div>
+          <FilterChips chips={filterChips} value={filter} onChange={setFilter} />
 
           {isAdmin ? (
-            <div style={{ display: "flex", flexDirection: "column", gap: 12, padding: 16, borderRadius: 28, background: "var(--color-accent-900)", color: "#fdece9" }}>
-              <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+            <Stack gap={12} style={{ padding: 16, borderRadius: 28, background: "var(--color-accent-900)", color: "#fdece9" }}>
+              <Row gap={8}>
                 <Tag variant="custom" bg="rgba(253,236,233,.14)" color="#fdece9">Junta</Tag>
                 <span style={{ fontSize: 12, opacity: 0.7 }}>{t.bolos.seasonSummary}</span>
-              </div>
-              <div style={{ display: "flex", gap: 10 }}>
+              </Row>
+              <Grid cols={3} gap={10}>
                 {stats.map((s) => (
-                  <div key={s.label} style={{ flex: 1, background: "rgba(253,236,233,.09)", borderRadius: 20, padding: "12px 10px" }}>
+                  <div key={s.label} style={{ background: "rgba(253,236,233,.09)", borderRadius: 20, padding: "12px 10px" }}>
                     <div style={{ fontFamily: "var(--font-heading)", fontSize: 24, lineHeight: 1 }}>{s.n}</div>
                     <div style={{ fontSize: 10, opacity: 0.7, marginTop: 4, lineHeight: 1.25 }}>{s.label}</div>
                   </div>
                 ))}
-              </div>
+              </Grid>
               <button type="button" className="btn btn-primary btn-block" onClick={() => setCreateOpen(true)} style={{ height: 48, background: "var(--color-accent-500)" }}>
                 {t.bolos.create}
               </button>
-            </div>
+            </Stack>
           ) : null}
 
           <div className="event-grid">
@@ -141,30 +122,7 @@ export function BolosView({ events, isAdmin, birthdays = [] }: { events: EventLi
 
       {view === "historic" ? (
         <>
-          <div style={{ display: "flex", gap: 8, overflowX: "auto", paddingBottom: 2 }}>
-            {filterChips.map((c) => (
-              <button
-                key={c.value}
-                type="button"
-                onClick={() => setFilter(c.value)}
-                style={{
-                  height: 34,
-                  padding: "0 16px",
-                  borderRadius: 999,
-                  cursor: "pointer",
-                  fontSize: 12,
-                  whiteSpace: "nowrap",
-                  borderWidth: 1,
-                  borderStyle: "solid",
-                  borderColor: filter === c.value ? "var(--color-accent-500)" : "rgba(32,30,29,.22)",
-                  background: filter === c.value ? "var(--color-accent-500)" : "transparent",
-                  color: filter === c.value ? "#fff" : "var(--color-text)",
-                }}
-              >
-                {c.label}
-              </button>
-            ))}
-          </div>
+          <FilterChips chips={filterChips} value={filter} onChange={setFilter} />
           <Input
             placeholder={t.bolos.searchHistory}
             value={search}
@@ -183,6 +141,26 @@ export function BolosView({ events, isAdmin, birthdays = [] }: { events: EventLi
       ) : null}
 
       {isAdmin ? <CreateEventModal open={createOpen} onClose={() => setCreateOpen(false)} /> : null}
+    </Stack>
+  );
+}
+
+function FilterChips<T extends string>({
+  chips,
+  value,
+  onChange,
+}: {
+  chips: { value: T; label: string }[];
+  value: T;
+  onChange: (v: T) => void;
+}) {
+  return (
+    <div className="chip-row">
+      {chips.map((c) => (
+        <button key={c.value} type="button" className="chip" aria-pressed={value === c.value} onClick={() => onChange(c.value)}>
+          {c.label}
+        </button>
+      ))}
     </div>
   );
 }

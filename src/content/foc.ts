@@ -52,24 +52,14 @@ export const focContent = {
     items: [
       {
         n: "1",
-        title: "Renta el vestit després de cada bolo",
-        text: "A mà o programa curt en fred, sense assecadora: el cotó tractat perd la ignifugació amb la calor.",
+        title: "Revisa la maça abans de sortir",
+        text: "Canya sense esquerdes i agafar pinces. Si dubtes, demana ajuda al teu padrí.",
       },
       {
         n: "2",
-        title: "Revisa la maça abans de sortir",
-        text: "Filferro sencer, canya sense esquerdes i carretilles ben lligades. Si dubtes, ensenya-la al responsable de foc.",
-      },
-      {
-        n: "3",
-        title: "Mocador i guants sempre",
-        text: "Mocador de cotó mullat al coll i guants de pell, mai sintètics. En tenim de recanvi a la caixa vermella del local.",
-      },
-      {
-        n: "4",
-        title: "Material vell, a la caixa de baixes",
-        text: "Deixa-hi tot el que estigui cremat o gastat i anota-ho al full: així la junta ho reposa abans del bolo següent.",
-      },
+        title: "Comprova que ho tens tot",
+        text: "Mocador de cotó al cap; guants de pell, mai sintètics; ulleres de protecció, taps per les orelles. En tenim de recanvi a la caixa transparent del local.",
+      }
     ],
   },
 } as const;

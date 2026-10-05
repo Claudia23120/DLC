@@ -13,7 +13,7 @@ COMPOSE := $(COMPOSE_BASE) $(if $(ENV_FILE),--env-file $(ENV_FILE),)
 
 .DEFAULT_GOAL := help
 
-.PHONY: help build start stop restart logs shell clean dev
+.PHONY: help build start stop restart logs shell clean dev typecheck lint test check
 
 help: ## Show this help
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | \
@@ -45,8 +45,30 @@ dev: ## Stop prod and run dev server with live reload (port 3005)
 		-w /app \
 		--env-file .env.local \
 		-p 3005:3000 \
-		node:20-alpine \
+		node:22-alpine \
 		sh -c "npm install && npm run dev"
+
+# One-off node container sharing the dev node_modules volume.
+# Node 22: vitest 5 requires >=22.12.
+# Usage: $(call NODE_RUN,<npm script>)
+NODE_RUN = docker run --rm \
+	--volume $(CURDIR):/app \
+	--volume colla-diables-node-modules:/app/node_modules \
+	-w /app \
+	node:22-alpine \
+	sh -c "npm install --no-audit --no-fund && $(1)"
+
+typecheck: ## Run the TypeScript type check
+	$(call NODE_RUN,npm run typecheck)
+
+lint: ## Run ESLint
+	$(call NODE_RUN,npm run lint)
+
+test: ## Run the unit tests
+	$(call NODE_RUN,npm test)
+
+check: ## Typecheck + lint + tests
+	$(call NODE_RUN,npm run typecheck && npm run lint && npm test)
 
 clean: ## Stop and remove containers, images and volumes for this project
 	$(COMPOSE) down --rmi local --volumes --remove-orphans

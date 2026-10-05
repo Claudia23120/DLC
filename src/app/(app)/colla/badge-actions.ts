@@ -1,7 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { createClient } from "@/lib/supabase/server";
+import { getAdminContext } from "@/lib/auth/session";
 import { t } from "@/i18n/t";
 import type { BadgeType } from "@/types/database";
 
@@ -14,14 +14,9 @@ export async function createBadgeAction(
   _prev: CreateBadgeState,
   formData: FormData,
 ): Promise<CreateBadgeState> {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) return { error: t.auth.genericError };
-
-  const { data: me } = await supabase.from("profiles").select("is_admin").eq("id", user.id).single();
-  if (!me?.is_admin) return { error: t.auth.genericError };
+  const ctx = await getAdminContext();
+  if (!ctx) return { error: t.auth.genericError };
+  const { supabase } = ctx;
 
   const name = String(formData.get("name") ?? "").trim();
   const description = String(formData.get("description") ?? "").trim() || null;
@@ -48,14 +43,9 @@ export async function createBadgeAction(
 }
 
 export async function grantBadgeAction(memberId: string, badgeId: string): Promise<void> {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) return;
-
-  const { data: me } = await supabase.from("profiles").select("is_admin").eq("id", user.id).single();
-  if (!me?.is_admin) return;
+  const ctx = await getAdminContext();
+  if (!ctx) return;
+  const { supabase, user } = ctx;
 
   await supabase.from("member_badges").insert({
     member_id: memberId,
@@ -67,14 +57,9 @@ export async function grantBadgeAction(memberId: string, badgeId: string): Promi
 }
 
 export async function revokeBadgeAction(memberId: string, badgeId: string): Promise<void> {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) return;
-
-  const { data: me } = await supabase.from("profiles").select("is_admin").eq("id", user.id).single();
-  if (!me?.is_admin) return;
+  const ctx = await getAdminContext();
+  if (!ctx) return;
+  const { supabase } = ctx;
 
   await supabase
     .from("member_badges")

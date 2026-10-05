@@ -1,7 +1,9 @@
 "use client";
 
-import { useEffect, type ReactNode } from "react";
+import { useEffect, useId, useRef, type ReactNode } from "react";
 import { CloseIcon } from "./icons";
+import { Row } from "./Layout";
+import { t } from "@/i18n/t";
 
 interface ModalProps {
   open: boolean;
@@ -10,63 +12,115 @@ interface ModalProps {
   children: ReactNode;
 }
 
-/** Bottom-sheet modal matching the prototype's create/edit overlays. */
+// iOS Safari ignores `overflow: hidden` on <body>, so the page behind keeps
+// scrolling. Pinning the body with `position: fixed` works everywhere; the
+// scroll position is restored on unlock. Counted so stacked modals are safe.
+let lockCount = 0;
+let lockedScrollY = 0;
+
+function lockScroll() {
+  if (lockCount++ > 0) return;
+  lockedScrollY = window.scrollY;
+  const { style } = document.body;
+  style.position = "fixed";
+  style.top = `-${lockedScrollY}px`;
+  style.left = "0";
+  style.right = "0";
+  style.width = "100%";
+}
+
+function unlockScroll() {
+  if (--lockCount > 0) return;
+  const { style } = document.body;
+  style.position = "";
+  style.top = "";
+  style.left = "";
+  style.right = "";
+  style.width = "";
+  window.scrollTo(0, lockedScrollY);
+}
+
+/** Bottom-sheet modal (centered dialog on desktop) for create/edit overlays. */
 export function Modal({ open, onClose, title, children }: ModalProps) {
+  const titleId = useId();
+  const dialogRef = useRef<HTMLDivElement>(null);
+  // Keep the latest onClose without re-running the open/close effects.
+  const onCloseRef = useRef(onClose);
+  useEffect(() => {
+    onCloseRef.current = onClose;
+  }, [onClose]);
+
+  // Escape to close.
   useEffect(() => {
     if (!open) return;
-    const onKey = (e: KeyboardEvent) => e.key === "Escape" && onClose();
+    const onKey = (e: KeyboardEvent) => e.key === "Escape" && onCloseRef.current();
     document.addEventListener("keydown", onKey);
     return () => document.removeEventListener("keydown", onKey);
-  }, [open, onClose]);
+  }, [open]);
+
+  // Body scroll lock + focus into the dialog, restored on close.
+  useEffect(() => {
+    if (!open) return;
+    const previouslyFocused = document.activeElement as HTMLElement | null;
+    lockScroll();
+    dialogRef.current?.focus({ preventScroll: true });
+    return () => {
+      unlockScroll();
+      previouslyFocused?.focus?.({ preventScroll: true });
+    };
+  }, [open]);
 
   if (!open) return null;
 
   return (
-    <div
-      onClick={onClose}
-      style={{
-        position: "fixed",
-        inset: 0,
-        background: "rgba(32,30,29,.45)",
-        display: "flex",
-        alignItems: "flex-end",
-        justifyContent: "center",
-        zIndex: 50,
-      }}
-    >
+    <div className="modal-backdrop" onClick={onClose}>
       <div
+        ref={dialogRef}
+        className="modal-sheet"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby={titleId}
+        tabIndex={-1}
         onClick={(e) => e.stopPropagation()}
-        style={{
-          width: "100%",
-          maxWidth: 560,
-          maxHeight: "88%",
-          background: "var(--color-bg)",
-          borderTopLeftRadius: 36,
-          borderTopRightRadius: 36,
-          display: "flex",
-          flexDirection: "column",
-          overflow: "hidden",
-        }}
       >
-        <div style={{ display: "flex", alignItems: "center", gap: 12, padding: "20px 22px 12px" }}>
-          <h2 style={{ fontSize: 24, margin: 0, flex: 1 }}>{title}</h2>
+        <div className="modal-head">
+          <h2 id={titleId} className="modal-title">{title}</h2>
           <button
             type="button"
-            className="btn btn-icon"
+            className="btn btn-icon modal-close"
             aria-label="Tanca"
             onClick={onClose}
-            style={{ background: "var(--color-surface)", boxShadow: "var(--shadow-sm)", width: 38, height: 38, flex: "none" }}
           >
             <CloseIcon size={18} />
           </button>
         </div>
-        <div
-          className="app-scroll"
-          style={{ flex: 1, minHeight: 0, overflowY: "auto", padding: "0 22px 24px", display: "flex", flexDirection: "column", gap: 14 }}
-        >
-          {children}
-        </div>
+        <div className="modal-body app-scroll">{children}</div>
       </div>
     </div>
+  );
+}
+
+/**
+ * Sticky cancel + submit bar for forms inside a Modal. Render it as the last
+ * child of the <form>; the submit button submits that form.
+ */
+export function ModalActions({
+  submitLabel,
+  pending = false,
+  onCancel,
+}: {
+  submitLabel: ReactNode;
+  pending?: boolean;
+  onCancel: () => void;
+}) {
+  return (
+    <Row gap={8} className="modal-actions">
+      <button type="button" className="btn btn-ghost" onClick={onCancel} style={{ height: 48, flex: "none", padding: "0 16px" }}>
+        {t.common.cancel}
+      </button>
+      <button type="submit" className="btn btn-primary" disabled={pending} style={{ height: 48, flex: 1, fontSize: 16 }}>
+        {pending ? t.common.loading : submitLabel}
+      </button>
+    </Row>
   );
 }

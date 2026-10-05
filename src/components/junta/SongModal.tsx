@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useRef } from "react";
-import { Modal } from "@/components/ui/Modal";
+import { Modal, ModalActions } from "@/components/ui/Modal";
 import { Field } from "@/components/ui/Field";
 import { createClient } from "@/lib/supabase/client";
 import { createSongAction, updateSongAction } from "@/app/(app)/junta/actions";
@@ -45,7 +45,7 @@ export function SongModal({
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    if (!title.trim() || !slug.trim()) { setError("Cal un títol i un identificador."); return; }
+    if (!title.trim() || !slug.trim()) { setError(t.songs.titleSlugRequired); return; }
     setPending(true);
     setError(null);
 
@@ -95,7 +95,7 @@ export function SongModal({
       onClose={onClose}
       title={isEdit ? t.songs.editSong : t.songs.addSong}
     >
-      <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+      <form onSubmit={handleSubmit} className="stack" style={{ gap: 14 }}>
         <Field
           label={t.create.title}
           name="title"
@@ -114,12 +114,12 @@ export function SongModal({
           placeholder="matador"
         />
         <Field
-          label={t.create.affects.replace("A qui afecta", "Tipus")}
+          label={t.songs.kind}
           name="kind"
           value={kind}
           onChange={(e) => setKind(e.target.value)}
           style={{ height: 48 }}
-          placeholder="Tema de sortida"
+          placeholder={t.songs.kindPlaceholder}
         />
         <Field
           label={t.songs.tempo}
@@ -136,17 +136,17 @@ export function SongModal({
           value={notes}
           onChange={(e) => setNotes(e.target.value)}
           style={{ height: 48 }}
-          placeholder="Notes internes per a la junta"
+          placeholder={t.songs.notesPlaceholder}
         />
 
         {/* GP file upload */}
         <div>
-          <div style={{ fontSize: 12, letterSpacing: ".06em", textTransform: "uppercase", opacity: 0.55, marginBottom: 6 }}>
+          <div className="caption" style={{ marginBottom: 6 }}>
             {t.songs.gpFile}
           </div>
           {song?.gp_url && !file && (
             <div style={{ fontSize: 13, opacity: 0.7, marginBottom: 6 }}>
-              ✓ Ja té partitura pujada. Selecciona un fitxer per substituir-la.
+              {t.songs.alreadyHasScore}
             </div>
           )}
           <input
@@ -164,12 +164,7 @@ export function SongModal({
           </p>
         )}
 
-        <button type="submit" className="btn btn-primary btn-block" disabled={pending} style={{ height: 52, fontSize: 16, marginTop: 4 }}>
-          {pending ? t.common.loading : t.songs.saveSong}
-        </button>
-        <button type="button" className="btn btn-ghost btn-block" onClick={onClose} style={{ height: 44 }}>
-          {t.common.cancel}
-        </button>
+        <ModalActions submitLabel={t.songs.saveSong} pending={pending} onCancel={onClose} />
       </form>
     </Modal>
   );

@@ -7,6 +7,7 @@ import { formatDay, formatMonthShort, formatTime, isPast } from "@/lib/utils/dat
 import { googleCalendarUrl } from "@/lib/calendar/ics";
 import { t } from "@/i18n/t";
 import type { EventListItem } from "@/lib/data/events";
+import { Row } from "@/components/ui/Layout";
 
 /** Status pill text + colors for the card, by kind. */
 function statusFor(event: EventListItem): { label: string; bg: string; color: string } {
@@ -69,14 +70,14 @@ export function EventCard({ event }: { event: EventListItem }) {
 
         <div style={{ flex: 1, minWidth: 0 }}>
           <span style={{ fontSize: 10, letterSpacing: ".08em", textTransform: "uppercase", color: kind.color }}>{kind.label}</span>
-          <div className="card-title" style={{ fontSize: 18, marginTop: 2 }}>{event.title}</div>
+          <div className="card-title break-anywhere" style={{ fontSize: 18, marginTop: 2 }}>{event.title}</div>
           {metaParts.length ? (
-            <div style={{ fontSize: 13, opacity: 0.6, marginTop: 2 }}>{metaParts.join(" · ")}</div>
+            <div className="break-anywhere" style={{ fontSize: 13, opacity: 0.6, marginTop: 2 }}>{metaParts.join(" · ")}</div>
           ) : null}
-          <div style={{ display: "flex", alignItems: "center", gap: 8, marginTop: 10, flexWrap: "wrap" }}>
+          <Row gap={8} wrap style={{ marginTop: 10 }}>
             <Tag variant="custom" bg={status.bg} color={status.color}>{status.label}</Tag>
             <span style={{ fontSize: 12, opacity: 0.55 }}>{countLabel(event.kind, event.counts)}</span>
-          </div>
+          </Row>
         </div>
       </Link>
 

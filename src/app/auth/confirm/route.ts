@@ -1,10 +1,7 @@
-import { createServerClient, type CookieOptions } from "@supabase/ssr";
 import type { EmailOtpType } from "@supabase/supabase-js";
-import { cookies } from "next/headers";
 import { NextResponse, type NextRequest } from "next/server";
-import type { Database } from "@/types/database";
-
-type CookieToSet = { name: string; value: string; options: CookieOptions };
+import { createClient } from "@/lib/supabase/server";
+import { safeNextPath } from "@/lib/utils/safe-redirect";
 
 /**
  * Handles Supabase email confirmation links (password reset, magic link, etc.).
@@ -20,24 +17,9 @@ export async function GET(request: NextRequest) {
   const code = searchParams.get("code");
   const token_hash = searchParams.get("token_hash");
   const type = searchParams.get("type") ?? "";
-  const next = searchParams.get("next") ?? "/bolos";
+  const next = safeNextPath(searchParams.get("next"));
 
-  const cookieStore = await cookies();
-
-  const supabase = createServerClient<Database>(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-    {
-      cookies: {
-        getAll() { return cookieStore.getAll(); },
-        setAll(cookiesToSet: CookieToSet[]) {
-          cookiesToSet.forEach(({ name, value, options }) =>
-            cookieStore.set(name, value, options)
-          );
-        },
-      },
-    },
-  );
+  const supabase = await createClient();
 
   // PKCE flow — Supabase sends ?code=CODE after its own server-side verification.
   if (code) {

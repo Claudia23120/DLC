@@ -3,51 +3,26 @@ import { PageContainer } from "@/components/layout/PageContainer";
 import { ProfileForm } from "@/components/members/ProfileForm";
 import { ChangePasswordForm } from "@/components/members/ChangePasswordForm";
 import { AvatarUpload } from "@/components/members/AvatarUpload";
+import { BoloStatsSection } from "@/components/members/BoloStatsSection";
 import { requireProfile } from "@/lib/auth/session";
 import { createClient } from "@/lib/supabase/server";
-import { getMember, listMembers } from "@/lib/data/members";
+import { getMemberPrivate, listMembers } from "@/lib/data/members";
+import { getBoloStats } from "@/lib/data/bolo-stats";
 import { signOut } from "@/app/(auth)/login/actions";
 import { boardPositionLabel } from "@/lib/utils/labels";
 import { Tag } from "@/components/ui/Tag";
 import { t } from "@/i18n/t";
-import type { BoloResponse } from "@/types/database";
 
 export default async function PerfilPage() {
+  // requireProfile already loads the full row (memoized per request).
   const profile = await requireProfile();
   const supabase = await createClient();
 
-  const [full, allMembers, attendanceResult, bolosResult] = await Promise.all([
-    getMember(supabase, profile.id),
+  const [privateData, allMembers, stats] = await Promise.all([
+    getMemberPrivate(supabase, profile.id),
     listMembers(supabase),
-    supabase
-      .from("bolo_attendance")
-      .select("response, event_id")
-      .eq("member_id", profile.id),
-    supabase
-      .from("events")
-      .select("id, starts_at")
-      .eq("kind", "bolo"),
+    getBoloStats(supabase, profile.id, profile.joined_date),
   ]);
-
-  const joinedDate = full?.joined_date ?? null;
-
-  const boloDateById = new Map(
-    (bolosResult.data ?? []).map((b) => [b.id, b.starts_at]),
-  );
-  const totalBolos = [...boloDateById.values()].filter(
-    (d) => !joinedDate || !d || d >= joinedDate,
-  ).length;
-
-  const attendance = (attendanceResult.data ?? []).filter((a) => {
-    const eventDate = boloDateById.get(a.event_id) ?? null;
-    return !joinedDate || !eventDate || eventDate >= joinedDate;
-  });
-
-  const participated = attendance.filter(
-    (a) => (["diable", "tabaler", "supporter"] as BoloResponse[]).includes(a.response as BoloResponse),
-  ).length;
-  const declined = attendance.filter((a) => a.response === "no").length;
-  const noResponse = Math.max(0, totalBolos - attendance.length);
 
   return (
     <>
@@ -58,7 +33,7 @@ export default async function PerfilPage() {
             <AvatarUpload
               userId={profile.id}
               name={profile.full_name}
-              currentUrl={(full ?? profile).avatar_url ?? null}
+              currentUrl={profile.avatar_url ?? null}
             />
             <div style={{ minWidth: 0 }}>
               <div style={{ fontFamily: "var(--font-heading)", fontSize: 22, textTransform: "uppercase" }}>{profile.full_name}</div>
@@ -69,40 +44,9 @@ export default async function PerfilPage() {
             </div>
           </div>
 
-          {/* Bolo stats */}
-          <section style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-            <h3 style={{ fontSize: 20, margin: 0 }}>{t.profile.boloStats}</h3>
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 8 }}>
-              <StatCard
-                label={t.profile.statsParticipated}
-                value={participated}
-                total={totalBolos}
-                bg="rgba(34,197,94,.08)"
-                color="#16a34a"
-              />
-              <StatCard
-                label={t.profile.statsDeclined}
-                value={declined}
-                total={totalBolos}
-                bg="rgba(239,68,68,.08)"
-                color="#dc2626"
-              />
-              <StatCard
-                label={t.profile.statsNoResponse}
-                value={noResponse}
-                total={totalBolos}
-                bg="rgba(32,30,29,.05)"
-                color="rgba(32,30,29,.45)"
-              />
-            </div>
-            <div style={{ fontSize: 12, opacity: 0.45, textAlign: "center" }}>
-              {joinedDate
-                ? t.profile.statsTotal(totalBolos)
-                : `${totalBolos} bolos publicats en total (sense data d'entrada)`}
-            </div>
-          </section>
+          <BoloStatsSection stats={stats} hasJoinedDate={!!profile.joined_date} />
 
-          <ProfileForm profile={full ?? profile} allMembers={allMembers} />
+          <ProfileForm profile={profile} privateData={privateData} allMembers={allMembers} />
 
           <ChangePasswordForm />
 
@@ -114,20 +58,5 @@ export default async function PerfilPage() {
         </div>
       </PageContainer>
     </>
-  );
-}
-
-function StatCard({
-  label, value, total, bg, color,
-}: {
-  label: string; value: number; total: number; bg: string; color: string;
-}) {
-  const pct = total > 0 ? Math.round((value / total) * 100) : 0;
-  return (
-    <div style={{ background: bg, borderRadius: 20, padding: "14px 12px", textAlign: "center" }}>
-      <div style={{ fontFamily: "var(--font-heading)", fontSize: 28, color }}>{value}</div>
-      <div style={{ fontFamily: "var(--font-heading)", fontSize: 13, color, opacity: 0.7 }}>{pct}%</div>
-      <div style={{ fontSize: 11, color, opacity: 0.85, marginTop: 2, lineHeight: 1.2 }}>{label}</div>
-    </div>
   );
 }

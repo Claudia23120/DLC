@@ -1,6 +1,5 @@
 "use client";
 
-import { t } from "@/i18n/t";
 import type { MemberListItem } from "@/lib/data/members";
 
 interface PadriSelectorProps {

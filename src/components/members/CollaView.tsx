@@ -14,6 +14,7 @@ import type { MemberListItem, LineageItem } from "@/lib/data/members";
 import type { BadgeWithCount } from "@/lib/data/badges";
 import Link from "next/link";
 import { Avatar } from "@/components/ui/Avatar";
+import { Row, Stack } from "@/components/ui/Layout";
 
 type Tab = "info" | "members" | "lineage" | "badges";
 
@@ -41,7 +42,7 @@ export function CollaView({
   };
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+    <Stack gap={16}>
       <SegmentedControl
         options={[
           { value: "info", label: t.colla.tabInfo },
@@ -54,7 +55,7 @@ export function CollaView({
       />
 
       {tab === "info" ? (
-        <div style={{ display: "flex", flexDirection: "column", gap: 22 }}>
+        <Stack gap={22}>
           <section>
             <h3 style={{ fontSize: 20, marginBottom: 8 }}>{t.colla.history}</h3>
             {collaContent.history.map((p, i) => (
@@ -64,35 +65,35 @@ export function CollaView({
 
           <section>
             <h3 style={{ fontSize: 20, marginBottom: 10 }}>{t.colla.board}</h3>
-            <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+            <Stack gap={10}>
               {board.map((b) => (
-                <div key={b.id} style={{ display: "flex", alignItems: "center", gap: 12, padding: 14, background: "var(--color-surface)", borderRadius: 24, boxShadow: "var(--shadow-sm)" }}>
+                <Row key={b.id} gap={12} className="item-card">
                   <div style={{ flex: 1, minWidth: 0 }}>
                     <div style={{ fontSize: 11, letterSpacing: ".08em", textTransform: "uppercase", color: "var(--color-accent-700)" }}>
                       {boardPositionLabel(b.board_position)}
                     </div>
                     <div style={{ fontFamily: "var(--font-heading)", fontSize: 16 }}>{b.full_name}</div>
-                    <div style={{ fontSize: 12, opacity: 0.55 }}>{b.email}</div>
+                    <div className="break-anywhere" style={{ fontSize: 12, opacity: 0.55 }}>{b.email}</div>
                   </div>
                   <a href={`mailto:${b.email}`} className="btn btn-icon" style={{ background: "var(--color-accent-100)", color: "var(--color-accent-800)", flex: "none" }} aria-label={`Correu a ${b.full_name}`}>
                     <MailIcon size={18} />
                   </a>
-                </div>
+                </Row>
               ))}
               {board.length === 0 ? <p className="text-muted">{t.common.empty}</p> : null}
-            </div>
+            </Stack>
           </section>
 
           <section>
             <h3 style={{ fontSize: 20, marginBottom: 10 }}>{t.colla.fee}</h3>
             <Card style={{ padding: 16, gap: 8 }}>
               <p style={{ fontSize: 14, margin: 0 }}>{collaContent.fee.intro}</p>
-              <div style={{ display: "flex", alignItems: "center", gap: 8, background: "var(--color-bg)", borderRadius: 14, padding: "10px 14px" }}>
-                <strong style={{ fontSize: 14, flex: 1, fontFamily: "ui-monospace, monospace", letterSpacing: ".02em" }}>{collaContent.fee.iban}</strong>
-                <button type="button" className="btn btn-icon" onClick={copyIban} title={t.colla.copyIban} style={{ background: "var(--color-accent-100)", color: "var(--color-accent-800)", flex: "none", width: 36, height: 36 }}>
+              <Row gap={8} style={{ background: "var(--color-bg)", borderRadius: 14, padding: "10px 14px" }}>
+                <strong style={{ fontSize: 14, flex: 1, minWidth: 0, fontFamily: "ui-monospace, monospace", letterSpacing: ".02em" }}>{collaContent.fee.iban}</strong>
+                <button type="button" className="btn btn-icon" onClick={copyIban} title={t.colla.copyIban} style={{ background: "var(--color-accent-100)", color: "var(--color-accent-800)", flex: "none" }}>
                   <CopyIcon size={16} />
                 </button>
-              </div>
+              </Row>
               {ibanCopied ? <div style={{ fontSize: 12, color: "var(--color-accent-700)" }}>{t.colla.ibanCopied}</div> : null}
               <p style={{ fontSize: 14, margin: 0 }}>Com a concepte heu de posar: <strong>{collaContent.fee.concept}</strong></p>
             </Card>
@@ -102,13 +103,13 @@ export function CollaView({
             <h3 style={{ fontSize: 20, marginBottom: 10 }}>{t.colla.contacts}</h3>
             <Card style={{ padding: 16, gap: 6 }}>
               {collaContent.contacts.map((c) => (
-                <div key={c.email} style={{ fontSize: 14 }}>
+                <div key={c.email} className="break-anywhere" style={{ fontSize: 14 }}>
                   {c.label} · <a href={`mailto:${c.email}`}>{c.email}</a>
                 </div>
               ))}
             </Card>
           </section>
-        </div>
+        </Stack>
       ) : tab === "members" ? (
         <MembersList members={members} isAdmin={isAdmin} />
       ) : tab === "lineage" ? (
@@ -118,7 +119,7 @@ export function CollaView({
       )}
 
       {isAdmin ? <CreateBadgeModal open={createBadgeOpen} onClose={() => setCreateBadgeOpen(false)} /> : null}
-    </div>
+    </Stack>
   );
 }
 
@@ -128,20 +129,21 @@ function LineageTab({ lineage }: { lineage: LineageItem[] }) {
   }
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+    <Stack gap={10}>
       {lineage.map((m) => (
         <Link
           key={m.id}
           href={`/membres/${m.id}`}
-          style={{ display: "flex", flexDirection: "column", gap: 6, padding: "14px 16px", background: "var(--color-surface)", borderRadius: 24, boxShadow: "var(--shadow-sm)", textDecoration: "none", color: "inherit" }}
+          className="item-card stack"
+          style={{ gap: 6, textDecoration: "none", color: "inherit" }}
         >
-          <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+          <Row gap={10}>
             <Avatar name={m.full_name} size={40} />
             <span style={{ fontFamily: "var(--font-heading)", fontSize: 15 }}>
               {m.full_name}
               {m.nickname ? <span style={{ fontSize: 12, opacity: 0.5, marginLeft: 6 }}>«{m.nickname}»</span> : null}
             </span>
-          </div>
+          </Row>
           {m.padri_foc ? (
             <div style={{ fontSize: 12, opacity: 0.7, paddingLeft: 50 }}>
               🔥 Padrí de foc: <strong>{m.padri_foc.full_name}</strong>
@@ -154,7 +156,7 @@ function LineageTab({ lineage }: { lineage: LineageItem[] }) {
           ) : null}
         </Link>
       ))}
-    </div>
+    </Stack>
   );
 }
 
@@ -168,7 +170,7 @@ function BadgesTab({
   onCreateBadge: () => void;
 }) {
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+    <Stack gap={12}>
       {isAdmin ? (
         <button type="button" className="btn btn-primary btn-block" onClick={onCreateBadge} style={{ height: 48 }}>
           {t.colla.createBadge}
@@ -179,10 +181,7 @@ function BadgesTab({
         <p className="text-muted">{t.common.empty}</p>
       ) : (
         badgesWithCounts.map((b) => (
-          <div
-            key={b.id}
-            style={{ display: "flex", alignItems: "center", gap: 14, padding: "14px 16px", background: "var(--color-surface)", borderRadius: 24, boxShadow: "var(--shadow-sm)" }}
-          >
+          <Row key={b.id} gap={14} className="item-card">
             <span style={{ fontSize: 32, flex: "none" }}>{b.icon}</span>
             <div style={{ flex: 1, minWidth: 0 }}>
               <div style={{ fontFamily: "var(--font-heading)", fontSize: 16 }}>{b.name}</div>
@@ -191,9 +190,9 @@ function BadgesTab({
             <div style={{ fontSize: 12, opacity: 0.5, flex: "none" }}>
               {t.colla.badgeEarnedBy(b.member_count)}
             </div>
-          </div>
+          </Row>
         ))
       )}
-    </div>
+    </Stack>
   );
 }

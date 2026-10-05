@@ -4,6 +4,7 @@ import { Card } from "@/components/ui/Card";
 import { requireProfile } from "@/lib/auth/session";
 import { focContent } from "@/content/foc";
 import { t } from "@/i18n/t";
+import { Row, Stack } from "@/components/ui/Layout";
 
 export default async function FocPage() {
   const profile = await requireProfile();
@@ -12,18 +13,18 @@ export default async function FocPage() {
     <>
       <PageHeader kicker="El material i el vestit" title={t.nav.foc} userName={profile.full_name} />
       <PageContainer>
-        <div style={{ display: "flex", flexDirection: "column", gap: 28 }}>
+        <Stack gap={28}>
 
           <section>
             <h3 style={{ fontSize: 20, marginBottom: 12 }}>{focContent.material.title}</h3>
-            <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+            <Stack gap={10}>
               {focContent.material.items.map((item) => (
                 <Card key={item.name} style={{ padding: "14px 16px", gap: 4 }}>
                   <div style={{ fontFamily: "var(--font-heading)", fontSize: 16 }}>{item.name}</div>
                   <div style={{ fontSize: 13, opacity: 0.75 }}>{item.description}</div>
                 </Card>
               ))}
-            </div>
+            </Stack>
           </section>
 
           <section>
@@ -46,25 +47,22 @@ export default async function FocPage() {
 
           <section>
             <h3 style={{ fontSize: 20, marginBottom: 12 }}>{focContent.tips.title}</h3>
-            <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+            <Stack gap={10}>
               {focContent.tips.items.map((tip) => (
-                <div
-                  key={tip.n}
-                  style={{ display: "flex", gap: 12, padding: "14px 16px", background: "var(--color-accent-100)", borderRadius: 24 }}
-                >
+                <Row key={tip.n} align="start" gap={12} className="item-card" style={{ background: "var(--color-accent-100)" }}>
                   <div style={{ width: 28, height: 28, flex: "none", borderRadius: "50%", background: "var(--color-accent-500)", color: "#fff", display: "flex", alignItems: "center", justifyContent: "center", fontFamily: "var(--font-heading)", fontSize: 13 }}>
                     {tip.n}
                   </div>
-                  <div>
+                  <div style={{ minWidth: 0 }}>
                     <div style={{ fontFamily: "var(--font-heading)", fontSize: 15 }}>{tip.title}</div>
                     <div style={{ fontSize: 13, opacity: 0.75, marginTop: 2 }}>{tip.text}</div>
                   </div>
-                </div>
+                </Row>
               ))}
-            </div>
+            </Stack>
           </section>
 
-        </div>
+        </Stack>
       </PageContainer>
     </>
   );

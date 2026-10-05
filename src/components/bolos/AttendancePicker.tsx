@@ -8,6 +8,7 @@ import { setBoloAttendance, setOptionSelections } from "@/app/(app)/bolos/action
 import { t } from "@/i18n/t";
 import type { BoloResponse, MemberRole } from "@/types/database";
 import type { EventOption } from "@/lib/data/events";
+import { Grid, Row, Stack } from "@/components/ui/Layout";
 
 interface AttendancePickerProps {
   eventId: string;
@@ -87,7 +88,7 @@ export function AttendancePicker({
   return (
     <div>
       <h3 style={{ fontSize: 20, marginBottom: 10 }}>{t.boloDetail.areYouComing}</h3>
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
+      <Grid cols={2} gap={10}>
         {options.map((opt) => {
           const meta = RESPONSE_META[opt];
           const active = response === opt;
@@ -117,12 +118,12 @@ export function AttendancePicker({
             </button>
           );
         })}
-      </div>
+      </Grid>
 
       {showExtras ? (
-        <div style={{ display: "flex", flexDirection: "column", gap: 10, marginTop: 12 }}>
+        <Stack gap={10} style={{ marginTop: 12 }}>
           {askCars ? (
-            <div style={{ display: "flex", alignItems: "center", gap: 12, padding: "14px 18px", borderRadius: 999, background: "var(--color-surface)", boxShadow: "var(--shadow-sm)" }}>
+            <Row gap={12} style={{ padding: "14px 18px", borderRadius: 999, background: "var(--color-surface)", boxShadow: "var(--shadow-sm)" }}>
               <CarIcon size={22} stroke="var(--color-sage-500)" />
               <div style={{ flex: 1 }}>
                 <div style={{ fontFamily: "var(--font-heading)", fontSize: 15 }}>{t.boloDetail.bringCar}</div>
@@ -131,7 +132,7 @@ export function AttendancePicker({
                 </div>
               </div>
               <Toggle checked={car} onChange={toggleCar} label={t.boloDetail.bringCar} />
-            </div>
+            </Row>
           ) : null}
 
           {hasOptions ? (
@@ -139,7 +140,7 @@ export function AttendancePicker({
               <div style={{ fontSize: 13, opacity: 0.55, marginBottom: 8, paddingLeft: 4 }}>
                 {allowMultipleOptions ? "Escull les opcions que t'apliquen" : "Escull una opció"}
               </div>
-              <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
+              <Row wrap gap={8}>
                 {eventOptions.map((opt) => {
                   const selected = selectedIds.includes(opt.id);
                   return (
@@ -165,7 +166,7 @@ export function AttendancePicker({
                     </button>
                   );
                 })}
-              </div>
+              </Row>
               {selectedIds.length === 0 ? (
                 <p style={{ fontSize: 13, color: "var(--color-muted-text)", marginTop: 8, paddingLeft: 4 }}>
                   Vinc com a opcio al detall per escollir
@@ -173,7 +174,7 @@ export function AttendancePicker({
               ) : null}
             </div>
           ) : null}
-        </div>
+        </Stack>
       ) : null}
     </div>
   );

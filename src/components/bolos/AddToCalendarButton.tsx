@@ -43,7 +43,7 @@ export function AddToCalendarButton({ icsHref, googleHref, variant = "icon" }: A
       type="button"
       className="btn btn-secondary"
       onClick={handleClick}
-      style={{ height: 44, fontSize: 14, display: "flex", alignItems: "center", gap: 8 }}
+      style={{ height: 44, fontSize: 14 }}
     >
       <CalendarIcon size={17} />
       {t.common.addToCalendar}

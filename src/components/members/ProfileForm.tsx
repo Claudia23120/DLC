@@ -2,11 +2,12 @@
 
 import { useActionState, useState } from "react";
 import { Field } from "@/components/ui/Field";
-import { Toggle } from "@/components/ui/Toggle";
+import { Row, Stack } from "@/components/ui/Layout";
+import { ToggleRow } from "@/components/ui/ToggleRow";
 import { PadriSelector } from "./PadriSelector";
 import { updateProfile, type ProfileFormState } from "@/app/(app)/perfil/actions";
 import { t } from "@/i18n/t";
-import type { MemberRow, MemberListItem } from "@/lib/data/members";
+import type { MemberRow, MemberListItem, MemberPrivate } from "@/lib/data/members";
 
 const SIZE_OPTIONS = ["P", "P+", "M", "M+", "G"];
 const initial: ProfileFormState = {};
@@ -20,9 +21,11 @@ function asBool(v: unknown): boolean {
 
 export function ProfileForm({
   profile,
+  privateData,
   allMembers,
 }: {
   profile: MemberRow;
+  privateData: MemberPrivate | null;
   allMembers?: MemberListItem[];
 }) {
   const [state, formAction, pending] = useActionState(updateProfile, initial);
@@ -39,15 +42,15 @@ export function ProfileForm({
   const [ulleres, setUlleres] = useState(asBool(gear.ulleres));
 
   return (
-    <form action={formAction} style={{ display: "flex", flexDirection: "column", gap: 20 }}>
-      <section style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+    <form action={formAction} className="stack" style={{ gap: 20 }}>
+      <Stack as="section" gap={12}>
         <h3 style={{ fontSize: 20, margin: 0 }}>{t.profile.personalData}</h3>
         <Field label={t.profile.fullName} name="full_name" defaultValue={profile.full_name} style={{ height: 48 }} />
         <Field label={t.profile.nickname} name="nickname" defaultValue={profile.nickname ?? ""} style={{ height: 48 }} />
         <Field label={t.profile.phone} name="phone" defaultValue={profile.phone ?? ""} style={{ height: 48 }} />
-        <Field label={t.profile.nif} name="nif" defaultValue={profile.nif ?? ""} style={{ height: 48 }} />
+        <Field label={t.profile.nif} name="nif" defaultValue={privateData?.nif ?? ""} style={{ height: 48 }} />
         <div className="field">
-          <label style={{ fontSize: 12, letterSpacing: ".06em", textTransform: "uppercase", opacity: 0.55, display: "block", marginBottom: 6 }}>
+          <label className="caption">
             {t.profile.birthDate}
           </label>
           <input
@@ -59,10 +62,10 @@ export function ProfileForm({
           />
         </div>
         <Field label={t.profile.email} name="email_display" defaultValue={profile.email} disabled style={{ height: 48, opacity: 0.6 }} />
-        <Field label={t.profile.emergencyContact} name="emergency_contact" defaultValue={profile.emergency_contact ?? ""} style={{ height: 48 }} />
+        <Field label={t.profile.emergencyContact} name="emergency_contact" defaultValue={privateData?.emergency_contact ?? ""} style={{ height: 48 }} />
         <Field label={t.profile.medicalNotes} name="medical_notes" defaultValue={profile.medical_notes ?? ""} style={{ height: 48 }} />
         <div className="field">
-          <label style={{ fontSize: 12, letterSpacing: ".06em", textTransform: "uppercase", opacity: 0.55, display: "block", marginBottom: 6 }}>
+          <label className="caption">
             Data d&apos;entrada a la colla
           </label>
           <input
@@ -83,10 +86,10 @@ export function ProfileForm({
             style={{ resize: "vertical", paddingTop: 12, paddingBottom: 12 }}
           />
         </div>
-      </section>
+      </Stack>
 
       {allMembers && allMembers.length > 0 ? (
-        <section style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+        <Stack as="section" gap={12}>
           <h3 style={{ fontSize: 20, margin: 0 }}>{t.member.godparents}</h3>
           <PadriSelector
             name="padri_foc_id"
@@ -102,7 +105,7 @@ export function ProfileForm({
             currentId={profile.padri_tabal_id}
             selfId={profile.id}
           />
-        </section>
+        </Stack>
       ) : null}
 
       <section>
@@ -111,10 +114,10 @@ export function ProfileForm({
 
         <ToggleRow label={t.profile.ownSuitFoc} checked={ownFoc} onChange={setOwnFoc} name="own_suit_foc" />
         {!ownFoc ? (
-          <div style={{ display: "flex", flexDirection: "column", gap: 12, margin: "12px 0" }}>
+          <Stack gap={12} style={{ margin: "12px 0" }}>
             <SizeRow title={t.profile.casaca} value={casaca} onChange={setCasaca} name="size_casaca" />
             <SizeRow title={t.profile.pantalo} value={pantalo} onChange={setPantalo} name="size_pantalo" />
-          </div>
+          </Stack>
         ) : null}
 
         <div style={{ marginTop: 12 }}>
@@ -126,11 +129,11 @@ export function ProfileForm({
           </div>
         ) : null}
 
-        <div style={{ marginTop: 12, display: "flex", flexDirection: "column", gap: 8 }}>
-          <div style={{ fontSize: 12, letterSpacing: ".06em", textTransform: "uppercase", opacity: 0.55 }}>{t.profile.clubGear}</div>
+        <Stack gap={8} style={{ marginTop: 12 }}>
+          <div className="caption">{t.profile.clubGear}</div>
           <ToggleRow label={t.profile.guants} checked={guants} onChange={setGuants} name="gear_guants" />
           <ToggleRow label={t.profile.ulleres} checked={ulleres} onChange={setUlleres} name="gear_ulleres" />
-        </div>
+        </Stack>
       </section>
 
       {state.ok ? <p style={{ margin: 0, fontSize: 13, color: "var(--color-sage-800)" }}>{t.profile.saved}</p> : null}
@@ -146,45 +149,15 @@ export function ProfileForm({
 function SizeRow({ title, value, onChange, name }: { title: string; value: string; onChange: (v: string) => void; name: string }) {
   return (
     <div>
-      <div style={{ fontSize: 12, letterSpacing: ".06em", textTransform: "uppercase", opacity: 0.55, marginBottom: 6 }}>{title}</div>
-      <div style={{ display: "flex", gap: 8 }}>
-        {SIZE_OPTIONS.map((s) => {
-          const active = value === s;
-          return (
-            <button
-              key={s}
-              type="button"
-              onClick={() => onChange(active ? "" : s)}
-              style={{
-                flex: 1,
-                height: 46,
-                borderRadius: 999,
-                cursor: "pointer",
-                fontFamily: "var(--font-heading)",
-                fontSize: 14,
-                borderWidth: 1,
-                borderStyle: "solid",
-                borderColor: active ? "var(--color-accent-500)" : "rgba(32,30,29,.22)",
-                background: active ? "var(--color-accent-500)" : "transparent",
-                color: active ? "#fff" : "var(--color-text)",
-              }}
-            >
-              {s}
-            </button>
-          );
-        })}
-      </div>
+      <div className="caption" style={{ marginBottom: 6 }}>{title}</div>
+      <Row gap={8}>
+        {SIZE_OPTIONS.map((s) => (
+          <button key={s} type="button" className="pill-toggle" aria-pressed={value === s} onClick={() => onChange(value === s ? "" : s)}>
+            {s}
+          </button>
+        ))}
+      </Row>
       <input type="hidden" name={name} value={value} />
-    </div>
-  );
-}
-
-function ToggleRow({ label, checked, onChange, name }: { label: string; checked: boolean; onChange: (v: boolean) => void; name: string }) {
-  return (
-    <div style={{ display: "flex", alignItems: "center", gap: 12, padding: "12px 16px", borderRadius: 999, background: "var(--color-surface)", boxShadow: "var(--shadow-sm)" }}>
-      <div style={{ flex: 1, fontFamily: "var(--font-heading)", fontSize: 15 }}>{label}</div>
-      <Toggle checked={checked} onChange={onChange} label={label} />
-      {checked ? <input type="hidden" name={name} value="on" /> : null}
     </div>
   );
 }

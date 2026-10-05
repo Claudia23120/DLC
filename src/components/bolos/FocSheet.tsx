@@ -1,5 +1,6 @@
 import type { CSSProperties } from "react";
 import type { FocConfig } from "@/lib/domain/foc";
+import { t } from "@/i18n/t";
 
 /**
  * Read / print rendering of a fire sheet, matching the paper Excel. Purely
@@ -29,22 +30,23 @@ export function FocSheet({ config }: { config: FocConfig }) {
 
   return (
     <div className="foc-sheet" style={sheet}>
-      <div style={titleBar}>{config.title || "Correfoc"}</div>
+      <div style={titleBar}>{config.title || t.foc.defaultTitle}</div>
 
       {/* Llucifer / Diablessa */}
       <div style={{ display: "flex", gap: 10 }}>
-        <RoleHeader label="Llucifer" value={config.llucifer} bg={COLORS.llucifer} />
-        <RoleHeader label="Diablessa" value={config.diablessa} bg={COLORS.diablessa} />
+        <RoleHeader label={t.foc.llucifer} value={config.llucifer} bg={COLORS.llucifer} />
+        <RoleHeader label={t.foc.diablessa} value={config.diablessa} bg={COLORS.diablessa} />
       </div>
 
       {hasCremadors ? (
-        <Section title="Cremadors" bg={COLORS.cremadors}>
+        <Section title={t.foc.cremadors} bg={COLORS.cremadors}>
           <NameGrid names={config.cremadors} />
         </Section>
       ) : null}
 
       {hasTasks ? (
-        <Section title="Tasques" bg={COLORS.tasques}>
+        <Section title={t.foc.sheetTasks} bg={COLORS.tasques}>
+          <div className="foc-table-wrap">
           <table style={table}>
             <thead>
               <tr>
@@ -69,11 +71,12 @@ export function FocSheet({ config }: { config: FocConfig }) {
               ))}
             </tbody>
           </table>
+          </div>
         </Section>
       ) : null}
 
       {encesses.length ? (
-        <Section title="Lluïments" bg={COLORS.lluiments}>
+        <Section title={t.foc.sheetLluiments} bg={COLORS.lluiments}>
           <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
             {encesses.map((e) => (
               <div key={e.id} style={{ border: "1px solid #ccc" }}>
@@ -88,7 +91,7 @@ export function FocSheet({ config }: { config: FocConfig }) {
       ) : null}
 
       {responsables.length ? (
-        <Section title="Responsables Material" bg={COLORS.material}>
+        <Section title={t.foc.sheetMaterial} bg={COLORS.material}>
           <NameGrid names={responsables} />
         </Section>
       ) : null}

@@ -7,6 +7,7 @@ import { createClient } from "@/lib/supabase/client";
 import { setQuotaPaymentAction } from "@/app/(app)/junta/actions";
 import { t } from "@/i18n/t";
 import type { AdminMemberItem } from "@/lib/data/members";
+import { Row, Stack } from "@/components/ui/Layout";
 
 interface Props {
   members: AdminMemberItem[];
@@ -21,6 +22,7 @@ export function QuotaYearView({ members, initialYear, initialPaidIds }: Props) {
   const [paidIds, setPaidIds] = useState(new Set(initialPaidIds));
   const [filter, setFilter] = usePersistedState<QuotaFilter>("quota-filter", "all");
   const [fetching, startFetch] = useTransition();
+  const [error, setError] = useState<string | null>(null);
 
   const billableMembers = members.filter((m) => {
     if (m.member_status === "inactive") return false;
@@ -42,31 +44,42 @@ export function QuotaYearView({ members, initialYear, initialPaidIds }: Props) {
         .select("member_id")
         .eq("year", newYear)
         .eq("paid", true);
-      setPaidIds(new Set((data ?? []).map((r) => r.member_id)));
+      setPaidIds(new Set((data ?? []).map((r: { member_id: string }) => r.member_id)));
     });
   }
 
-  function toggle(memberId: string) {
-    const paid = !paidIds.has(memberId);
+  function applyPaid(memberId: string, paid: boolean) {
     setPaidIds((prev) => {
       const next = new Set(prev);
       if (paid) next.add(memberId);
       else next.delete(memberId);
       return next;
     });
-    setQuotaPaymentAction(memberId, year, paid);
+  }
+
+  async function toggle(memberId: string) {
+    const paid = !paidIds.has(memberId);
+    applyPaid(memberId, paid);
+    setError(null);
+    try {
+      await setQuotaPaymentAction(memberId, year, paid);
+    } catch {
+      applyPaid(memberId, !paid); // roll back the optimistic change
+      setError(t.junta.quotaSaveError);
+    }
   }
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+    <Stack gap={12}>
       {/* Year selector */}
-      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", background: "var(--color-surface)", borderRadius: 20, padding: "10px 16px", boxShadow: "var(--shadow-sm)" }}>
+      <Row justify="between" style={{ background: "var(--color-surface)", borderRadius: 20, padding: "10px 16px", boxShadow: "var(--shadow-sm)" }}>
         <button
           type="button"
           onClick={() => changeYear(-1)}
+          aria-label={t.junta.quotaPrevYear}
           disabled={fetching}
-          className="btn btn-secondary"
-          style={{ height: 34, width: 34, padding: 0, borderRadius: "50%", fontSize: 16 }}
+          className="btn btn-secondary btn-icon"
+          style={{ borderRadius: "50%", fontSize: 16 }}
         >
           ‹
         </button>
@@ -74,33 +87,35 @@ export function QuotaYearView({ members, initialYear, initialPaidIds }: Props) {
         <button
           type="button"
           onClick={() => changeYear(1)}
+          aria-label={t.junta.quotaNextYear}
           disabled={fetching || year >= initialYear}
-          className="btn btn-secondary"
-          style={{ height: 34, width: 34, padding: 0, borderRadius: "50%", fontSize: 16 }}
+          className="btn btn-secondary btn-icon"
+          style={{ borderRadius: "50%", fontSize: 16 }}
         >
           ›
         </button>
-      </div>
+      </Row>
 
       {/* Filter */}
-      <div style={{ display: "flex", gap: 6 }}>
+      <Row gap={6} wrap>
         {(["all", "domiciliada", "no-domiciliada"] as QuotaFilter[]).map((f) => (
           <button
             key={f}
             type="button"
+            aria-pressed={filter === f}
             onClick={() => setFilter(f)}
-            className="btn"
-            style={{
-              height: 32, padding: "0 12px", borderRadius: 999, fontSize: 12,
-              background: filter === f ? "var(--color-accent-900)" : "rgba(32,30,29,.07)",
-              color: filter === f ? "#fdece9" : "var(--color-text)",
-              border: "none", cursor: "pointer",
-            }}
+            className="tab-pill tab-pill-sm"
           >
-            {f === "all" ? "Totes" : f === "domiciliada" ? "Domiciliada" : "No domiciliada"}
+            {f === "all" ? t.junta.quotaFilterAll : f === "domiciliada" ? t.junta.quotaFilterDomiciliada : t.junta.quotaFilterNoDomiciliada}
           </button>
         ))}
-      </div>
+      </Row>
+
+      {error ? (
+        <p style={{ margin: 0, fontSize: 13, color: "var(--color-accent-500)", textAlign: "center" }} role="alert">
+          {error}
+        </p>
+      ) : null}
 
       {/* Summary */}
       <div style={{ textAlign: "center", fontSize: 13, opacity: fetching ? 0.4 : 0.6, transition: "opacity .2s" }}>
@@ -119,20 +134,17 @@ export function QuotaYearView({ members, initialYear, initialPaidIds }: Props) {
       </div>
 
       {/* Member list */}
-      <div style={{ background: "var(--color-surface)", borderRadius: 22, boxShadow: "var(--shadow-sm)", overflow: "hidden", opacity: fetching ? 0.6 : 1, transition: "opacity .2s" }}>
+      <div className="surface-card" style={{ overflow: "hidden", opacity: fetching ? 0.6 : 1, transition: "opacity .2s" }}>
         {billableMembers.map((m) => {
           const paid = paidIds.has(m.id);
           return (
-            <div
-              key={m.id}
-              style={{ display: "flex", alignItems: "center", gap: 10, padding: "10px 16px", borderBottom: "1px solid rgba(32,30,29,.06)" }}
-            >
+            <div key={m.id} className="admin-row">
               <Avatar name={m.full_name} url={m.avatar_url} size={34} />
               <div style={{ flex: 1, minWidth: 0 }}>
                 <div style={{ fontSize: 14, fontFamily: "var(--font-heading)", textTransform: "uppercase", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
                   {m.full_name}
                 </div>
-                <div style={{ display: "flex", gap: 4, flexWrap: "wrap", marginTop: 2 }}>
+                <Row gap={4} wrap style={{ marginTop: 2 }}>
                   {m.member_status === "intermittent" && (
                     <span style={{ fontSize: 10, opacity: 0.45 }}>{t.member.statusIntermittent}</span>
                   )}
@@ -141,18 +153,19 @@ export function QuotaYearView({ members, initialYear, initialPaidIds }: Props) {
                   )}
                   {m.quota_automatic && (
                     <span style={{ fontSize: 10, padding: "1px 6px", borderRadius: 999, background: "rgba(34,197,94,.12)", color: "#16a34a" }}>
-                      Domiciliada
+                      {t.junta.quotaFilterDomiciliada}
                     </span>
                   )}
-                </div>
+                </Row>
               </div>
               <button
                 type="button"
+                aria-pressed={paid}
                 onClick={() => toggle(m.id)}
-                className="btn"
+                className="btn btn-sm"
                 style={{
-                  height: 30, padding: "0 14px", borderRadius: 999, fontSize: 12,
-                  fontFamily: "var(--font-heading)", flex: "none",
+                  padding: "0 14px", borderRadius: 999,
+                  fontFamily: "var(--font-heading)",
                   background: paid ? "rgba(34,197,94,.12)" : "rgba(32,30,29,.07)",
                   color: paid ? "#16a34a" : "rgba(32,30,29,.45)",
                   border: `1px solid ${paid ? "rgba(34,197,94,.3)" : "rgba(32,30,29,.15)"}`,
@@ -164,6 +177,6 @@ export function QuotaYearView({ members, initialYear, initialPaidIds }: Props) {
           );
         })}
       </div>
-    </div>
+    </Stack>
   );
 }
