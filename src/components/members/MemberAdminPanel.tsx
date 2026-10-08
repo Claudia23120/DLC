@@ -55,7 +55,7 @@ export function MemberAdminPanel({
         <h3 style={{ fontSize: 20, marginBottom: 10 }}>{t.member.adminSection}</h3>
         <form
           action={saveAdminFields.bind(null, id)}
-          key={`${member.member_status}-${member.board_position}-${member.has_cre}-${member.has_rgcre}-${member.quota_automatic}`}
+          key={`${member.member_status}-${member.board_position}-${member.has_cre}-${member.has_rgcre}-${member.quota_automatic}-${member.quota_installments}`}
           className="surface-card"
           style={{ padding: 16 }}
         >
@@ -89,6 +89,13 @@ export function MemberAdminPanel({
               <input type="checkbox" name="quota_automatic" defaultChecked={member.quota_automatic} />
               {t.member.quotaAutomatic}
             </label>
+          </div>
+          <div className="field" style={{ marginBottom: 14 }}>
+            <label htmlFor="quota_installments" className="caption" style={{ display: "block", marginBottom: 6 }}>{t.member.quotaInstallments}</label>
+            <select id="quota_installments" name="quota_installments" className="input" defaultValue={member.quota_installments} style={{ height: 44 }}>
+              <option value={1}>{t.member.quotaInstallmentsOne}</option>
+              <option value={2}>{t.member.quotaInstallmentsTwo}</option>
+            </select>
           </div>
           <button type="submit" className="btn btn-primary" style={{ height: 44, padding: "0 18px" }}>
             {t.common.save}

@@ -17,8 +17,7 @@ export const collaContent = {
   },
 
   contacts: [
-    { label: "General", email: "hola@diableslescorts.cat" },
-    { label: "Bolos i contractacions", email: "bolos@diableslescorts.cat" },
-    { label: "Material i vestuari", email: "material@diableslescorts.cat" },
+    { label: "General", email: "diablesdelescorts@gmail.com" },
+    { label: "Junta", email: "juntadiables@gmail.com" },
   ],
 } as const;

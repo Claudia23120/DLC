@@ -8,7 +8,7 @@ import { getEventAction } from "@/app/(app)/junta/actions";
 import { CreateEventModal } from "@/components/bolos/CreateEventModal";
 import { EditEventModal } from "@/components/bolos/EditEventModal";
 import { CreateMemberModal } from "@/components/members/CreateMemberModal";
-import { QuotaYearView } from "@/components/junta/QuotaYearView";
+import { QuotaYearView, type QuotaRow } from "@/components/junta/QuotaYearView";
 import { SongModal } from "@/components/junta/SongModal";
 import { JuntaStatsBar } from "@/components/junta/JuntaStatsBar";
 import { filterSortEvents } from "@/components/junta/eventLists";
@@ -38,13 +38,13 @@ const BTN = { height: 40, fontSize: 13 } as const;
 
 /** Thin shell: shared state (tab, search, modals) + tab bar; each tab lives in ./tabs. */
 export function JuntaView({
-  events, members, stats, quotaYear, quotaPaidIds, songs,
+  events, members, stats, quotaYear, quotaRows, songs,
 }: {
   events: EventListItem[];
   members: AdminMemberItem[];
   stats: JuntaStats;
   quotaYear: number;
-  quotaPaidIds: string[];
+  quotaRows: QuotaRow[];
   songs: SongRow[];
 }) {
   const [tab, setTab] = usePersistedState<Tab>("junta-tab", "bolos");
@@ -150,7 +150,7 @@ export function JuntaView({
         <QuotaYearView
           members={members}
           initialYear={quotaYear}
-          initialPaidIds={quotaPaidIds}
+          initialRows={quotaRows}
         />
       )}
 

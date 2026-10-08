@@ -53,6 +53,7 @@ export interface Database {
           has_cre: boolean;
           has_rgcre: boolean;
           quota_automatic: boolean;
+          quota_installments: number;
           avatar_url: string | null;
           created_at: Timestamptz;
           updated_at: Timestamptz;
@@ -78,6 +79,7 @@ export interface Database {
           has_cre?: boolean;
           has_rgcre?: boolean;
           quota_automatic?: boolean;
+          quota_installments?: number;
           avatar_url?: string | null;
         };
         Update: Partial<Database["public"]["Tables"]["profiles"]["Insert"]>;
@@ -240,8 +242,8 @@ export interface Database {
         Relationships: [];
       };
       quota_payments: {
-        Row: { member_id: string; year: number; paid: boolean };
-        Insert: { member_id: string; year: number; paid?: boolean };
+        Row: { member_id: string; year: number; paid: boolean; installments_paid: number };
+        Insert: { member_id: string; year: number; paid?: boolean; installments_paid?: number };
         Update: Partial<Database["public"]["Tables"]["quota_payments"]["Insert"]>;
         Relationships: [];
       };

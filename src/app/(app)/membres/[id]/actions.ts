@@ -57,6 +57,7 @@ export async function saveAdminFields(memberId: string, fd: FormData): Promise<v
       has_cre: fd.get("has_cre") === "on",
       has_rgcre: fd.get("has_rgcre") === "on",
       quota_automatic: fd.get("quota_automatic") === "on",
+      quota_installments: Number(fd.get("quota_installments")) === 2 ? 2 : 1,
     })
     .eq("id", memberId);
   if (error) console.error("saveAdminFields", error);
@@ -78,7 +79,7 @@ export async function saveQuotaPayments(memberId: string, fd: FormData): Promise
 
   const admin = createServiceRoleClient();
   const { error } = await admin.from("quota_payments").upsert(
-    years.map((year) => ({ member_id: memberId, year, paid: fd.get(`paid_${year}`) === "on" })),
+    years.map((year) => ({ member_id: memberId, year, paid: fd.get(`paid_${year}`) === "on", installments_paid: fd.get(`paid_${year}`) === "on" ? 1 : 0 })),
     { onConflict: "member_id,year" },
   );
   if (error) console.error("saveQuotaPayments", error);

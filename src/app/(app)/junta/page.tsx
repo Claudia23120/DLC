@@ -19,9 +19,8 @@ export default async function JuntaPage() {
     listAllMembersForAdmin(supabase),
     supabase
       .from("quota_payments")
-      .select("member_id")
-      .eq("year", currentYear)
-      .eq("paid", true),
+      .select("member_id, paid, installments_paid")
+      .eq("year", currentYear),
     listSongs(supabase),
   ]);
 
@@ -40,13 +39,13 @@ export default async function JuntaPage() {
     activeCount: activeMembers.length,
     inactiveCount: members.filter((m) => m.member_status === "inactive").length,
     intermittentCount: members.filter((m) => m.member_status === "intermittent").length,
-    quotaPaidCount: quotaResult.data?.length ?? 0,
+    quotaPaidCount: quotaResult.data?.filter((r) => r.paid).length ?? 0,
     totalMembersForQuota: activeMembers.length,
     bolosThisYear: bolosThisYear.length,
     avgAttendance,
   };
 
-  const quotaPaidIds = quotaResult.data?.map((r) => r.member_id) ?? [];
+  const quotaRows = quotaResult.data ?? [];
 
   return (
     <>
@@ -57,7 +56,7 @@ export default async function JuntaPage() {
           members={members}
           stats={stats}
           quotaYear={currentYear}
-          quotaPaidIds={quotaPaidIds}
+          quotaRows={quotaRows}
           songs={songs}
         />
       </PageContainer>

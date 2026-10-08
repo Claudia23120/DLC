@@ -159,12 +159,45 @@ export async function deleteSongAction(id: string): Promise<void> {
 export async function setQuotaPaymentAction(
   memberId: string,
   year: number,
-  paid: boolean,
+  installmentsPaid: number,
+  installments: number,
 ): Promise<void> {
   const supabase = await assertAdmin();
   if (!supabase) return;
-  await supabase
-    .from("quota_payments")
-    .upsert({ member_id: memberId, year, paid }, { onConflict: "member_id,year" });
+  const done = Math.max(0, Math.min(installmentsPaid, installments));
+  const { error } = await supabase.from("quota_payments").upsert(
+    { member_id: memberId, year, paid: done >= installments, installments_paid: done },
+    { onConflict: "member_id,year" },
+  );
+  if (error) throw new Error(error.message);
+  revalidatePath("/junta");
+}
+
+/** Marks the n-th direct-debit collection for every billable domiciled member of a year. */
+export async function markDomiciliationAction(year: number, n: number): Promise<void> {
+  const supabase = await assertAdmin();
+  if (!supabase) return;
+  if (n !== 1 && n !== 2) return;
+  const { data: members, error: mErr } = await supabase
+    .from("profiles")
+    .select("id, joined_date, quota_installments")
+    .eq("quota_automatic", true)
+    .neq("member_status", "inactive");
+  if (mErr) throw new Error(mErr.message);
+
+  const rows = (members ?? [])
+    .filter((m) => {
+      const joined = m.joined_date ? parseInt(m.joined_date.slice(0, 4), 10) : null;
+      return !(joined && joined > year) && m.quota_installments >= n;
+    })
+    .map((m) => ({
+      member_id: m.id,
+      year,
+      paid: n >= m.quota_installments,
+      installments_paid: n,
+    }));
+  if (!rows.length) return;
+  const { error } = await supabase.from("quota_payments").upsert(rows, { onConflict: "member_id,year" });
+  if (error) throw new Error(error.message);
   revalidatePath("/junta");
 }
