@@ -249,7 +249,9 @@ img { display: block; max-width: 100%; }
    the body's padding so the bar sits flush with the sheet edges. */
 .modal-actions {
   position: sticky;
-  bottom: 0;
+  /* Sticky insets are measured from the scroller's content box, so cancel
+     .modal-body's bottom padding or content peeks out below the bar. */
+  bottom: calc(-24px - env(safe-area-inset-bottom, 0px));
   z-index: 1;
   margin: 4px -22px calc(-24px - env(safe-area-inset-bottom, 0px));
   padding: 10px 22px calc(12px + env(safe-area-inset-bottom, 0px));
@@ -857,4 +859,11 @@ img { display: block; max-width: 100%; }
 /* Members without a quota don't need the quota fields (admin member form). */
 form:has(select[name="member_status"] option[value="active_without_quota"]:checked) .quota-fields {
   display: none;
+}
+
+/* Dark full-screen pages: paint the root dark too so the mobile browser's
+   status bar / toolbar tint (sampled from html/body) isn't beige. */
+html:has(.auth-screen),
+body:has(.auth-screen) {
+  background: var(--color-accent-900);
 }

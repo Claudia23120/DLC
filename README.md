@@ -1,8 +1,9 @@
 # Colla de Diables de les Corts — intranet
 
 Private management intranet for the Colla de Diables de les Corts: **bolos**
-(performances), **reunions** (meetings) and **votacions** (polls), with member
-profiles and email notifications.
+(performances), **reunions** (meetings), **votacions** (polls) and
+**comissions** (yearly working groups), with member profiles, a repertoire of
+songs, fire-sheet (foc) tools and email notifications.
 
 - **Stack:** Next.js (App Router, TypeScript) · Supabase (Postgres + Auth +
   Storage) · Resend (email) · Tailwind CSS v4 · Docker.
@@ -49,7 +50,7 @@ Fill in `.env.local`:
 | `EMAILS_ENABLED` | `false` until a Resend sending domain is verified |
 | `RESEND_API_KEY` | Resend → API Keys |
 | `EMAIL_FROM` / `EMAIL_REPLY_TO` | Sender shown to members |
-| `NEXT_PUBLIC_SITE_URL` | e.g. `http://localhost:3000` |
+| `SITE_URL` | Public base URL for links in emails / `.ics` files, e.g. `http://localhost:3005` |
 
 Secrets never live in the code — only in `.env.local` (git-ignored).
 
@@ -68,6 +69,12 @@ Dashboard → SQL editor, or the Supabase CLI):
    from other members (column privileges + `get_member_private()`)
 8. `0023_atomic_vote_and_option_rpcs.sql` — `cast_vote` and
    `set_option_selections`, used by the vote / option server actions
+9. `0024` … `0025` — quota installments and member status tweaks
+10. `0026_commissions.sql` — comissions and their members
+11. `0027_duplicate_commissions.sql` — `duplicate_commissions()`, the junta's
+    "duplicate for next year" button
+12. `0028_remove_commissions_autoseed.sql` — drops the automatic yearly copy
+    of commissions (`ensure_commissions_for_year`, `commission_years`)
 
 > Apply `0022` and `0023` **before** deploying this version of the app: the
 > app reads the profile with an explicit column list (`PROFILE_COLUMNS`) and
@@ -86,17 +93,26 @@ From then on, admins create the rest of the members inside the app.
 
 ## 3. Run with Docker (Makefile)
 
+Everything runs through Docker — no local Node install is needed.
+
 ```bash
-make build    # build the Docker image
-make start    # start the app  → http://localhost:3000
-make stop     # stop the app
-make logs     # follow logs
-make restart  # stop + start
-make clean    # remove containers/images/volumes for this project
+make build      # build the Docker image
+make start      # start the production build  → http://localhost:3005
+make stop       # stop the app
+make restart    # stop + start
+make logs       # follow logs
+make shell      # open a shell in the running container
+make clean      # remove containers/images/volumes for this project
+
+make dev        # stop prod and run the dev server with live reload (port 3005)
+make typecheck  # TypeScript type check
+make lint       # ESLint
+make test       # unit tests (Vitest)
+make check      # typecheck + lint + tests
 ```
 
-`make dev` runs the dev server (live reload) inside the container.
-Run `make help` to list all targets.
+`make dev` reads `.env.local` and mounts the project in a Node 22 container.
+Run `make help` to list the main targets.
 
 > The database is Supabase in the cloud, so `docker-compose.yml` runs only the
 > Next.js app — no Postgres container. For fully offline development you can run
@@ -116,6 +132,8 @@ Once the domain is verified, set `EMAILS_ENABLED=true` — no code changes.
 
 ## Local development without Docker
 
+Requires Node 22.12+.
+
 ```bash
 npm install
 npm run dev        # http://localhost:3000
@@ -130,24 +148,29 @@ npm run build      # production build
 ```
 src/
   app/                 App Router routes
-    (auth)/login/      login screen + auth actions
+    (auth)/            login, forgot / reset password
     (app)/             authenticated area (guarded by layout + middleware)
-      bolos/  reunions/  colla/  membres/  musica/  foc/  perfil/
-    api/               route handlers (.ics, notifications)
+      bolos/  reunions/  colla/  membres/  musica/  foc/  perfil/  junta/
+    auth/              email confirm / verify routes
+    api/               route handlers (.ics, member CSV export)
   components/
-    ui/                generic reusable components (Button, Card, Tag, …)
+    ui/                generic reusable components (Card, Tag, Modal, …)
     layout/            AppShell, TopNav, BottomTabBar, PageHeader
-    bolos/ meetings/ polls/ members/   feature components
+    bolos/ commissions/ junta/ members/ musica/ polls/   feature components
+  content/             static texts (colla info, foc, music)
   lib/
     supabase/          browser / server / admin / middleware clients
     auth/              session + role helpers
+    data/              Supabase queries per feature
+    domain/            pure business logic (unit-tested)
     email/             Resend wrapper + templates
     calendar/          .ics + Google Calendar helpers
-    utils/
+    hooks/  utils/
   i18n/                ca.ts (all Catalan UI text) + t helper
   types/               database types
 supabase/
-  migrations/          schema + RLS
+  migrations/          schema + RLS, one file per change
+  schema.sql           all migrations concatenated
   seed.sql             first-admin bootstrap
 ```
 

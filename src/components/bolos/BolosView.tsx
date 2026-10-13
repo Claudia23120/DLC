@@ -10,14 +10,16 @@ import { usePagination } from "@/lib/hooks/usePagination";
 import { EventCard } from "./EventCard";
 import { CalendarMonth } from "./CalendarMonth";
 import { CreateEventModal } from "./CreateEventModal";
+import { CommissionsList } from "@/components/commissions/CommissionsList";
 import { isPast } from "@/lib/utils/dates";
 import { t } from "@/i18n/t";
 import type { EventListItem } from "@/lib/data/events";
+import type { CommissionWithMembers } from "@/lib/data/commissions";
 import type { EventKind } from "@/types/database";
 import type { BirthdayItem } from "./CalendarMonth";
 import { Grid, Row, Stack } from "@/components/ui/Layout";
 
-type View = "llista" | "calendari" | "historic";
+type View = "llista" | "calendari" | "historic" | "comissions";
 type Filter = "Tot" | "bolo" | "event" | "votacio";
 
 /** Relevant date used to decide upcoming vs. past. */
@@ -25,7 +27,23 @@ function relevantDate(e: EventListItem): string | null {
   return e.kind === "votacio" ? e.closes_at : e.starts_at;
 }
 
-export function BolosView({ events, isAdmin, birthdays = [] }: { events: EventListItem[]; isAdmin: boolean; birthdays?: BirthdayItem[] }) {
+export function BolosView({
+  events,
+  isAdmin,
+  birthdays = [],
+  commissionsYear,
+  commissionsFirstYear,
+  commissions,
+  currentUserId,
+}: {
+  events: EventListItem[];
+  isAdmin: boolean;
+  birthdays?: BirthdayItem[];
+  commissionsYear: number;
+  commissionsFirstYear: number;
+  commissions: CommissionWithMembers[];
+  currentUserId: string;
+}) {
   const [view, setView] = usePersistedState<View>("bolos-view", "llista");
   const [filter, setFilter] = usePersistedState<Filter>("bolos-filter", "Tot");
   const [search, setSearch] = usePersistedState("bolos-search", "");
@@ -79,6 +97,7 @@ export function BolosView({ events, isAdmin, birthdays = [] }: { events: EventLi
           { value: "llista", label: t.bolos.tabList },
           { value: "calendari", label: t.bolos.tabCalendar },
           { value: "historic", label: t.bolos.tabHistory },
+          { value: "comissions", label: t.bolos.tabCommissions },
         ]}
         value={view}
         onChange={setView}
@@ -138,6 +157,15 @@ export function BolosView({ events, isAdmin, birthdays = [] }: { events: EventLi
           </div>
           <Pagination {...historyPag} onPrev={historyPag.prev} onNext={historyPag.next} />
         </>
+      ) : null}
+
+      {view === "comissions" ? (
+        <CommissionsList
+          currentYear={commissionsYear}
+          firstYear={commissionsFirstYear}
+          commissions={commissions}
+          currentUserId={currentUserId}
+        />
       ) : null}
 
       {isAdmin ? <CreateEventModal open={createOpen} onClose={() => setCreateOpen(false)} /> : null}

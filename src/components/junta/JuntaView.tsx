@@ -17,12 +17,15 @@ import { MembresTab } from "@/components/junta/tabs/MembresTab";
 import { ReunionsTab } from "@/components/junta/tabs/ReunionsTab";
 import { VotacionsTab } from "@/components/junta/tabs/VotacionsTab";
 import { MusicaTab } from "@/components/junta/tabs/MusicaTab";
+import { CommissionsTab } from "@/components/junta/tabs/CommissionsTab";
+import { CommissionModal } from "@/components/junta/CommissionModal";
+import type { CommissionWithMembers } from "@/lib/data/commissions";
 import type { EventListItem, EventRow } from "@/lib/data/events";
 import type { AdminMemberItem } from "@/lib/data/members";
 import type { SongRow } from "@/lib/data/songs";
 import { t } from "@/i18n/t";
 
-type Tab = "bolos" | "membres" | "reunions" | "votacions" | "quotes" | "musica";
+type Tab = "bolos" | "membres" | "reunions" | "votacions" | "quotes" | "musica" | "comissions";
 
 export interface JuntaStats {
   activeCount: number;
@@ -38,6 +41,7 @@ const BTN = { height: 40, fontSize: 13 } as const;
 /** Thin shell: shared state (tab, search, modals) + tab bar; each tab lives in ./tabs. */
 export function JuntaView({
   events, members, stats, quotaYear, quotaRows, songs,
+  commissionsYear, commissionsCurrentYear, commissionsFirstYear, nextYearHasCommissions, commissions,
 }: {
   events: EventListItem[];
   members: AdminMemberItem[];
@@ -45,6 +49,12 @@ export function JuntaView({
   quotaYear: number;
   quotaRows: QuotaRow[];
   songs: SongRow[];
+  /** Year shown in the commissions tab (?any=), and the range it can move in. */
+  commissionsYear: number;
+  commissionsCurrentYear: number;
+  commissionsFirstYear: number;
+  nextYearHasCommissions: boolean;
+  commissions: CommissionWithMembers[];
 }) {
   const [tab, setTab] = usePersistedState<Tab>("junta-tab", "bolos");
   const [search, setSearch] = usePersistedState("junta-search", "");
@@ -53,6 +63,8 @@ export function JuntaView({
   const [editingEvent, setEditingEvent] = useState<EventRow | null>(null);
   const [showSongModal, setShowSongModal] = useState(false);
   const [editingSong, setEditingSong] = useState<SongRow | null>(null);
+  // undefined = closed, null = creating, row = editing.
+  const [editingCommission, setEditingCommission] = useState<CommissionWithMembers | null | undefined>(undefined);
 
   async function handleEditEvent(id: string) {
     const full = await getEventAction(id);
@@ -84,6 +96,7 @@ export function JuntaView({
     { key: "votacions", label: t.junta.tabVotacions, count: votacions.length },
     { key: "quotes", label: t.junta.tabQuotes, count: members.filter((m) => m.member_status !== "inactive" && m.member_status !== "active_without_quota").length },
     { key: "musica", label: t.songs.tabMusica, count: songs.length },
+    { key: "comissions", label: t.junta.tabCommissions, count: commissions.length },
   ];
 
   return (
@@ -107,7 +120,7 @@ export function JuntaView({
       </div>
 
       {/* Search */}
-      {tab !== "quotes" && tab !== "musica" && (
+      {tab !== "quotes" && tab !== "musica" && tab !== "comissions" && (
         <Input
           placeholder={t.junta.searchPlaceholder}
           value={search}
@@ -138,6 +151,11 @@ export function JuntaView({
             {t.songs.addSong}
           </button>
         )}
+        {tab === "comissions" && (
+          <button onClick={() => setEditingCommission(null)} className="btn btn-primary" style={BTN}>
+            {t.commissions.create}
+          </button>
+        )}
       </Row>
 
       {tab === "bolos" && <BolosTab bolos={bolos} resetKey={search} onEdit={handleEditEvent} />}
@@ -145,6 +163,17 @@ export function JuntaView({
       {tab === "reunions" && <ReunionsTab reunions={reunions} resetKey={search} onEdit={handleEditEvent} />}
       {tab === "votacions" && <VotacionsTab votacions={votacions} resetKey={search} onEdit={handleEditEvent} />}
       {tab === "musica" && <MusicaTab songs={songs} onEdit={openSongModal} />}
+      {tab === "comissions" && (
+        <CommissionsTab
+          year={commissionsYear}
+          currentYear={commissionsCurrentYear}
+          firstYear={commissionsFirstYear}
+          nextYearHasCommissions={nextYearHasCommissions}
+          commissions={commissions}
+          members={members}
+          onEdit={setEditingCommission}
+        />
+      )}
       {tab === "quotes" && (
         <QuotaYearView
           members={members}
@@ -160,6 +189,15 @@ export function JuntaView({
           event={editingEvent}
           open={true}
           onClose={() => setEditingEvent(null)}
+        />
+      )}
+      {editingCommission !== undefined && (
+        <CommissionModal
+          key={editingCommission?.id ?? "new"}
+          commission={editingCommission}
+          year={commissionsYear}
+          open={true}
+          onClose={() => setEditingCommission(undefined)}
         />
       )}
       <SongModal

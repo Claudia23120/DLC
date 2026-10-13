@@ -6,15 +6,21 @@ import { createClient } from "@/lib/supabase/server";
 import { listEventsLight } from "@/lib/data/events";
 import { listAllMembersForAdmin } from "@/lib/data/members";
 import { listSongs } from "@/lib/data/songs";
+import { listCommissions, listCurrentCommissions } from "@/lib/data/commissions";
 import { t } from "@/i18n/t";
 import type { JuntaStats } from "@/components/junta/JuntaView";
 
-export default async function JuntaPage() {
+export default async function JuntaPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ any?: string }>;
+}) {
+  const { any } = await searchParams;
   const profile = await requireAdmin();
   const supabase = await createClient();
   const currentYear = new Date().getFullYear();
 
-  const [events, members, quotaResult, songs] = await Promise.all([
+  const [events, members, quotaResult, songs, current] = await Promise.all([
     listEventsLight(supabase, profile.id),
     listAllMembersForAdmin(supabase),
     supabase
@@ -22,7 +28,23 @@ export default async function JuntaPage() {
       .select("member_id, paid, installments_paid")
       .eq("year", currentYear),
     listSongs(supabase),
+    listCurrentCommissions(supabase),
   ]);
+
+  // Commissions tab: any year from the first one up to next year (?any=YYYY).
+  const requestedYear = Number(any);
+  const commissionsYear = Number.isInteger(requestedYear)
+    ? Math.min(Math.max(requestedYear, current.firstYear), current.year + 1)
+    : current.year;
+  const commissions = commissionsYear === current.year
+    ? current.commissions
+    : await listCommissions(supabase, commissionsYear);
+
+  // Hides the "duplicate for next year" button once next year has commissions.
+  const { count: nextYearCount } = await supabase
+    .from("commissions")
+    .select("id", { count: "exact", head: true })
+    .eq("year", current.year + 1);
 
   const activeMembers = members.filter((m) => m.member_status === "active" || m.member_status === "active_without_quota");
   const bolosThisYear = events.filter((e) => {
@@ -57,6 +79,11 @@ export default async function JuntaPage() {
           quotaYear={currentYear}
           quotaRows={quotaRows}
           songs={songs}
+          commissionsYear={commissionsYear}
+          commissionsCurrentYear={current.year}
+          commissionsFirstYear={current.firstYear}
+          nextYearHasCommissions={(nextYearCount ?? 0) > 0}
+          commissions={commissions}
         />
       </PageContainer>
     </>

@@ -4,19 +4,21 @@ import { BolosView } from "@/components/bolos/BolosView";
 import { requireProfile } from "@/lib/auth/session";
 import { createClient } from "@/lib/supabase/server";
 import { listEventsLight } from "@/lib/data/events";
+import { listCurrentCommissions } from "@/lib/data/commissions";
 import { t } from "@/i18n/t";
 import type { BirthdayItem } from "@/components/bolos/CalendarMonth";
 
 export default async function BolosPage() {
   const profile = await requireProfile();
   const supabase = await createClient();
-  const [events, birthdaysResult] = await Promise.all([
+  const [events, birthdaysResult, { year: commissionsYear, firstYear: commissionsFirstYear, commissions }] = await Promise.all([
     listEventsLight(supabase, profile.id),
     supabase
       .from("profiles")
       .select("id, full_name, nickname, birth_date")
       .not("birth_date", "is", null)
       .in("member_status", ["active", "active_without_quota"]),
+    listCurrentCommissions(supabase),
   ]);
   const birthdays = (birthdaysResult.data ?? []) as BirthdayItem[];
   const firstName = profile.full_name.split(" ")[0];
@@ -29,7 +31,15 @@ export default async function BolosPage() {
         userName={profile.full_name}
       />
       <PageContainer>
-        <BolosView events={events} isAdmin={profile.is_admin} birthdays={birthdays} />
+        <BolosView
+          events={events}
+          isAdmin={profile.is_admin}
+          birthdays={birthdays}
+          commissionsYear={commissionsYear}
+          commissionsFirstYear={commissionsFirstYear}
+          commissions={commissions}
+          currentUserId={profile.id}
+        />
       </PageContainer>
     </>
   );

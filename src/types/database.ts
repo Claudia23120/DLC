@@ -20,6 +20,7 @@ export type EventKind = "bolo" | "event" | "votacio";
 export type BoloResponse = "diable" | "tabaler" | "supporter" | "no" | "si";
 export type MeetingResponse = "yes" | "no";
 export type BadgeType = "automatic" | "manual" | "repte";
+export type CommissionKind = "propia" | "entitats";
 
 type Timestamptz = string;
 
@@ -329,6 +330,50 @@ export interface Database {
         Update: Partial<Database["public"]["Tables"]["bolo_attendance_responses"]["Insert"]>;
         Relationships: [];
       };
+      commissions: {
+        Row: {
+          id: string;
+          year: number;
+          name: string;
+          kind: CommissionKind;
+          description: string | null;
+          requirements: string | null;
+          starts_on: string | null;
+          ends_on: string | null;
+          max_members: number | null;
+          created_by: string | null;
+          created_at: Timestamptz;
+        };
+        Insert: {
+          id?: string;
+          year: number;
+          name: string;
+          kind?: CommissionKind;
+          description?: string | null;
+          requirements?: string | null;
+          starts_on?: string | null;
+          ends_on?: string | null;
+          max_members?: number | null;
+          created_by?: string | null;
+        };
+        Update: Partial<Database["public"]["Tables"]["commissions"]["Insert"]>;
+        Relationships: [];
+      };
+      commission_members: {
+        Row: {
+          commission_id: string;
+          member_id: string;
+          added_by: string | null;
+          created_at: Timestamptz;
+        };
+        Insert: {
+          commission_id: string;
+          member_id: string;
+          added_by?: string | null;
+        };
+        Update: Partial<Database["public"]["Tables"]["commission_members"]["Insert"]>;
+        Relationships: [];
+      };
     };
     Views: {
       event_counts: {
@@ -352,6 +397,7 @@ export interface Database {
       };
       cast_vote: { Args: { p_event_id: string; p_option_id: string }; Returns: void };
       set_option_selections: { Args: { p_event_id: string; p_option_ids: string[] }; Returns: void };
+      duplicate_commissions: { Args: { p_from: number; p_to: number }; Returns: number };
     };
     Enums: {
       board_position: BoardPosition;
