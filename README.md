@@ -68,6 +68,13 @@ Dashboard → SQL editor, or the Supabase CLI):
    from other members (column privileges + `get_member_private()`)
 8. `0023_atomic_vote_and_option_rpcs.sql` — `cast_vote` and
    `set_option_selections`, used by the vote / option server actions
+9. `0025_shop.sql` — the **botiga** (club clothing shop): `shop_items`,
+   `shop_item_variants`, `shop_orders`, `shop_order_lines`, their RLS, and the
+   `create_shop_order` RPC (see [Botiga](#5-botiga-club-shop))
+10. `0026_shop_backorders.sql` — orders for out-of-stock items ("pendent de
+    reposició") and the `restock_shop_variant` RPC; apply it **after** `0025`
+11. `0027_shop_partial_payment.sql` — `paid_cents` and `mark_shop_order_paid`:
+    members only pay for what is in stock; apply it **after** `0026`
 
 > Apply `0022` and `0023` **before** deploying this version of the app: the
 > app reads the profile with an explicit column list (`PROFILE_COLUMNS`) and
@@ -112,6 +119,59 @@ records Resend gives you for `diableslescorts.cat`). Until then, keep
 `EMAILS_ENABLED=false`: the app logs what it *would* send and works normally.
 Once the domain is verified, set `EMAILS_ENABLED=true` — no code changes.
 
+## 5. Botiga (club shop)
+
+Members order club clothing from **La colla → Botiga** (`/colla/botiga`). There
+is no payment gateway: payment is **bank transfer only** and the board confirms
+it by hand.
+
+- **Delivery and payment are independent.** A member can take a garment from the
+  warehouse and pay later (the "Ja l'he agafat del magatzem" toggle creates the
+  order as delivered), or pay first and collect later. The board's tab shows
+  what was ordered, delivered and paid at all times.
+- **Transfer concept:** every order gets a unique concept, `DIABLES-0042 <name>`,
+  shown on the confirmation screen, in "Les meves comandes" while unpaid, and in
+  the emails. The IBAN is the club account shown in *La colla*
+  (`src/content/colla.ts`) — change it there.
+- **Out-of-stock items ("pendent de reposició").** If an item has
+  *Admet comandes sense estoc* on (default), members can still order a size with
+  no or too little stock. `create_shop_order` reserves what exists and records
+  the rest on the line (`backordered_quantity`). Such an order is always pending
+  delivery (the "Ja l'he agafat" toggle is ignored and the board can't mark it
+  delivered) until every line is covered. The **Junta → Botiga → Reposició**
+  view lists how many units of each size are still needed; when the board books
+  received units (`restock_shop_variant`), they go first to the **oldest**
+  pending orders and any surplus becomes free stock. Stock typed by hand in the
+  catalogue editor is assigned the same way. **Pending pieces are not paid until they
+  arrive:** an order tracks `paid_cents`, the member pays only what is covered by
+  stock (`due now = covered − paid`), and "Marca pagada" records exactly that
+  amount. When stock arrives, the amount due grows and the order reappears under
+  *Pendents de cobrar*; the debt per member, the reminders and the emails use
+  the amount due, not the order total. Members are not emailed when their
+  pending pieces arrive.
+- **Orders are not cancelled or deleted from the app.** Stock is only
+  decremented, atomically, inside `create_shop_order`.
+- **Security (RLS):** members can read active items and **only their own
+  orders**; they have no insert/update/delete policy on orders, so they can't
+  forge prices or mark an order paid/delivered. Orders are created only through
+  `create_shop_order` (SECURITY DEFINER), which takes the price from the
+  catalogue and checks stock under a row lock. The board (admins) can manage
+  everything. `supabase/scripts/verify_shop_rls.sql` checks all of this; run it
+  in the SQL editor after applying the migration (it rolls back).
+- **Debtor block:** `shop_member_blocked()` is prepared but always returns
+  `false`. Change its body to start refusing orders from members with unpaid
+  ones.
+- **Emails** (respect `EMAILS_ENABLED`): when an order is placed, one to the
+  member (summary + transfer details) and one to the board. The board can also
+  send payment reminders by hand (per member or to everyone) from the
+  **Junta → Botiga** tab. There is no cron.
+- **Junta → Botiga tab:** orders with quick filters (*Pendents d'entregar*,
+  *Pendents de cobrar* — includes taken-but-unpaid —, *Tancades*), search by
+  member or order number, one-click "mark paid" (date + method) and "mark
+  delivered" (both can be undone), debt per member and total pending, catalogue
+  management (items, sizes, stock, activate/deactivate) and a CSV export
+  (`/api/admin/shop/orders/csv`).
+
 ---
 
 ## Local development without Docker
@@ -132,12 +192,12 @@ src/
   app/                 App Router routes
     (auth)/login/      login screen + auth actions
     (app)/             authenticated area (guarded by layout + middleware)
-      bolos/  reunions/  colla/  membres/  musica/  foc/  perfil/
+      bolos/  reunions/  colla/  colla/botiga/  membres/  musica/  foc/  perfil/
     api/               route handlers (.ics, notifications)
   components/
     ui/                generic reusable components (Button, Card, Tag, …)
     layout/            AppShell, TopNav, BottomTabBar, PageHeader
-    bolos/ meetings/ polls/ members/   feature components
+    bolos/ meetings/ polls/ members/ shop/   feature components
   lib/
     supabase/          browser / server / admin / middleware clients
     auth/              session + role helpers

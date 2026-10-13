@@ -20,6 +20,9 @@ export type EventKind = "bolo" | "event" | "votacio";
 export type BoloResponse = "diable" | "tabaler" | "supporter" | "no" | "si";
 export type MeetingResponse = "yes" | "no";
 export type BadgeType = "automatic" | "manual" | "repte";
+export type ShopDeliveryStatus = "pending" | "delivered";
+export type ShopPaymentStatus = "unpaid" | "paid";
+export type ShopPaymentMethod = "transfer" | "cash" | "other";
 
 type Timestamptz = string;
 
@@ -247,6 +250,78 @@ export interface Database {
         Update: Partial<Database["public"]["Tables"]["quota_payments"]["Insert"]>;
         Relationships: [];
       };
+      shop_items: {
+        Row: {
+          id: string;
+          name: string;
+          description: string | null;
+          price_cents: number;
+          image_url: string | null;
+          active: boolean;
+          allow_backorder: boolean;
+          created_at: Timestamptz;
+        };
+        Insert: {
+          id?: string;
+          name: string;
+          description?: string | null;
+          price_cents: number;
+          image_url?: string | null;
+          active?: boolean;
+          allow_backorder?: boolean;
+        };
+        Update: Partial<Database["public"]["Tables"]["shop_items"]["Insert"]>;
+        Relationships: [];
+      };
+      shop_item_variants: {
+        Row: { id: string; item_id: string; size: string; stock: number };
+        Insert: { id?: string; item_id: string; size: string; stock?: number };
+        Update: Partial<Database["public"]["Tables"]["shop_item_variants"]["Insert"]>;
+        Relationships: [];
+      };
+      shop_orders: {
+        Row: {
+          id: string;
+          order_number: number;
+          member_id: string;
+          total_cents: number;
+          /** Amount paid so far. Covered-by-stock minus this is what is due now. */
+          paid_cents: number;
+          delivery_status: ShopDeliveryStatus;
+          payment_status: ShopPaymentStatus;
+          delivered_at: Timestamptz | null;
+          paid_at: Timestamptz | null;
+          payment_method: ShopPaymentMethod | null;
+          notes: string | null;
+          created_at: Timestamptz;
+        };
+        // Orders are created through create_shop_order(); the board only updates states.
+        Insert: never;
+        Update: {
+          delivery_status?: ShopDeliveryStatus;
+          payment_status?: ShopPaymentStatus;
+          paid_cents?: number;
+          delivered_at?: Timestamptz | null;
+          paid_at?: Timestamptz | null;
+          payment_method?: ShopPaymentMethod | null;
+          notes?: string | null;
+        };
+        Relationships: [];
+      };
+      shop_order_lines: {
+        Row: {
+          id: string;
+          order_id: string;
+          variant_id: string;
+          quantity: number;
+          unit_price_cents: number;
+          /** Units of this line still waiting for stock (pendent de reposició). */
+          backordered_quantity: number;
+        };
+        Insert: never;
+        Update: never;
+        Relationships: [];
+      };
       songs: {
         Row: {
           id: string;
@@ -352,6 +427,12 @@ export interface Database {
       };
       cast_vote: { Args: { p_event_id: string; p_option_id: string }; Returns: void };
       set_option_selections: { Args: { p_event_id: string; p_option_ids: string[] }; Returns: void };
+      mark_shop_order_paid: { Args: { p_order_id: string; p_method: ShopPaymentMethod }; Returns: void };
+      restock_shop_variant: { Args: { p_variant_id: string; p_quantity?: number }; Returns: void };
+      create_shop_order: {
+        Args: { p_lines: { variant_id: string; quantity: number }[]; p_already_taken?: boolean; p_notes?: string | null };
+        Returns: Database["public"]["Tables"]["shop_orders"]["Row"];
+      };
     };
     Enums: {
       board_position: BoardPosition;

@@ -17,12 +17,15 @@ import { MembresTab } from "@/components/junta/tabs/MembresTab";
 import { ReunionsTab } from "@/components/junta/tabs/ReunionsTab";
 import { VotacionsTab } from "@/components/junta/tabs/VotacionsTab";
 import { MusicaTab } from "@/components/junta/tabs/MusicaTab";
+import { ShopTab } from "@/components/junta/tabs/ShopTab";
 import type { EventListItem, EventRow } from "@/lib/data/events";
 import type { AdminMemberItem } from "@/lib/data/members";
 import type { SongRow } from "@/lib/data/songs";
+import type { ShopAdminItem, ShopOrderView } from "@/lib/data/shop";
+import { isClosed } from "@/lib/domain/shop";
 import { t } from "@/i18n/t";
 
-type Tab = "bolos" | "membres" | "reunions" | "votacions" | "quotes" | "musica";
+type Tab = "bolos" | "membres" | "reunions" | "votacions" | "quotes" | "musica" | "botiga";
 
 export interface JuntaStats {
   activeCount: number;
@@ -38,7 +41,7 @@ const BTN = { height: 40, fontSize: 13 } as const;
 
 /** Thin shell: shared state (tab, search, modals) + tab bar; each tab lives in ./tabs. */
 export function JuntaView({
-  events, members, stats, quotaYear, quotaRows, songs,
+  events, members, stats, quotaYear, quotaRows, songs, shopOrders, shopItems,
 }: {
   events: EventListItem[];
   members: AdminMemberItem[];
@@ -46,6 +49,8 @@ export function JuntaView({
   quotaYear: number;
   quotaRows: QuotaRow[];
   songs: SongRow[];
+  shopOrders: ShopOrderView[];
+  shopItems: ShopAdminItem[];
 }) {
   const [tab, setTab] = usePersistedState<Tab>("junta-tab", "bolos");
   const [search, setSearch] = usePersistedState("junta-search", "");
@@ -85,6 +90,7 @@ export function JuntaView({
     { key: "votacions", label: t.junta.tabVotacions, count: votacions.length },
     { key: "quotes", label: t.junta.tabQuotes, count: members.filter((m) => m.member_status !== "inactive").length },
     { key: "musica", label: t.songs.tabMusica, count: songs.length },
+    { key: "botiga", label: t.shopAdmin.tab, count: shopOrders.filter((o) => !isClosed(o)).length },
   ];
 
   return (
@@ -108,7 +114,7 @@ export function JuntaView({
       </div>
 
       {/* Search */}
-      {tab !== "quotes" && tab !== "musica" && (
+      {tab !== "quotes" && tab !== "musica" && tab !== "botiga" && (
         <Input
           placeholder={t.junta.searchPlaceholder}
           value={search}
@@ -146,6 +152,7 @@ export function JuntaView({
       {tab === "reunions" && <ReunionsTab reunions={reunions} resetKey={search} onEdit={handleEditEvent} />}
       {tab === "votacions" && <VotacionsTab votacions={votacions} resetKey={search} onEdit={handleEditEvent} />}
       {tab === "musica" && <MusicaTab songs={songs} onEdit={openSongModal} />}
+      {tab === "botiga" && <ShopTab orders={shopOrders} items={shopItems} members={members} />}
       {tab === "quotes" && (
         <QuotaYearView
           members={members}

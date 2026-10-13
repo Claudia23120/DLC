@@ -100,6 +100,13 @@ export function CollaView({
           </section>
 
           <section>
+            <Link href="/colla/botiga" className="item-card stack" style={{ gap: 4, textDecoration: "none", color: "inherit" }}>
+              <div style={{ fontFamily: "var(--font-heading)", fontSize: 17 }}>{t.shop.linkTitle}</div>
+              <div style={{ fontSize: 14, opacity: 0.7 }}>{t.shop.linkText}</div>
+            </Link>
+          </section>
+
+          <section>
             <h3 style={{ fontSize: 20, marginBottom: 10 }}>{t.colla.contacts}</h3>
             <Card style={{ padding: 16, gap: 6 }}>
               {collaContent.contacts.map((c) => (

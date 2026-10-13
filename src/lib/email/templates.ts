@@ -52,7 +52,7 @@ export function renderNewEventEmail({ kind, title, url }: EventEmailInput) {
   return { subject, html, text };
 }
 
-function escapeHtml(s: string): string {
+export function escapeHtml(s: string): string {
   return s
     .replace(/&/g, "&amp;")
     .replace(/</g, "&lt;")

@@ -6,6 +6,7 @@ import { createClient } from "@/lib/supabase/server";
 import { listEventsLight } from "@/lib/data/events";
 import { listAllMembersForAdmin } from "@/lib/data/members";
 import { listSongs } from "@/lib/data/songs";
+import { listAllOrders, listCatalogAdmin } from "@/lib/data/shop";
 import { t } from "@/i18n/t";
 import type { JuntaStats } from "@/components/junta/JuntaView";
 
@@ -14,7 +15,7 @@ export default async function JuntaPage() {
   const supabase = await createClient();
   const currentYear = new Date().getFullYear();
 
-  const [events, members, quotaResult, songs] = await Promise.all([
+  const [events, members, quotaResult, songs, shopOrders, shopItems] = await Promise.all([
     listEventsLight(supabase, profile.id),
     listAllMembersForAdmin(supabase),
     supabase
@@ -22,6 +23,8 @@ export default async function JuntaPage() {
       .select("member_id, paid, installments_paid")
       .eq("year", currentYear),
     listSongs(supabase),
+    listAllOrders(supabase),
+    listCatalogAdmin(supabase),
   ]);
 
   const activeMembers = members.filter((m) => m.member_status === "active");
@@ -58,6 +61,8 @@ export default async function JuntaPage() {
           quotaYear={currentYear}
           quotaRows={quotaRows}
           songs={songs}
+          shopOrders={shopOrders}
+          shopItems={shopItems}
         />
       </PageContainer>
     </>
