@@ -6,7 +6,7 @@ import { createServiceRoleClient } from "@/lib/supabase/admin";
 import { getAdminContext } from "@/lib/auth/session";
 import type { BoardPosition, MemberStatus } from "@/types/database";
 
-const MEMBER_STATUSES: MemberStatus[] = ["active", "inactive", "intermittent"];
+const MEMBER_STATUSES: MemberStatus[] = ["active", "active_without_quota", "inactive"];
 const BOARD_POSITIONS: BoardPosition[] = [
   "presidenta",
   "vicepresidenta",

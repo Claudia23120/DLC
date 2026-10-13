@@ -7,7 +7,7 @@ import type { EventKind } from "@/types/database";
 /** Every member's email (service role: bypasses RLS to read the full roster). */
 async function allMemberEmails(excludeEmail?: string): Promise<string[]> {
   const admin = createServiceRoleClient();
-  const { data } = await admin.from("profiles").select("email").eq("member_status", "active");
+  const { data } = await admin.from("profiles").select("email").in("member_status", ["active", "active_without_quota"]);
   return (data ?? [])
     .map((r) => r.email)
     .filter((e): e is string => Boolean(e) && e !== excludeEmail);

@@ -24,7 +24,7 @@ export default async function JuntaPage() {
     listSongs(supabase),
   ]);
 
-  const activeMembers = members.filter((m) => m.member_status === "active");
+  const activeMembers = members.filter((m) => m.member_status === "active" || m.member_status === "active_without_quota");
   const bolosThisYear = events.filter((e) => {
     if (e.kind !== "bolo") return false;
     if (!e.starts_at) return false;
@@ -38,9 +38,8 @@ export default async function JuntaPage() {
   const stats: JuntaStats = {
     activeCount: activeMembers.length,
     inactiveCount: members.filter((m) => m.member_status === "inactive").length,
-    intermittentCount: members.filter((m) => m.member_status === "intermittent").length,
     quotaPaidCount: quotaResult.data?.filter((r) => r.paid).length ?? 0,
-    totalMembersForQuota: activeMembers.length,
+    totalMembersForQuota: activeMembers.filter((m) => m.member_status === "active").length,
     bolosThisYear: bolosThisYear.length,
     avgAttendance,
   };

@@ -42,6 +42,8 @@ export function QuotaYearView({ members, initialYear, initialRows }: Props) {
 
   const billableMembers = members.filter((m) => {
     if (m.member_status === "inactive") return false;
+    // Former payers keep showing in the years they actually paid.
+    if (m.member_status === "active_without_quota" && doneOf(m.id) === 0) return false;
     const joinedYear = m.joined_date ? parseInt(m.joined_date.slice(0, 4), 10) : null;
     if (joinedYear && joinedYear > year) return false;
     if (filter === "domiciliada" && !m.quota_automatic) return false;
@@ -191,9 +193,6 @@ export function QuotaYearView({ members, initialYear, initialRows }: Props) {
                   {m.full_name}
                 </div>
                 <Row gap={4} wrap style={{ marginTop: 2 }}>
-                  {m.member_status === "intermittent" && (
-                    <span style={{ fontSize: 10, opacity: 0.45 }}>{t.member.statusIntermittent}</span>
-                  )}
                   {m.member_status === "inactive" && (
                     <span style={{ fontSize: 10, opacity: 0.45 }}>{t.member.statusInactive}</span>
                   )}

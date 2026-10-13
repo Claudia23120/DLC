@@ -15,7 +15,7 @@ export type BoardPosition =
   | "cap_de_tabals";
 
 export type MemberRole = "diable" | "tabaler" | "supporter";
-export type MemberStatus = "active" | "inactive" | "intermittent";
+export type MemberStatus = "active" | "active_without_quota" | "inactive";
 export type EventKind = "bolo" | "event" | "votacio";
 export type BoloResponse = "diable" | "tabaler" | "supporter" | "no" | "si";
 export type MeetingResponse = "yes" | "no";

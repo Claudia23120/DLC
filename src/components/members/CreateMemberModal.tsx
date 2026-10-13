@@ -15,8 +15,8 @@ const BOARD_POSITIONS: BoardPosition[] = [
 ];
 const MEMBER_STATUSES: { value: MemberStatus; label: string }[] = [
   { value: "active", label: t.member.statusActive },
+  { value: "active_without_quota", label: t.member.statusActiveWithoutQuota },
   { value: "inactive", label: t.member.statusInactive },
-  { value: "intermittent", label: t.member.statusIntermittent },
 ];
 
 export function CreateMemberModal({ open, onClose }: { open: boolean; onClose: () => void }) {

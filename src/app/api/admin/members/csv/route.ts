@@ -21,8 +21,8 @@ export async function GET() {
 
   const statusLabel: Record<string, string> = {
     active: "Actiu/a",
+    active_without_quota: "Actiu/a sense quota",
     inactive: "Inactiu/a",
-    intermittent: "Intermitent",
   };
 
   const lines = [

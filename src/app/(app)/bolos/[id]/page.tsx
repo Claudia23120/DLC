@@ -40,7 +40,7 @@ export default async function BoloDetailPage({ params }: PageProps) {
     getBoloSignups(supabase, id),
     getComments(supabase, id),
     getMyBoloResponse(supabase, id, profile.id),
-    supabase.from("profiles").select("id", { count: "exact", head: true }).in("member_status", ["active", "intermittent"]),
+    supabase.from("profiles").select("id", { count: "exact", head: true }).in("member_status", ["active", "active_without_quota"]),
     profile.is_admin ? listMembers(supabase) : Promise.resolve([]),
     getEventOptions(supabase, id),
     getMyOptionResponses(supabase, id, profile.id),

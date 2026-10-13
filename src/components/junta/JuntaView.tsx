@@ -27,7 +27,6 @@ type Tab = "bolos" | "membres" | "reunions" | "votacions" | "quotes" | "musica";
 export interface JuntaStats {
   activeCount: number;
   inactiveCount: number;
-  intermittentCount: number;
   quotaPaidCount: number;
   totalMembersForQuota: number;
   bolosThisYear: number;
@@ -83,7 +82,7 @@ export function JuntaView({
     { key: "membres", label: t.junta.tabMembres, count: members.length },
     { key: "reunions", label: t.junta.tabReunions, count: reunions.length },
     { key: "votacions", label: t.junta.tabVotacions, count: votacions.length },
-    { key: "quotes", label: t.junta.tabQuotes, count: members.filter((m) => m.member_status !== "inactive").length },
+    { key: "quotes", label: t.junta.tabQuotes, count: members.filter((m) => m.member_status !== "inactive" && m.member_status !== "active_without_quota").length },
     { key: "musica", label: t.songs.tabMusica, count: songs.length },
   ];
 

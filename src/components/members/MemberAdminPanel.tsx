@@ -63,8 +63,8 @@ export function MemberAdminPanel({
             <label htmlFor="member_status" className="caption" style={{ display: "block", marginBottom: 6 }}>{t.member.memberStatus}</label>
             <select id="member_status" name="member_status" className="input" defaultValue={member.member_status} style={{ height: 44 }}>
               <option value="active">{t.member.statusActive}</option>
+              <option value="active_without_quota">{t.member.statusActiveWithoutQuota}</option>
               <option value="inactive">{t.member.statusInactive}</option>
-              <option value="intermittent">{t.member.statusIntermittent}</option>
             </select>
           </div>
           <div className="field" style={{ marginBottom: 14 }}>
@@ -85,17 +85,19 @@ export function MemberAdminPanel({
               <input type="checkbox" name="has_rgcre" defaultChecked={member.has_rgcre} />
               {t.member.hasRgcre}
             </label>
-            <label className="check-row">
+          </div>
+          <div className="quota-fields">
+            <label className="check-row" style={{ marginBottom: 10 }}>
               <input type="checkbox" name="quota_automatic" defaultChecked={member.quota_automatic} />
               {t.member.quotaAutomatic}
             </label>
-          </div>
           <div className="field" style={{ marginBottom: 14 }}>
             <label htmlFor="quota_installments" className="caption" style={{ display: "block", marginBottom: 6 }}>{t.member.quotaInstallments}</label>
             <select id="quota_installments" name="quota_installments" className="input" defaultValue={member.quota_installments} style={{ height: 44 }}>
               <option value={1}>{t.member.quotaInstallmentsOne}</option>
               <option value={2}>{t.member.quotaInstallmentsTwo}</option>
             </select>
+          </div>
           </div>
           <button type="submit" className="btn btn-primary" style={{ height: 44, padding: "0 18px" }}>
             {t.common.save}

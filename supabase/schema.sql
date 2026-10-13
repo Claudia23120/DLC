@@ -980,3 +980,17 @@ $$;
 create trigger profiles_set_inactive_since
   before update on profiles
   for each row execute function profiles_set_inactive_since();
+
+
+-- migrations/0024_member_status_active_without_quota.sql
+-- ═══════════════════════════════════════════════════════════
+-- Adds the 'active_without_quota' member status: full app access like an
+-- active member, but not billed for the yearly quota.
+alter type member_status add value if not exists 'active_without_quota';
+
+
+-- migrations/0025_remove_intermittent_status.sql
+-- ═══════════════════════════════════════════════════════════
+-- 'intermittent' member status is no longer used: existing rows become 'active'.
+-- (The enum value itself stays; Postgres can't drop enum values in place.)
+update profiles set member_status = 'active' where member_status = 'intermittent';

@@ -268,7 +268,7 @@ export async function remindPending(eventId: string): Promise<void> {
   // Members with no response yet (service role: read full roster + responses).
   const admin = createServiceRoleClient();
   const [{ data: members }, { data: responded }] = await Promise.all([
-    admin.from("profiles").select("email").eq("member_status", "active"),
+    admin.from("profiles").select("email").in("member_status", ["active", "active_without_quota"]),
     admin.from("bolo_attendance").select("member_id, profiles!inner(email)").eq("event_id", eventId),
   ]);
 

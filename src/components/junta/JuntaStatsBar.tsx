@@ -5,7 +5,7 @@ import { Grid } from "@/components/ui/Layout";
 export function JuntaStatsBar({ stats }: { stats: JuntaStats }) {
   const currentYear = new Date().getFullYear();
   const items = [
-    { label: t.junta.statsActive, value: `${stats.activeCount}`, sub: t.junta.intermittentSub(stats.intermittentCount) },
+    { label: t.junta.statsActive, value: `${stats.activeCount}` },
     { label: t.junta.statsQuota, value: `${stats.quotaPaidCount}/${stats.totalMembersForQuota}`, sub: `${currentYear}` },
     { label: t.junta.statsBolos, value: `${stats.bolosThisYear}`, sub: `${currentYear}` },
     { label: t.junta.statsAvgAttendance, value: `${stats.avgAttendance}`, sub: t.junta.perBoloSub },

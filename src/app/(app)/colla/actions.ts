@@ -38,7 +38,7 @@ export async function createMemberAction(
   const boardPositionRaw = String(formData.get("board_position") ?? "").trim();
   const boardPosition = (boardPositionRaw || null) as BoardPosition | null;
   const memberStatusRaw = String(formData.get("member_status") ?? "active").trim();
-  const validStatuses: MemberStatus[] = ["active", "inactive", "intermittent"];
+  const validStatuses: MemberStatus[] = ["active", "active_without_quota", "inactive"];
   const memberStatus: MemberStatus = validStatuses.includes(memberStatusRaw as MemberStatus)
     ? (memberStatusRaw as MemberStatus)
     : "active";

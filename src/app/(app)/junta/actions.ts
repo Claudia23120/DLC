@@ -182,7 +182,7 @@ export async function markDomiciliationAction(year: number, n: number): Promise<
     .from("profiles")
     .select("id, joined_date, quota_installments")
     .eq("quota_automatic", true)
-    .neq("member_status", "inactive");
+    .not("member_status", "in", "(inactive,active_without_quota)");
   if (mErr) throw new Error(mErr.message);
 
   const rows = (members ?? [])

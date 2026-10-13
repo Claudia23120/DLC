@@ -853,3 +853,8 @@ img { display: block; max-width: 100%; }
     padding: 0;
   }
 }
+
+/* Members without a quota don't need the quota fields (admin member form). */
+form:has(select[name="member_status"] option[value="active_without_quota"]:checked) .quota-fields {
+  display: none;
+}

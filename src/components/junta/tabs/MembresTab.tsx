@@ -10,7 +10,7 @@ import { ListCard, StatusPill, STATUS_CLOSED, STATUS_OPEN, rowTitleStyle, type S
 
 function memberStatusStyle(status: string): StatusStyle {
   if (status === "inactive") return { label: t.member.statusInactive, ...STATUS_CLOSED };
-  if (status === "intermittent") return { label: t.member.statusIntermittent, color: "#b45309", bg: "rgba(245,158,11,.12)" };
+  if (status === "active_without_quota") return { label: t.member.statusActiveWithoutQuota, ...STATUS_OPEN };
   return { label: t.member.statusActive, ...STATUS_OPEN };
 }
 

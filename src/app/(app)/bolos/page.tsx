@@ -16,7 +16,7 @@ export default async function BolosPage() {
       .from("profiles")
       .select("id, full_name, nickname, birth_date")
       .not("birth_date", "is", null)
-      .eq("member_status", "active"),
+      .in("member_status", ["active", "active_without_quota"]),
   ]);
   const birthdays = (birthdaysResult.data ?? []) as BirthdayItem[];
   const firstName = profile.full_name.split(" ")[0];
