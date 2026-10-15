@@ -3,7 +3,6 @@
 import { use, useActionState, useState } from "react";
 import Image from "next/image";
 import { signIn, type LoginState } from "./actions";
-import { Row } from "@/components/ui/Layout";
 import { AuthShell } from "@/components/layout/AuthShell";
 import { EyeIcon, EyeOffIcon } from "@/components/ui/icons";
 import { t } from "@/i18n/t";
@@ -79,10 +78,9 @@ export default function LoginPage({ searchParams }: { searchParams: Promise<{ er
           {pending ? t.common.loading : t.auth.signIn}
         </button>
 
-        <Row justify="between" wrap style={{ marginTop: 4 }}>
+        <div style={{ marginTop: 4 }}>
           <a href="/forgot-password" className="auth-link" style={{ fontSize: 13 }}>{t.auth.forgotPassword}</a>
-          <span style={{ color: "#f2aaa2", fontSize: 13 }}>{t.auth.contactBoard}</span>
-        </Row>
+        </div>
       </form>
     </AuthShell>
   );

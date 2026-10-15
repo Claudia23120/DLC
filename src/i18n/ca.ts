@@ -34,7 +34,6 @@ export const ca = {
     forgotPassword: "He oblidat la contrasenya",
     // No public sign-up: members are created by the board.
     noSignupNote: "Sóc nou a la colla",
-    contactBoard: "Demana l'alta a la junta",
     signOut: "Tanca la sessió",
     invalidCredentials: "Correu o contrasenya incorrectes.",
     genericError: "Hi ha hagut un error. Torna-ho a provar.",
