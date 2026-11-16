@@ -128,6 +128,20 @@ records Resend gives you for `diableslescorts.cat`). Until then, keep
 `EMAILS_ENABLED=false`: the app logs what it *would* send and works normally.
 Once the domain is verified, set `EMAILS_ENABLED=true` — no code changes.
 
+### Testing emails locally (Mailpit)
+
+To check the "new bolo" and reminder emails without a verified domain, run a
+local inbox and point the app at it:
+
+```bash
+docker compose --profile mail up -d mailpit
+```
+
+In `.env.local` set `EMAILS_ENABLED=true` and `SMTP_HOST=mailpit` (or
+`SMTP_HOST=localhost` if the app runs on your machine, not in Docker compose).
+Restart the app, create a bolo with "Notificar per email" on, and read the mail
+at http://localhost:8025. Leave `SMTP_HOST` empty in production (Resend is used).
+
 ---
 
 ## Local development without Docker

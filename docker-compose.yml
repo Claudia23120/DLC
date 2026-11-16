@@ -22,3 +22,16 @@ services:
     env_file:
       - .env.local
     restart: unless-stopped
+
+  # Local mail inbox for testing notifications (bolo created, reminders).
+  # Not started by `make start`; run: docker compose --profile mail up -d mailpit
+  # Then set SMTP_HOST=mailpit (or localhost when the app runs outside Docker)
+  # in .env.local and open http://localhost:8025.
+  mailpit:
+    image: axllent/mailpit:latest
+    container_name: colla-diables-mailpit
+    profiles: ["mail"]
+    ports:
+      - "8025:8025" # web inbox
+      - "1025:1025" # SMTP
+    restart: unless-stopped
