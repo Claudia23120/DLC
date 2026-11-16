@@ -21,13 +21,16 @@ import { googleCalendarUrl } from "@/lib/calendar/ics";
 import { formatLongDate, formatTime } from "@/lib/utils/dates";
 import { t } from "@/i18n/t";
 import { Row, Stack } from "@/components/ui/Layout";
+import { NewBoloCalendarPrompt } from "@/components/bolos/NewBoloCalendarPrompt";
 
 interface PageProps {
   params: Promise<{ id: string }>;
+  searchParams: Promise<{ nou?: string }>;
 }
 
-export default async function BoloDetailPage({ params }: PageProps) {
+export default async function BoloDetailPage({ params, searchParams }: PageProps) {
   const { id } = await params;
+  const { nou } = await searchParams;
   const profile = await requireProfile();
   const supabase = await createClient();
 
@@ -84,6 +87,7 @@ export default async function BoloDetailPage({ params }: PageProps) {
       />
       <PageContainer>
         <Stack gap={20}>
+          {nou === "1" && profile.is_admin && event.starts_at ? <NewBoloCalendarPrompt googleHref={googleHref} /> : null}
           {/* Info card */}
           <Card style={{ padding: 18, gap: 10 }}>
             <Row gap={10} wrap>

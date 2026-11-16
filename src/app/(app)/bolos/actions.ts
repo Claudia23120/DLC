@@ -163,7 +163,9 @@ export async function createEventAction(
   }
 
   revalidatePath("/bolos");
-  redirect(eventDetailHref(newId, kind));
+  const href = eventDetailHref(newId, kind);
+  // Bolos with a date: the detail page offers to add it to Google Calendar.
+  redirect(kind === "bolo" && startsAt ? `${href}?nou=1` : href);
 }
 
 /** Admin: set any member's attendance (or remove it with response=null). */
