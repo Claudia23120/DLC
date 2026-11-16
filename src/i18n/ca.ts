@@ -98,9 +98,6 @@ export const ca = {
   },
 
   boloDetail: {
-    googlePromptTitle: "Vols afegir aquest bolo al Google Calendar?",
-    googlePromptYes: "Afegeix-lo",
-    googlePromptNo: "No, gràcies",
     organizedBy: "Organitza",
     meetingPoint: "Lloc de trobada",
     summary: "Resum del bolo",
