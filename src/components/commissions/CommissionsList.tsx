@@ -15,7 +15,7 @@ import { t } from "@/i18n/t";
 import type { CommissionWithMembers } from "@/lib/data/commissions";
 
 /** Member view: commissions grouped by kind. The current year allows join /
- *  leave; past years are read-only, showing who was signed up. */
+ *  leave; past and next years are read-only, showing who was signed up. */
 export function CommissionsList({
   currentYear,
   firstYear,
@@ -60,13 +60,17 @@ export function CommissionsList({
         </button>
         <div style={{ textAlign: "center" }}>
           <div style={{ fontFamily: "var(--font-heading)", fontSize: 22 }}>{year}</div>
-          {!isCurrent ? <div style={{ fontSize: 11, opacity: 0.55 }}>{t.commissions.pastYear}</div> : null}
+          {!isCurrent ? (
+            <div style={{ fontSize: 11, opacity: 0.55 }}>
+              {year > currentYear ? t.commissions.nextYearMember : t.commissions.pastYear}
+            </div>
+          ) : null}
         </div>
         <button
           type="button"
           onClick={() => changeYear(1)}
           aria-label={t.commissions.nextYear}
-          disabled={fetching || year >= currentYear}
+          disabled={fetching || year >= currentYear + 1}
           className="btn btn-secondary btn-icon"
           style={{ borderRadius: "50%", fontSize: 16 }}
         >

@@ -323,9 +323,10 @@ export const ca = {
     prevYear: "Any anterior",
     nextYear: "Any següent",
     pastYear: "Any tancat · només consulta",
+    nextYearMember: "Any vinent · només consulta",
     pastYearAdmin: "Any tancat",
     inactiveMember: "inactiu",
-    nextYearAdmin: "Any vinent · encara no visible per als membres",
+    nextYearAdmin: "Any vinent",
     duplicate: (year: number) => `Duplica per al ${year}`,
     duplicateConfirm: (from: number, to: number) =>
       `Vols copiar les comissions del ${from} al ${to}? Es crearan amb les mateixes dades i dates un any més tard, sense ningú apuntat.`,
