@@ -439,6 +439,7 @@ export const ca = {
     allowMultipleOptions: "Permet seleccionar múltiples opcions",
     secretVote: "Votació secreta",
     notifyByEmail: "Notificar per email als membres",
+    addToGoogleCalendar: "Afegir al Google Calendar",
     customOptions: "Opcions personalitzades",
     customOptionPlaceholder: "Ex: Portes cadira?",
     addCustomOption: "+ Afegeix opció",

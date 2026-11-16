@@ -8,6 +8,8 @@ import { createEventAction, type CreateEventState } from "@/app/(app)/bolos/acti
 import { ToggleRow } from "@/components/ui/ToggleRow";
 import { RolePicker } from "@/components/bolos/RolePicker";
 import { t } from "@/i18n/t";
+import { googleCalendarUrl } from "@/lib/calendar/ics";
+import { madridDateTimeToISO } from "@/lib/utils/dates";
 import type { EventKind, MemberRole } from "@/types/database";
 import { Grid, Row, Stack } from "@/components/ui/Layout";
 import { Input } from "@/components/ui/Input";
@@ -31,14 +33,32 @@ export function CreateEventModal({ open, onClose }: { open: boolean; onClose: ()
   const [allowMultipleVotes, setAllowMultipleVotes] = useState(false);
   const [secretVote, setSecretVote] = useState(false);
   const [sendEmail, setSendEmail] = useState(true);
+  const [addToGoogle, setAddToGoogle] = useState(false);
 
   const title =
     kind === "bolo" ? t.create.newBolo : kind === "event" ? t.create.newMeeting : t.create.newPoll;
   const cta = kind === "votacio" ? t.create.openPoll : t.create.publishAndNotify;
 
+  /** Opens Google Calendar prefilled from the form. Runs on submit (a user
+   *  gesture) so the browser doesn't block the new tab. */
+  function openGoogleCalendar(e: React.FormEvent<HTMLFormElement>) {
+    if (!addToGoogle || kind === "votacio") return;
+    const fd = new FormData(e.currentTarget);
+    const start = madridDateTimeToISO(String(fd.get("date") ?? ""), String(fd.get("time") ?? ""));
+    const title = String(fd.get("title") ?? "").trim();
+    if (!start || !title) return;
+    const url = googleCalendarUrl({
+      uid: "new",
+      title,
+      start,
+      location: String(fd.get("location") ?? "") || undefined,
+    });
+    window.open(url, "_blank", "noopener,noreferrer");
+  }
+
   return (
     <Modal open={open} onClose={onClose} title={title}>
-      <form action={formAction} className="stack" style={{ gap: 14 }}>
+      <form action={formAction} onSubmit={openGoogleCalendar} className="stack" style={{ gap: 14 }}>
         <input type="hidden" name="kind" value={kind} />
 
         {/* Kind selector */}
@@ -119,6 +139,9 @@ export function CreateEventModal({ open, onClose }: { open: boolean; onClose: ()
         ) : null}
 
         <ToggleRow label={t.create.notifyByEmail} checked={sendEmail} onChange={setSendEmail} name="send_email" />
+        {kind !== "votacio" ? (
+          <ToggleRow label={t.create.addToGoogleCalendar} checked={addToGoogle} onChange={setAddToGoogle} name="add_to_google" />
+        ) : null}
 
         {state.error ? (
           <p style={{ margin: 0, fontSize: 13, color: "var(--color-accent-500)" }} role="alert">
