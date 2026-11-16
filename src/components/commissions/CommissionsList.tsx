@@ -15,7 +15,7 @@ import { t } from "@/i18n/t";
 import type { CommissionWithMembers } from "@/lib/data/commissions";
 
 /** Member view: commissions grouped by kind. The current year allows join /
- *  leave; past and next years are read-only, showing who was signed up. */
+ *  leave; the next year allows them too (sign-ups open early); past years are read-only, showing who was signed up. */
 export function CommissionsList({
   currentYear,
   firstYear,
@@ -33,6 +33,8 @@ export function CommissionsList({
   const [fetching, startFetch] = useTransition();
   const isCurrent = year === currentYear;
 
+  const editable = year >= currentYear;
+
   function changeYear(delta: number) {
     const next = year + delta;
     setYear(next);
@@ -40,6 +42,13 @@ export function CommissionsList({
     startFetch(async () => {
       setPastCommissions(await getCommissionsAction(next));
     });
+  }
+
+  /** The current year refreshes through revalidatePath; other years are
+   *  fetched client-side, so reload them after a join / leave. */
+  async function reloadYear() {
+    if (isCurrent) return;
+    setPastCommissions(await getCommissionsAction(year));
   }
 
   const shown = isCurrent ? commissions : pastCommissions;
@@ -62,7 +71,7 @@ export function CommissionsList({
           <div style={{ fontFamily: "var(--font-heading)", fontSize: 22 }}>{year}</div>
           {!isCurrent ? (
             <div style={{ fontSize: 11, opacity: 0.55 }}>
-              {year > currentYear ? t.commissions.nextYearMember : t.commissions.pastYear}
+              {year > currentYear ? t.commissions.nextYearLabel : t.commissions.pastYear}
             </div>
           ) : null}
         </div>
@@ -87,7 +96,8 @@ export function CommissionsList({
           commissions={filtered}
           search={search}
           onSearch={setSearch}
-          currentUserId={isCurrent ? currentUserId : null}
+          currentUserId={editable ? currentUserId : null}
+          onChanged={reloadYear}
         />
       )}
     </Stack>
@@ -99,8 +109,10 @@ function CommissionSections({
   search,
   onSearch: setSearch,
   currentUserId,
+  onChanged,
 }: {
   commissions: CommissionWithMembers[];
+  onChanged: () => void;
   search: string;
   onSearch: (q: string) => void;
   /** null = read-only (past year): no join / leave buttons. */
@@ -127,7 +139,7 @@ function CommissionSections({
                 <CommissionCard
                   key={c.id}
                   commission={c}
-                  actions={currentUserId ? <JoinButton commission={c} currentUserId={currentUserId} /> : undefined}
+                  actions={currentUserId ? <JoinButton commission={c} currentUserId={currentUserId} onChanged={onChanged} /> : undefined}
                 />
               ))}
             </Stack>
@@ -138,7 +150,15 @@ function CommissionSections({
   );
 }
 
-function JoinButton({ commission: c, currentUserId }: { commission: CommissionWithMembers; currentUserId: string }) {
+function JoinButton({
+  commission: c,
+  currentUserId,
+  onChanged,
+}: {
+  commission: CommissionWithMembers;
+  currentUserId: string;
+  onChanged: () => void;
+}) {
   const [pending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
   const joined = c.members.some((m) => m.id === currentUserId);
@@ -149,6 +169,7 @@ function JoinButton({ commission: c, currentUserId }: { commission: CommissionWi
     startTransition(async () => {
       const res = await action(c.id);
       if (res.error) setError(res.error);
+      else onChanged();
     });
   }
 
